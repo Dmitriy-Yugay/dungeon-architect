@@ -6,8 +6,33 @@ heroes.
 
 ## Status
 
-The project is in the design and architecture phase. No game implementation
-exists yet.
+The initial project scaffold is in place. It opens an empty desktop window;
+gameplay systems have not been implemented yet.
+
+## Requirements
+
+- JDK 21
+
+## Run
+
+```shell
+./gradlew lwjgl3:run
+```
+
+On macOS, use the Gradle run task so the LWJGL process starts on the first
+thread.
+
+## Build
+
+```shell
+./gradlew build
+```
+
+## Modules
+
+- `core`: platform-independent game application and future shared game code.
+- `lwjgl3`: desktop launcher and LWJGL3-specific window configuration.
+- `assets`: shared game assets; currently empty.
 
 ## Documentation
 
@@ -15,10 +40,8 @@ exists yet.
 - [Game design](docs/game-design.md)
 - [Architecture](docs/architecture.md)
 
-## Planned technology
+## Technology
 
 - Kotlin
 - libGDX
 - Gradle
-
-The first milestone is a desktop prototype of the build-and-defend loop.

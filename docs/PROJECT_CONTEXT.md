@@ -35,3 +35,24 @@ additional platforms are deferred until the core loop is proven.
 
 The repository contains planning documentation only. Gameplay code, assets,
 build configuration, and project modules have not been created.
+
+## Technology
+
+Language:
+Kotlin
+
+Engine:
+libGDX
+
+Platform:
+Steam
+
+## Current milestone
+
+Create a minimal playable prototype.
+
+Features:
+- grid map
+- enemy movement
+- tower placement
+- combat

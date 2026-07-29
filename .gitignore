@@ -26,5 +26,13 @@ replay_pid*
 # Kotlin Gradle plugin data, see https://kotlinlang.org/docs/whatsnew20.html#new-directory-for-kotlin-data-in-gradle-projects
 .kotlin/
 
+# Gradle
+.gradle/
+**/build/
+build/
+
+# Keep the Gradle wrapper executable JAR under version control.
+!gradle/wrapper/gradle-wrapper.jar
+
 # IntelliJ IDEA
 .idea/
