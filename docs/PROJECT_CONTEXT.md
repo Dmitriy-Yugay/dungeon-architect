@@ -33,8 +33,10 @@ additional platforms are deferred until the core loop is proven.
 
 ## Current state
 
-The repository contains planning documentation only. Gameplay code, assets,
-build configuration, and project modules have not been created.
+The repository contains a runnable Kotlin and libGDX desktop project split into
+`core` and `lwjgl3` modules. The current prototype renders a selectable dungeon
+grid with an entrance and objective. Enemy movement, tower placement, combat,
+assets, and audio have not been implemented.
 
 ## Technology
 

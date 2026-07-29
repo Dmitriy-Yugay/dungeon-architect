@@ -6,8 +6,14 @@ heroes.
 
 ## Status
 
-The initial project scaffold is in place. It opens an empty desktop window;
-gameplay systems have not been implemented yet.
+The initial project scaffold and first visual prototype are in place. The
+desktop application displays a selectable dungeon grid with an entrance and an
+objective; gameplay systems have not been implemented yet.
+
+## Prototype controls
+
+- Move the pointer over a tile to highlight it.
+- Click a tile to select it.
 
 ## Requirements
 
