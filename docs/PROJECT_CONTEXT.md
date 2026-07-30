@@ -77,7 +77,7 @@ Treat every numbered item below as a separate task:
 5. [x] Validate a connection between compatible adjacent doors.
 6. [x] Place one hard-coded room in the domain model.
 7. [x] Render placed room cells with placeholder colors.
-8. [ ] Show a valid or invalid placement preview under the pointer.
+8. [x] Show a valid or invalid placement preview under the pointer.
 9. [ ] Commit a valid room placement on click.
 10. [ ] Produce walkable grid positions from placed rooms.
 11. [ ] Find a four-directional path through those positions; test success and

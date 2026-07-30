@@ -6,6 +6,7 @@ import com.badlogic.gdx.math.Matrix4
 import com.badlogic.gdx.utils.Disposable
 import com.dungeonarchitect.domain.DungeonGrid
 import com.dungeonarchitect.domain.GridPosition
+import com.dungeonarchitect.domain.RoomPlacementPreview
 import com.dungeonarchitect.domain.TileType
 import kotlin.math.floor
 
@@ -30,11 +31,13 @@ class DungeonGridRenderer : Disposable {
     fun render(
         grid: DungeonGrid,
         projection: Matrix4,
+        placementPreview: RoomPlacementPreview?,
         hoveredPosition: GridPosition?,
         selectedPosition: GridPosition?,
     ) {
         shapes.projectionMatrix = projection
         renderTiles(grid)
+        placementPreview?.let(::renderPlacementPreview)
         renderHighlights(hoveredPosition, selectedPosition)
     }
 
@@ -55,6 +58,22 @@ class DungeonGridRenderer : Disposable {
                     TILE_SIZE - TILE_GAP * 2,
                 )
             }
+        }
+
+        shapes.end()
+    }
+
+    private fun renderPlacementPreview(preview: RoomPlacementPreview) {
+        shapes.begin(ShapeRenderer.ShapeType.Filled)
+        shapes.color = if (preview.isValid) VALID_PREVIEW_COLOR else INVALID_PREVIEW_COLOR
+
+        preview.room.gridPositions.forEach { position ->
+            shapes.rect(
+                position.column * TILE_SIZE + TILE_GAP,
+                position.row * TILE_SIZE + TILE_GAP,
+                TILE_SIZE - TILE_GAP * 2,
+                TILE_SIZE - TILE_GAP * 2,
+            )
         }
 
         shapes.end()
@@ -106,6 +125,8 @@ class DungeonGridRenderer : Disposable {
         val ROOM_COLOR = Color.valueOf("5D6D7E")
         val ENTRANCE_COLOR = Color.valueOf("3A9D5D")
         val OBJECTIVE_COLOR = Color.valueOf("B84B4B")
+        val VALID_PREVIEW_COLOR = Color.valueOf("4EA86B")
+        val INVALID_PREVIEW_COLOR = Color.valueOf("D85C5C")
         val HOVER_COLOR = Color.valueOf("E0B84B")
         val SELECTION_COLOR = Color.valueOf("F2F2F2")
     }

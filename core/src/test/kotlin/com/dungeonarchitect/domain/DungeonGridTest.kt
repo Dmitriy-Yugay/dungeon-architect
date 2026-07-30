@@ -123,6 +123,72 @@ class DungeonGridTest {
         }
     }
 
+    @Test
+    fun `grid accepts placement that fits without overlap and connects through doors`() {
+        val existingRoom = placedRoom(
+            origin = GridPosition(column = 2, row = 1),
+            doorPosition = GridPosition(column = 1, row = 0),
+        )
+        val grid = dungeonGrid(
+            width = 6,
+            height = 4,
+            placedRooms = listOf(existingRoom),
+        )
+        val candidate = placedRoom(
+            origin = GridPosition(column = 4, row = 1),
+            doorPosition = GridPosition(column = 0, row = 0),
+        )
+
+        assertTrue(grid.canPlace(candidate))
+    }
+
+    @Test
+    fun `grid rejects placement outside its bounds`() {
+        val grid = dungeonGrid(
+            placedRooms = listOf(
+                placedRoom(origin = GridPosition(column = 1, row = 0)),
+            ),
+        )
+        val candidate = placedRoom(origin = GridPosition(column = 3, row = 1))
+
+        assertFalse(grid.canPlace(candidate))
+    }
+
+    @Test
+    fun `grid rejects placement that overlaps an existing room`() {
+        val grid = dungeonGrid(
+            placedRooms = listOf(
+                placedRoom(origin = GridPosition(column = 1, row = 0)),
+            ),
+        )
+        val candidate = placedRoom(origin = GridPosition(column = 2, row = 0))
+
+        assertFalse(grid.canPlace(candidate))
+    }
+
+    @Test
+    fun `grid rejects placement without a compatible adjacent door`() {
+        val existingRoom = placedRoom(
+            origin = GridPosition(column = 0, row = 0),
+            doorPosition = GridPosition(column = 0, row = 0),
+        )
+        val grid = dungeonGrid(placedRooms = listOf(existingRoom))
+        val candidate = placedRoom(
+            origin = GridPosition(column = 2, row = 0),
+            doorPosition = GridPosition(column = 1, row = 0),
+        )
+
+        assertFalse(grid.canPlace(candidate))
+    }
+
+    @Test
+    fun `grid rejects placement when there is no existing room to connect to`() {
+        val grid = dungeonGrid()
+        val candidate = placedRoom(origin = GridPosition(column = 1, row = 0))
+
+        assertFalse(grid.canPlace(candidate))
+    }
+
     private fun dungeonGrid(
         width: Int = 4,
         height: Int = 3,
@@ -137,13 +203,16 @@ class DungeonGridTest {
         placedRooms = placedRooms,
     )
 
-    private fun placedRoom(origin: GridPosition) = PlacedRoom(
+    private fun placedRoom(
+        origin: GridPosition,
+        doorPosition: GridPosition = GridPosition(column = 0, row = 0),
+    ) = PlacedRoom(
         blueprint = RoomBlueprint(
             footprint = setOf(
                 GridPosition(column = 0, row = 0),
                 GridPosition(column = 1, row = 0),
             ),
-            doorPositions = setOf(GridPosition(column = 0, row = 0)),
+            doorPositions = setOf(doorPosition),
         ),
         origin = origin,
     )

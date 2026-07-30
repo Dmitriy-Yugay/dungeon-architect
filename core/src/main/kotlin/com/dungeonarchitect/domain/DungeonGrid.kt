@@ -33,6 +33,19 @@ class DungeonGrid(
     fun contains(column: Int, row: Int): Boolean =
         column in 0 until width && row in 0 until height
 
+    fun canPlace(room: PlacedRoom): Boolean =
+        room.fitsInside(this) &&
+            placedRooms.none(room::overlaps) &&
+            placedRooms.any(room::connectsTo)
+
+    fun placementPreview(
+        blueprint: RoomBlueprint,
+        origin: GridPosition,
+    ): RoomPlacementPreview {
+        val room = PlacedRoom(blueprint, origin)
+        return RoomPlacementPreview(room, canPlace(room))
+    }
+
     fun tileAt(position: GridPosition): TileType =
         tileAt(position.column, position.row)
 

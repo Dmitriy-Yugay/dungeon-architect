@@ -10,6 +10,7 @@ import com.dungeonarchitect.domain.DungeonGrid
 import com.dungeonarchitect.domain.GridPosition
 import com.dungeonarchitect.domain.PlacedRoom
 import com.dungeonarchitect.domain.RoomBlueprint
+import com.dungeonarchitect.domain.RoomPlacementPreview
 import com.dungeonarchitect.presentation.DungeonGridRenderer
 
 class PrototypeScreen(
@@ -30,7 +31,13 @@ class PrototypeScreen(
     override fun render(delta: Float) {
         updatePointerState()
         ScreenUtils.clear(BACKGROUND_RED, BACKGROUND_GREEN, BACKGROUND_BLUE, BACKGROUND_ALPHA)
-        gridRenderer.render(grid, camera.combined, hoveredPosition, selectedPosition)
+        gridRenderer.render(
+            grid = grid,
+            projection = camera.combined,
+            placementPreview = placementPreview(grid, hoveredPosition),
+            hoveredPosition = hoveredPosition,
+            selectedPosition = selectedPosition,
+        )
     }
 
     override fun resize(width: Int, height: Int) {
@@ -90,5 +97,13 @@ class PrototypeScreen(
             objective = GridPosition(column = 15, row = 4),
             placedRooms = listOf(prototypeRoom),
         )
+
+        internal fun placementPreview(
+            grid: DungeonGrid,
+            hoveredPosition: GridPosition?,
+        ): RoomPlacementPreview? =
+            hoveredPosition?.let { origin ->
+                grid.placementPreview(prototypeRoom.blueprint, origin)
+            }
     }
 }
