@@ -7,6 +7,9 @@ data class PlacedRoom(
     val gridPositions: Set<GridPosition> =
         blueprint.footprint.mapTo(mutableSetOf(), ::toGridPosition)
 
+    fun fitsInside(grid: DungeonGrid): Boolean =
+        gridPositions.all(grid::contains)
+
     fun toGridPosition(localPosition: GridPosition): GridPosition {
         require(localPosition in blueprint.footprint) {
             "Local position $localPosition is not part of the room footprint."
