@@ -86,6 +86,54 @@ class PlacedRoomTest {
         assertTrue(overlappingRoom.overlaps(room))
     }
 
+    @Test
+    fun `placed rooms connect through cardinally adjacent doors`() {
+        val room = placedRoom(
+            origin = position(0, 0),
+            doorPosition = position(1, 0),
+        )
+        val connectedRoom = placedRoom(
+            origin = position(2, 0),
+            doorPosition = position(0, 0),
+        )
+
+        assertTrue(room.connectsTo(connectedRoom))
+        assertTrue(connectedRoom.connectsTo(room))
+    }
+
+    @Test
+    fun `placed rooms do not connect when only non-door cells are adjacent`() {
+        val room = placedRoom(
+            origin = position(0, 0),
+            doorPosition = position(0, 0),
+        )
+        val touchingRoom = placedRoom(
+            origin = position(2, 0),
+            doorPosition = position(1, 0),
+        )
+
+        assertFalse(room.connectsTo(touchingRoom))
+        assertFalse(touchingRoom.connectsTo(room))
+    }
+
+    @Test
+    fun `placed rooms do not connect through diagonal doors`() {
+        val room = singleCellRoom(origin = position(0, 0))
+        val diagonalRoom = singleCellRoom(origin = position(1, 1))
+
+        assertFalse(room.connectsTo(diagonalRoom))
+        assertFalse(diagonalRoom.connectsTo(room))
+    }
+
+    @Test
+    fun `overlapping placed rooms are not connected`() {
+        val room = placedRoom(origin = position(0, 0))
+        val overlappingRoom = placedRoom(origin = position(1, 0))
+
+        assertFalse(room.connectsTo(overlappingRoom))
+        assertFalse(overlappingRoom.connectsTo(room))
+    }
+
     private fun dungeonGrid() = DungeonGrid(
         width = 4,
         height = 3,
@@ -93,7 +141,10 @@ class PlacedRoomTest {
         objective = position(3, 1),
     )
 
-    private fun placedRoom(origin: GridPosition) = PlacedRoom(
+    private fun placedRoom(
+        origin: GridPosition,
+        doorPosition: GridPosition = position(0, 0),
+    ) = PlacedRoom(
         blueprint = RoomBlueprint(
             footprint = setOf(
                 position(0, 0),
@@ -101,6 +152,14 @@ class PlacedRoomTest {
                 position(0, 1),
                 position(1, 1),
             ),
+            doorPositions = setOf(doorPosition),
+        ),
+        origin = origin,
+    )
+
+    private fun singleCellRoom(origin: GridPosition) = PlacedRoom(
+        blueprint = RoomBlueprint(
+            footprint = setOf(position(0, 0)),
             doorPositions = setOf(position(0, 0)),
         ),
         origin = origin,

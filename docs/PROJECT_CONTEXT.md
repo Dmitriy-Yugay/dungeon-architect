@@ -74,7 +74,7 @@ Treat every numbered item below as a separate task:
    cells to grid positions.
 3. [x] Check whether a room fits inside the grid; test boundary cases.
 4. [x] Reject overlap with an existing room; test touching and overlapping rooms.
-5. [ ] Validate a connection between compatible adjacent doors.
+5. [x] Validate a connection between compatible adjacent doors.
 6. [ ] Place one hard-coded room in the domain model.
 7. [ ] Render placed room cells with placeholder colors.
 8. [ ] Show a valid or invalid placement preview under the pointer.
