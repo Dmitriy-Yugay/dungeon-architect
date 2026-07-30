@@ -10,6 +10,9 @@ data class PlacedRoom(
     fun fitsInside(grid: DungeonGrid): Boolean =
         gridPositions.all(grid::contains)
 
+    fun overlaps(other: PlacedRoom): Boolean =
+        gridPositions.any { it in other.gridPositions }
+
     fun toGridPosition(localPosition: GridPosition): GridPosition {
         require(localPosition in blueprint.footprint) {
             "Local position $localPosition is not part of the room footprint."

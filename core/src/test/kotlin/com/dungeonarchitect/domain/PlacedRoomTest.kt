@@ -68,6 +68,24 @@ class PlacedRoomTest {
         assertFalse(placedRoom(origin = position(0, 2)).fitsInside(grid))
     }
 
+    @Test
+    fun `placed room does not overlap a room touching its edge`() {
+        val room = placedRoom(origin = position(0, 0))
+        val touchingRoom = placedRoom(origin = position(2, 0))
+
+        assertFalse(room.overlaps(touchingRoom))
+        assertFalse(touchingRoom.overlaps(room))
+    }
+
+    @Test
+    fun `placed room overlaps a room sharing a grid position`() {
+        val room = placedRoom(origin = position(0, 0))
+        val overlappingRoom = placedRoom(origin = position(1, 1))
+
+        assertTrue(room.overlaps(overlappingRoom))
+        assertTrue(overlappingRoom.overlaps(room))
+    }
+
     private fun dungeonGrid() = DungeonGrid(
         width = 4,
         height = 3,
