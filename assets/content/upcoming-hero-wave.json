@@ -2,5 +2,6 @@
   "heroType": "militia_recruit",
   "heroDisplayName": "Militia Recruit",
   "count": 4,
+  "movementSpeedTilesPerSecond": 2.0,
   "traitDescription": "A straightforward melee fighter with no special defenses."
 }

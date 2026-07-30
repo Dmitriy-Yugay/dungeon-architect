@@ -17,6 +17,7 @@ class UpcomingHeroWaveParserTest {
                 heroType = "militia_recruit",
                 heroDisplayName = "Militia Recruit",
                 count = 4,
+                movementSpeedTilesPerSecond = 2f,
                 traitDescription = "A straightforward melee fighter with no special defenses.",
             ),
             wave,
@@ -30,6 +31,7 @@ class UpcomingHeroWaveParserTest {
               "heroType": "militia_recruit",
               "heroDisplayName": "Militia Recruit",
               "count": 0,
+              "movementSpeedTilesPerSecond": 2.0,
               "traitDescription": "A straightforward melee fighter."
             }
         """.trimIndent()
@@ -46,6 +48,7 @@ class UpcomingHeroWaveParserTest {
               "heroType": "militia_recruit",
               "heroDisplayName": "Militia Recruit",
               "count": 2.5,
+              "movementSpeedTilesPerSecond": 2.0,
               "traitDescription": "A straightforward melee fighter."
             }
         """.trimIndent()
@@ -61,12 +64,32 @@ class UpcomingHeroWaveParserTest {
             {
               "heroType": "militia_recruit",
               "heroDisplayName": "Militia Recruit",
-              "count": 4
+              "count": 4,
+              "movementSpeedTilesPerSecond": 2.0
             }
         """.trimIndent()
 
         assertFailsWith<IllegalArgumentException> {
             UpcomingHeroWaveParser.parse(json)
+        }
+    }
+
+    @Test
+    fun `parser rejects invalid movement speed data`() {
+        listOf("0", "-1", "\"fast\"").forEach { speed ->
+            val json = """
+                {
+                  "heroType": "militia_recruit",
+                  "heroDisplayName": "Militia Recruit",
+                  "count": 4,
+                  "movementSpeedTilesPerSecond": $speed,
+                  "traitDescription": "A straightforward melee fighter."
+                }
+            """.trimIndent()
+
+            assertFailsWith<IllegalArgumentException> {
+                UpcomingHeroWaveParser.parse(json)
+            }
         }
     }
 

@@ -19,6 +19,8 @@ object UpcomingHeroWaveParser {
             heroType = root.requiredString("heroType"),
             heroDisplayName = root.requiredString("heroDisplayName"),
             count = root.requiredInt("count"),
+            movementSpeedTilesPerSecond =
+                root.requiredFloat("movementSpeedTilesPerSecond"),
             traitDescription = root.requiredString("traitDescription"),
         )
     }
@@ -42,6 +44,14 @@ object UpcomingHeroWaveParser {
             "Upcoming hero wave field '$name' must fit in a 32-bit integer."
         }
         return number.toInt()
+    }
+
+    private fun JsonValue.requiredFloat(name: String): Float {
+        val value = required(name)
+        require(value.isNumber) {
+            "Upcoming hero wave field '$name' must be a number."
+        }
+        return value.asFloat()
     }
 
     private fun JsonValue.required(name: String): JsonValue =

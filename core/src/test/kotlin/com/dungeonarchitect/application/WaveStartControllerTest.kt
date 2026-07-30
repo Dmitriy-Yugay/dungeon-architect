@@ -68,6 +68,7 @@ class WaveStartControllerTest {
         heroType = "militia_recruit",
         heroDisplayName = "Militia Recruit",
         count = 4,
+        movementSpeedTilesPerSecond = 2f,
         traitDescription = "A straightforward melee fighter.",
     )
 }

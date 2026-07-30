@@ -4,12 +4,14 @@ import com.dungeonarchitect.domain.DungeonGrid
 import com.dungeonarchitect.domain.GridPosition
 import com.dungeonarchitect.domain.PlacedRoom
 import com.dungeonarchitect.domain.RoomBlueprint
+import com.dungeonarchitect.domain.StartedHeroWave
 import com.dungeonarchitect.domain.UpcomingHeroWave
 import com.dungeonarchitect.presentation.ControlBounds
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNull
+import kotlin.test.assertSame
 import kotlin.test.assertTrue
 
 class PrototypeScreenTest {
@@ -106,6 +108,7 @@ class PrototypeScreenTest {
                   "heroType": "militia_recruit",
                   "heroDisplayName": "Militia Recruit",
                   "count": 4,
+                  "movementSpeedTilesPerSecond": 2.0,
                   "traitDescription": "A straightforward melee fighter."
                 }
             """.trimIndent()
@@ -161,6 +164,43 @@ class PrototypeScreenTest {
         assertNull(controller.startedWave)
     }
 
+    @Test
+    fun `started wave creates one hero simulation and render updates reuse it`() {
+        val startedWave = StartedHeroWave(
+            wave = upcomingWave(),
+            route = listOf(
+                GridPosition(column = 0, row = 0),
+                GridPosition(column = 2, row = 0),
+            ),
+        )
+
+        val simulation = PrototypeScreen.advanceHeroSimulation(
+            simulation = null,
+            startedWave = startedWave,
+            elapsedSeconds = 0.25f,
+        )!!
+        val advancedAgain = PrototypeScreen.advanceHeroSimulation(
+            simulation = simulation,
+            startedWave = startedWave,
+            elapsedSeconds = 0.25f,
+        )!!
+
+        assertSame(simulation, advancedAgain)
+        assertEquals(1f, advancedAgain.heroState.position.column)
+        assertFalse(advancedAgain.heroState.hasArrived)
+    }
+
+    @Test
+    fun `hero simulation remains absent before a wave starts`() {
+        assertNull(
+            PrototypeScreen.advanceHeroSimulation(
+                simulation = null,
+                startedWave = null,
+                elapsedSeconds = 0.25f,
+            ),
+        )
+    }
+
     private fun readyGrid() = DungeonGrid(
         width = 3,
         height = 1,
@@ -181,6 +221,7 @@ class PrototypeScreenTest {
         heroType = "militia_recruit",
         heroDisplayName = "Militia Recruit",
         count = 4,
+        movementSpeedTilesPerSecond = 2f,
         traitDescription = "A straightforward melee fighter.",
     )
 }

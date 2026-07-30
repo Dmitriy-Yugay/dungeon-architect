@@ -12,12 +12,14 @@ import com.dungeonarchitect.domain.GridPosition
 import com.dungeonarchitect.domain.PlacedRoom
 import com.dungeonarchitect.domain.RoomBlueprint
 import com.dungeonarchitect.domain.RoomPlacementPreview
+import com.dungeonarchitect.domain.StartedHeroWave
 import com.dungeonarchitect.domain.UpcomingHeroWave
 import com.dungeonarchitect.presentation.ControlBounds
 import com.dungeonarchitect.presentation.DungeonGridRenderer
 import com.dungeonarchitect.presentation.WavePanelLayout
 import com.dungeonarchitect.presentation.WavePanelRenderer
 import com.dungeonarchitect.presentation.WavePanelView
+import com.dungeonarchitect.simulation.FixedStepHeroSimulation
 
 class PrototypeScreen(
     private val grid: DungeonGrid = prototypeGrid(),
@@ -40,9 +42,15 @@ class PrototypeScreen(
 
     private var hoveredPosition: GridPosition? = null
     private var selectedPosition: GridPosition? = null
+    private var heroSimulation: FixedStepHeroSimulation? = null
 
     override fun render(delta: Float) {
         updatePointerState()
+        heroSimulation = advanceHeroSimulation(
+            simulation = heroSimulation,
+            startedWave = waveStartController.startedWave,
+            elapsedSeconds = delta,
+        )
         ScreenUtils.clear(BACKGROUND_RED, BACKGROUND_GREEN, BACKGROUND_BLUE, BACKGROUND_ALPHA)
         gridRenderer.render(
             grid = grid,
@@ -159,6 +167,14 @@ class PrototypeScreen(
             readInternalText: (String) -> String,
         ): UpcomingHeroWave =
             UpcomingHeroWaveParser.parse(readInternalText(UPCOMING_WAVE_PATH))
+
+        internal fun advanceHeroSimulation(
+            simulation: FixedStepHeroSimulation?,
+            startedWave: StartedHeroWave?,
+            elapsedSeconds: Float,
+        ): FixedStepHeroSimulation? =
+            (simulation ?: startedWave?.let(::FixedStepHeroSimulation))
+                ?.also { it.advance(elapsedSeconds) }
 
         internal fun handleClick(
             grid: DungeonGrid,

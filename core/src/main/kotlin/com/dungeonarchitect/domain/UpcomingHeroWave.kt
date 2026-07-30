@@ -4,6 +4,7 @@ data class UpcomingHeroWave(
     val heroType: String,
     val heroDisplayName: String,
     val count: Int,
+    val movementSpeedTilesPerSecond: Float,
     val traitDescription: String,
 ) {
     init {
@@ -15,6 +16,11 @@ data class UpcomingHeroWave(
         }
         require(count > 0) {
             "A hero wave must contain at least one hero."
+        }
+        require(movementSpeedTilesPerSecond.isFinite() &&
+            movementSpeedTilesPerSecond > 0f
+        ) {
+            "A hero wave's movement speed must be finite and positive."
         }
         require(traitDescription.isNotBlank()) {
             "A hero wave must describe the hero's important trait."

@@ -11,12 +11,14 @@ class UpcomingHeroWaveTest {
             heroType = "militia_recruit",
             heroDisplayName = "Militia Recruit",
             count = 4,
+            movementSpeedTilesPerSecond = 2f,
             traitDescription = "A straightforward melee fighter.",
         )
 
         assertEquals("militia_recruit", wave.heroType)
         assertEquals("Militia Recruit", wave.heroDisplayName)
         assertEquals(4, wave.count)
+        assertEquals(2f, wave.movementSpeedTilesPerSecond)
         assertEquals("A straightforward melee fighter.", wave.traitDescription)
     }
 
@@ -43,15 +45,26 @@ class UpcomingHeroWaveTest {
         }
     }
 
+    @Test
+    fun `wave rejects non-positive or non-finite movement speeds`() {
+        listOf(0f, -1f, Float.NaN, Float.POSITIVE_INFINITY).forEach { speed ->
+            assertFailsWith<IllegalArgumentException> {
+                wave(movementSpeedTilesPerSecond = speed)
+            }
+        }
+    }
+
     private fun wave(
         heroType: String = "militia_recruit",
         heroDisplayName: String = "Militia Recruit",
         count: Int = 4,
+        movementSpeedTilesPerSecond: Float = 2f,
         traitDescription: String = "A straightforward melee fighter.",
     ) = UpcomingHeroWave(
         heroType = heroType,
         heroDisplayName = heroDisplayName,
         count = count,
+        movementSpeedTilesPerSecond = movementSpeedTilesPerSecond,
         traitDescription = traitDescription,
     )
 }
