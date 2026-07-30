@@ -18,16 +18,16 @@ Additional platform modules should be added only when needed.
 
 ## Core boundaries
 
-- **Domain:** currently contains the grid and tile model; it will also own
-  entities, stats, resources, waves, and rules.
-- **Simulation:** will contain pathfinding, targeting, combat, movement, and
-  wave updates.
-- **Presentation:** currently contains grid rendering; it will also contain
-  animation, audio, camera, and UI.
-- **Application:** currently contains the prototype screen and pointer input;
-  it will coordinate commands and game-state transitions.
-- **Content:** will contain external definitions for defenses, heroes, and
-  waves.
+- **Domain:** grids, rooms, doors, sockets, traps, authored wave data, hero
+  state, and run phases.
+- **Simulation:** four-directional pathfinding, fixed-step hero movement, trap
+  targeting, cooldown, and damage.
+- **Presentation:** placeholder grid, placement preview, hero marker, wave
+  information, objective health, and run controls.
+- **Application:** the prototype screen plus controllers for starting,
+  advancing, resolving, and restarting the wave.
+- **Content:** JSON definitions and parsers for the prototype run, hero wave,
+  and trap.
 
 Domain objects should not depend on rendering classes. Systems update the game
 state on a fixed simulation step; rendering may interpolate between steps.
@@ -65,9 +65,16 @@ tests.
   defeat.
 - Restart resets transient wave progress, objective health, hero state, and
   trap cooldowns while preserving the player's room and trap layout.
-- Manage asset lifetimes centrally through libGDX `AssetManager`.
-- Save versioned data rather than serialized runtime objects.
-- Add unit tests for placement validity, routing, combat, and wave completion.
 
-Final package names and detailed APIs should be chosen during the first
-prototype, when their responsibilities are concrete.
+## Near-term constraints
+
+- Keep early room differences limited to geometry, doors, and sockets.
+- Load room blueprints from authored content before adding special room rules.
+- Keep selection and build-phase rules in the application or domain layers,
+  not in renderers.
+- Do not allow room or trap placement after a wave starts.
+- Continue testing placement, routing, combat, and run outcomes without
+  starting libGDX.
+
+Central asset management, saves, additional platforms, and richer content are
+deferred until the room-choice loop is proven.
