@@ -7,7 +7,9 @@ class DungeonGrid(
     val objective: GridPosition,
     placedRooms: List<PlacedRoom> = emptyList(),
 ) {
-    val placedRooms: List<PlacedRoom> = placedRooms.toList()
+    private val mutablePlacedRooms = placedRooms.toMutableList()
+    val placedRooms: List<PlacedRoom>
+        get() = mutablePlacedRooms.toList()
 
     init {
         require(width > 0) { "Grid width must be positive." }
@@ -15,12 +17,12 @@ class DungeonGrid(
         require(contains(entrance)) { "Entrance must be inside the grid." }
         require(contains(objective)) { "Objective must be inside the grid." }
         require(entrance != objective) { "Entrance and objective must occupy different tiles." }
-        require(this.placedRooms.all { it.fitsInside(this) }) {
+        require(mutablePlacedRooms.all { it.fitsInside(this) }) {
             "Every placed room must fit inside the grid."
         }
         require(
-            this.placedRooms.withIndex().all { (index, room) ->
-                this.placedRooms.drop(index + 1).none(room::overlaps)
+            mutablePlacedRooms.withIndex().all { (index, room) ->
+                mutablePlacedRooms.drop(index + 1).none(room::overlaps)
             },
         ) {
             "Placed rooms must not overlap."
@@ -35,8 +37,17 @@ class DungeonGrid(
 
     fun canPlace(room: PlacedRoom): Boolean =
         room.fitsInside(this) &&
-            placedRooms.none(room::overlaps) &&
-            placedRooms.any(room::connectsTo)
+            mutablePlacedRooms.none(room::overlaps) &&
+            mutablePlacedRooms.any(room::connectsTo)
+
+    fun place(room: PlacedRoom): Boolean {
+        if (!canPlace(room)) {
+            return false
+        }
+
+        mutablePlacedRooms += room
+        return true
+    }
 
     fun placementPreview(
         blueprint: RoomBlueprint,
@@ -57,7 +68,7 @@ class DungeonGrid(
         return when {
             entrance.column == column && entrance.row == row -> TileType.ENTRANCE
             objective.column == column && objective.row == row -> TileType.OBJECTIVE
-            placedRooms.any { GridPosition(column, row) in it.gridPositions } -> TileType.ROOM
+            mutablePlacedRooms.any { GridPosition(column, row) in it.gridPositions } -> TileType.ROOM
             else -> TileType.EMPTY
         }
     }

@@ -60,6 +60,7 @@ class PrototypeScreen(
 
         if (Gdx.input.justTouched()) {
             selectedPosition = hoveredPosition
+            commitPlacement(grid, hoveredPosition)
         }
     }
 
@@ -105,5 +106,13 @@ class PrototypeScreen(
             hoveredPosition?.let { origin ->
                 grid.placementPreview(prototypeRoom.blueprint, origin)
             }
+
+        internal fun commitPlacement(
+            grid: DungeonGrid,
+            clickedPosition: GridPosition?,
+        ): Boolean =
+            placementPreview(grid, clickedPosition)
+                ?.let { preview -> grid.place(preview.room) }
+                ?: false
     }
 }

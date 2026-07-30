@@ -65,4 +65,28 @@ class PrototypeScreenTest {
             ),
         )
     }
+
+    @Test
+    fun `click commits the current valid placement preview`() {
+        val grid = PrototypeScreen.prototypeGrid()
+        val clickedPosition = GridPosition(column = 3, row = 3)
+
+        assertTrue(PrototypeScreen.commitPlacement(grid, clickedPosition))
+        assertEquals(2, grid.placedRooms.size)
+        assertEquals(clickedPosition, grid.placedRooms.last().origin)
+    }
+
+    @Test
+    fun `invalid click leaves prototype rooms unchanged`() {
+        val grid = PrototypeScreen.prototypeGrid()
+        val roomsBeforeClick = grid.placedRooms
+
+        assertFalse(
+            PrototypeScreen.commitPlacement(
+                grid = grid,
+                clickedPosition = GridPosition(column = 6, row = 3),
+            ),
+        )
+        assertEquals(roomsBeforeClick, grid.placedRooms)
+    }
 }

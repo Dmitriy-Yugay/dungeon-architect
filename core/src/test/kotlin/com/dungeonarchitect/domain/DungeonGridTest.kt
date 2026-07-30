@@ -189,6 +189,38 @@ class DungeonGridTest {
         assertFalse(grid.canPlace(candidate))
     }
 
+    @Test
+    fun `grid commits a valid room placement`() {
+        val existingRoom = placedRoom(
+            origin = GridPosition(column = 2, row = 1),
+            doorPosition = GridPosition(column = 1, row = 0),
+        )
+        val grid = dungeonGrid(
+            width = 6,
+            height = 4,
+            placedRooms = listOf(existingRoom),
+        )
+        val roomsBeforePlacement = grid.placedRooms
+        val candidate = placedRoom(
+            origin = GridPosition(column = 4, row = 1),
+            doorPosition = GridPosition(column = 0, row = 0),
+        )
+
+        assertTrue(grid.place(candidate))
+        assertEquals(listOf(existingRoom, candidate), grid.placedRooms)
+        assertEquals(listOf(existingRoom), roomsBeforePlacement)
+    }
+
+    @Test
+    fun `grid leaves placed rooms unchanged when placement is invalid`() {
+        val existingRoom = placedRoom(origin = GridPosition(column = 1, row = 0))
+        val grid = dungeonGrid(placedRooms = listOf(existingRoom))
+        val overlappingCandidate = placedRoom(origin = GridPosition(column = 2, row = 0))
+
+        assertFalse(grid.place(overlappingCandidate))
+        assertEquals(listOf(existingRoom), grid.placedRooms)
+    }
+
     private fun dungeonGrid(
         width: Int = 4,
         height: Int = 3,
