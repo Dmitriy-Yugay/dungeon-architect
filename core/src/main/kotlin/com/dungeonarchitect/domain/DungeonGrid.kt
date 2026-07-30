@@ -10,6 +10,10 @@ class DungeonGrid(
     private val mutablePlacedRooms = placedRooms.toMutableList()
     val placedRooms: List<PlacedRoom>
         get() = mutablePlacedRooms.toList()
+    val walkablePositions: Set<GridPosition>
+        get() = buildSet {
+            mutablePlacedRooms.forEach { addAll(it.gridPositions) }
+        }
 
     init {
         require(width > 0) { "Grid width must be positive." }

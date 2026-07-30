@@ -79,7 +79,7 @@ Treat every numbered item below as a separate task:
 7. [x] Render placed room cells with placeholder colors.
 8. [x] Show a valid or invalid placement preview under the pointer.
 9. [x] Commit a valid room placement on click.
-10. [ ] Produce walkable grid positions from placed rooms.
+10. [x] Produce walkable grid positions from placed rooms.
 11. [ ] Find a four-directional path through those positions; test success and
     failure.
 12. [ ] Require a route between the entrance and objective.

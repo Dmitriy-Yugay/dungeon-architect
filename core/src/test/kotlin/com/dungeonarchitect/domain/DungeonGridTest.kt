@@ -101,6 +101,30 @@ class DungeonGridTest {
     }
 
     @Test
+    fun `grid has no walkable positions without placed rooms`() {
+        val grid = dungeonGrid()
+
+        assertEquals(emptySet(), grid.walkablePositions)
+    }
+
+    @Test
+    fun `walkable positions are the deduplicated union of placed room footprints`() {
+        val firstRoom = placedRoom(origin = GridPosition(column = 0, row = 0))
+        val secondRoom = placedRoom(origin = GridPosition(column = 2, row = 2))
+        val grid = dungeonGrid(placedRooms = listOf(firstRoom, secondRoom))
+
+        assertEquals(
+            setOf(
+                GridPosition(column = 0, row = 0),
+                GridPosition(column = 1, row = 0),
+                GridPosition(column = 2, row = 2),
+                GridPosition(column = 3, row = 2),
+            ),
+            grid.walkablePositions,
+        )
+    }
+
+    @Test
     fun `grid rejects a placed room outside its bounds`() {
         assertFailsWith<IllegalArgumentException> {
             dungeonGrid(
@@ -209,6 +233,31 @@ class DungeonGridTest {
         assertTrue(grid.place(candidate))
         assertEquals(listOf(existingRoom, candidate), grid.placedRooms)
         assertEquals(listOf(existingRoom), roomsBeforePlacement)
+    }
+
+    @Test
+    fun `walkable positions update after a room is placed`() {
+        val existingRoom = placedRoom(
+            origin = GridPosition(column = 2, row = 1),
+            doorPosition = GridPosition(column = 1, row = 0),
+        )
+        val grid = dungeonGrid(
+            width = 6,
+            height = 4,
+            placedRooms = listOf(existingRoom),
+        )
+        val positionsBeforePlacement = grid.walkablePositions
+        val candidate = placedRoom(
+            origin = GridPosition(column = 4, row = 1),
+            doorPosition = GridPosition(column = 0, row = 0),
+        )
+
+        assertTrue(grid.place(candidate))
+        assertEquals(
+            existingRoom.gridPositions + candidate.gridPositions,
+            grid.walkablePositions,
+        )
+        assertEquals(existingRoom.gridPositions, positionsBeforePlacement)
     }
 
     @Test
