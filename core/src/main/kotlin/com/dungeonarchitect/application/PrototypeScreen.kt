@@ -56,6 +56,7 @@ class PrototypeScreen(
             grid = grid,
             projection = camera.combined,
             placementPreview = placementPreview(grid, hoveredPosition),
+            heroState = heroSimulation?.heroState,
             hoveredPosition = hoveredPosition,
             selectedPosition = selectedPosition,
         )
