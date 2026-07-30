@@ -6,6 +6,7 @@ import com.badlogic.gdx.graphics.OrthographicCamera
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.utils.ScreenUtils
 import com.badlogic.gdx.utils.viewport.FitViewport
+import com.dungeonarchitect.content.TrapDefinitionParser
 import com.dungeonarchitect.content.UpcomingHeroWaveParser
 import com.dungeonarchitect.domain.DungeonGrid
 import com.dungeonarchitect.domain.GridPosition
@@ -14,6 +15,7 @@ import com.dungeonarchitect.domain.RoomBlueprint
 import com.dungeonarchitect.domain.RoomPlacementPreview
 import com.dungeonarchitect.domain.RoomSocketType
 import com.dungeonarchitect.domain.StartedHeroWave
+import com.dungeonarchitect.domain.TrapDefinition
 import com.dungeonarchitect.domain.UpcomingHeroWave
 import com.dungeonarchitect.presentation.ControlBounds
 import com.dungeonarchitect.presentation.DungeonGridRenderer
@@ -27,7 +29,16 @@ class PrototypeScreen(
     private val upcomingWave: UpcomingHeroWave = loadUpcomingWave { path ->
         Gdx.files.internal(path).readString("UTF-8")
     },
+    trapDefinition: TrapDefinition = loadTrapDefinition { path ->
+        Gdx.files.internal(path).readString("UTF-8")
+    },
 ) : ScreenAdapter() {
+    init {
+        check(placePrototypeTrap(grid, trapDefinition)) {
+            "The prototype trap could not be placed in its authored socket."
+        }
+    }
+
     private val camera = OrthographicCamera()
     private val gridRenderer = DungeonGridRenderer()
     private val wavePanelRenderer = WavePanelRenderer()
@@ -114,6 +125,7 @@ class PrototypeScreen(
 
     companion object {
         private const val UPCOMING_WAVE_PATH = "content/upcoming-hero-wave.json"
+        private const val TRAP_DEFINITION_PATH = "content/spike-trap.json"
 
         private val prototypeRoom = PlacedRoom(
             blueprint = RoomBlueprint(
@@ -172,6 +184,28 @@ class PrototypeScreen(
             readInternalText: (String) -> String,
         ): UpcomingHeroWave =
             UpcomingHeroWaveParser.parse(readInternalText(UPCOMING_WAVE_PATH))
+
+        internal fun loadTrapDefinition(
+            readInternalText: (String) -> String,
+        ): TrapDefinition =
+            TrapDefinitionParser.parse(
+                readInternalText(TRAP_DEFINITION_PATH),
+            )
+
+        internal fun placePrototypeTrap(
+            grid: DungeonGrid,
+            definition: TrapDefinition,
+        ): Boolean {
+            val room = grid.placedRooms.singleOrNull() ?: return false
+            val localSocketPosition =
+                room.blueprint.sockets.keys.singleOrNull() ?: return false
+
+            return grid.placeTrap(
+                room = room,
+                localSocketPosition = localSocketPosition,
+                definition = definition,
+            )
+        }
 
         internal fun advanceHeroSimulation(
             simulation: FixedStepHeroSimulation?,

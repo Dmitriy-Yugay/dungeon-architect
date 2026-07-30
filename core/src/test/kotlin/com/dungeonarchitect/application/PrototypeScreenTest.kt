@@ -6,6 +6,7 @@ import com.dungeonarchitect.domain.PlacedRoom
 import com.dungeonarchitect.domain.RoomBlueprint
 import com.dungeonarchitect.domain.RoomSocketType
 import com.dungeonarchitect.domain.StartedHeroWave
+import com.dungeonarchitect.domain.TrapDefinition
 import com.dungeonarchitect.domain.UpcomingHeroWave
 import com.dungeonarchitect.presentation.ControlBounds
 import kotlin.test.Test
@@ -132,6 +133,45 @@ class PrototypeScreenTest {
     }
 
     @Test
+    fun `application loads the authored trap through the supplied internal text reader`() {
+        var requestedPath: String? = null
+
+        val trap = PrototypeScreen.loadTrapDefinition { path ->
+            requestedPath = path
+            """
+                {
+                  "id": "spike_trap",
+                  "displayName": "Spike Trap",
+                  "compatibleSocketTypes": ["floor"]
+                }
+            """.trimIndent()
+        }
+
+        assertEquals("content/spike-trap.json", requestedPath)
+        assertEquals("spike_trap", trap.id)
+        assertTrue(trap.isCompatibleWith(RoomSocketType.FLOOR))
+    }
+
+    @Test
+    fun `prototype places one authored trap in its translated room socket`() {
+        val grid = PrototypeScreen.prototypeGrid()
+        val definition = trapDefinition()
+
+        assertTrue(PrototypeScreen.placePrototypeTrap(grid, definition))
+
+        val placedTrap = grid.placedTraps.single()
+        assertSame(definition, placedTrap.definition)
+        assertEquals(grid.placedRooms.single(), placedTrap.room)
+        assertEquals(
+            GridPosition(column = 1, row = 1),
+            placedTrap.localSocketPosition,
+        )
+        assertEquals(GridPosition(column = 7, row = 4), placedTrap.gridPosition)
+        assertFalse(PrototypeScreen.placePrototypeTrap(grid, definition))
+        assertEquals(1, grid.placedTraps.size)
+    }
+
+    @Test
     fun `start control click wins over room placement and starts a ready wave`() {
         val grid = readyGrid()
         val controller = WaveStartController(grid, upcomingWave())
@@ -236,5 +276,11 @@ class PrototypeScreenTest {
         count = 4,
         movementSpeedTilesPerSecond = 2f,
         traitDescription = "A straightforward melee fighter.",
+    )
+
+    private fun trapDefinition() = TrapDefinition(
+        id = "spike_trap",
+        displayName = "Spike Trap",
+        compatibleSocketTypes = setOf(RoomSocketType.FLOOR),
     )
 }

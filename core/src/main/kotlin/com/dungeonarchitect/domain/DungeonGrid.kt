@@ -10,8 +10,12 @@ class DungeonGrid(
     placedRooms: List<PlacedRoom> = emptyList(),
 ) {
     private val mutablePlacedRooms = placedRooms.toMutableList()
+    private val mutablePlacedTraps = mutableListOf<PlacedTrap>()
+
     val placedRooms: List<PlacedRoom>
         get() = mutablePlacedRooms.toList()
+    val placedTraps: List<PlacedTrap>
+        get() = mutablePlacedTraps.toList()
     val walkablePositions: Set<GridPosition>
         get() = buildSet {
             mutablePlacedRooms.forEach { addAll(it.gridPositions) }
@@ -58,6 +62,34 @@ class DungeonGrid(
         }
 
         mutablePlacedRooms += room
+        return true
+    }
+
+    fun placeTrap(
+        room: PlacedRoom,
+        localSocketPosition: GridPosition,
+        definition: TrapDefinition,
+    ): Boolean {
+        if (room !in mutablePlacedRooms) {
+            return false
+        }
+
+        val socketType =
+            room.blueprint.sockets[localSocketPosition] ?: return false
+        if (!definition.isCompatibleWith(socketType)) {
+            return false
+        }
+
+        val gridPosition = room.toGridPosition(localSocketPosition)
+        if (mutablePlacedTraps.any { it.gridPosition == gridPosition }) {
+            return false
+        }
+
+        mutablePlacedTraps += PlacedTrap(
+            definition = definition,
+            room = room,
+            localSocketPosition = localSocketPosition,
+        )
         return true
     }
 

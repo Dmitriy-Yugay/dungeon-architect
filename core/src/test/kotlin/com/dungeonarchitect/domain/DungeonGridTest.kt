@@ -5,6 +5,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertFailsWith
 import kotlin.test.assertNull
+import kotlin.test.assertSame
 import kotlin.test.assertTrue
 
 class DungeonGridTest {
@@ -320,6 +321,79 @@ class DungeonGridTest {
         assertEquals(listOf(existingRoom), grid.placedRooms)
     }
 
+    @Test
+    fun `grid places a compatible trap in a declared room socket`() {
+        val room = socketRoom(origin = GridPosition(column = 1, row = 0))
+        val grid = dungeonGrid(placedRooms = listOf(room))
+        val definition = trapDefinition()
+        val trapsBeforePlacement = grid.placedTraps
+
+        assertTrue(
+            grid.placeTrap(
+                room = room,
+                localSocketPosition = GridPosition(column = 0, row = 0),
+                definition = definition,
+            ),
+        )
+
+        val placedTrap = grid.placedTraps.single()
+        assertSame(definition, placedTrap.definition)
+        assertEquals(room, placedTrap.room)
+        assertEquals(
+            GridPosition(column = 0, row = 0),
+            placedTrap.localSocketPosition,
+        )
+        assertEquals(GridPosition(column = 1, row = 0), placedTrap.gridPosition)
+        assertEquals(emptyList(), trapsBeforePlacement)
+    }
+
+    @Test
+    fun `grid rejects a trap for a foreign room missing socket or incompatible socket`() {
+        val room = socketRoom(origin = GridPosition(column = 1, row = 0))
+        val foreignRoom = socketRoom(origin = GridPosition(column = 2, row = 0))
+        val grid = dungeonGrid(placedRooms = listOf(room))
+
+        assertFalse(
+            grid.placeTrap(
+                room = foreignRoom,
+                localSocketPosition = GridPosition(column = 0, row = 0),
+                definition = trapDefinition(),
+            ),
+        )
+        assertFalse(
+            grid.placeTrap(
+                room = room,
+                localSocketPosition = GridPosition(column = 1, row = 0),
+                definition = trapDefinition(),
+            ),
+        )
+        assertFalse(
+            grid.placeTrap(
+                room = room,
+                localSocketPosition = GridPosition(column = 0, row = 0),
+                definition = trapDefinition(
+                    compatibleSocketTypes = setOf(RoomSocketType.WALL),
+                ),
+            ),
+        )
+        assertEquals(emptyList(), grid.placedTraps)
+    }
+
+    @Test
+    fun `grid rejects a trap when the socket is already occupied`() {
+        val room = socketRoom(origin = GridPosition(column = 1, row = 0))
+        val grid = dungeonGrid(placedRooms = listOf(room))
+        val localSocketPosition = GridPosition(column = 0, row = 0)
+
+        assertTrue(
+            grid.placeTrap(room, localSocketPosition, trapDefinition()),
+        )
+        assertFalse(
+            grid.placeTrap(room, localSocketPosition, trapDefinition()),
+        )
+        assertEquals(1, grid.placedTraps.size)
+    }
+
     private fun dungeonGrid(
         width: Int = 4,
         height: Int = 3,
@@ -347,5 +421,28 @@ class DungeonGridTest {
             doorPositions = setOf(doorPosition),
         ),
         origin = origin,
+    )
+
+    private fun socketRoom(
+        origin: GridPosition,
+        socketType: RoomSocketType = RoomSocketType.FLOOR,
+    ) = PlacedRoom(
+        blueprint = RoomBlueprint(
+            footprint = setOf(GridPosition(column = 0, row = 0)),
+            doorPositions = setOf(GridPosition(column = 0, row = 0)),
+            sockets = mapOf(
+                GridPosition(column = 0, row = 0) to socketType,
+            ),
+        ),
+        origin = origin,
+    )
+
+    private fun trapDefinition(
+        compatibleSocketTypes: Set<RoomSocketType> =
+            setOf(RoomSocketType.FLOOR),
+    ) = TrapDefinition(
+        id = "spike_trap",
+        displayName = "Spike Trap",
+        compatibleSocketTypes = compatibleSocketTypes,
     )
 }
