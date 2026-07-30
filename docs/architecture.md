@@ -45,6 +45,9 @@ tests.
 - Represent room footprints as normalized, four-directionally connected sets
   of local grid positions. Door positions identify exposed cells within that
   footprint.
+- A placed room combines a blueprint with a grid origin and translates its
+  local footprint without enforcing grid bounds; dungeon placement rules own
+  bounds validation.
 - Load disposable game content from JSON or another simple text format.
 - Manage asset lifetimes centrally through libGDX `AssetManager`.
 - Save versioned data rather than serialized runtime objects.

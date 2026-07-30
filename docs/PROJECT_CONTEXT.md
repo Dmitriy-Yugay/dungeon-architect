@@ -68,30 +68,30 @@ status, preserve unrelated changes, and run `./gradlew test`.
 
 Treat every numbered item below as a separate task:
 
-1. Add an immutable room blueprint with a footprint and door positions; test
+1. [x] Add an immutable room blueprint with a footprint and door positions; test
    its validation.
-2. Add a placed-room value with an origin; test conversion from local room
+2. [x] Add a placed-room value with an origin; test conversion from local room
    cells to grid positions.
-3. Check whether a room fits inside the grid; test boundary cases.
-4. Reject overlap with an existing room; test touching and overlapping rooms.
-5. Validate a connection between compatible adjacent doors.
-6. Place one hard-coded room in the domain model.
-7. Render placed room cells with placeholder colors.
-8. Show a valid or invalid placement preview under the pointer.
-9. Commit a valid room placement on click.
-10. Produce walkable grid positions from placed rooms.
-11. Find a four-directional path through those positions; test success and
+3. [ ] Check whether a room fits inside the grid; test boundary cases.
+4. [ ] Reject overlap with an existing room; test touching and overlapping rooms.
+5. [ ] Validate a connection between compatible adjacent doors.
+6. [ ] Place one hard-coded room in the domain model.
+7. [ ] Render placed room cells with placeholder colors.
+8. [ ] Show a valid or invalid placement preview under the pointer.
+9. [ ] Commit a valid room placement on click.
+10. [ ] Produce walkable grid positions from placed rooms.
+11. [ ] Find a four-directional path through those positions; test success and
     failure.
-12. Require a route between the entrance and objective.
-13. Add data describing one simple upcoming hero wave.
-14. Display the wave description and provide a start control.
-15. Move one plain Kotlin hero along a route using a fixed simulation step;
+12. [ ] Require a route between the entrance and objective.
+13. [ ] Add data describing one simple upcoming hero wave.
+14. [ ] Display the wave description and provide a start control.
+15. [ ] Move one plain Kotlin hero along a route using a fixed simulation step;
     test movement and arrival.
-16. Render the hero.
-17. Add one room socket and one compatible trap definition.
-18. Place the trap in the socket.
-19. Apply deterministic trap damage; test targeting, cooldown, and death.
-20. Add objective damage, victory, defeat, and restart.
+16. [ ] Render the hero.
+17. [ ] Add one room socket and one compatible trap definition.
+18. [ ] Place the trap in the socket.
+19. [ ] Apply deterministic trap damage; test targeting, cooldown, and death.
+20. [ ] Add objective damage, victory, defeat, and restart.
 
 For every task:
 
