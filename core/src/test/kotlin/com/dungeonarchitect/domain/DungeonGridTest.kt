@@ -4,6 +4,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertFailsWith
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class DungeonGridTest {
@@ -122,6 +123,55 @@ class DungeonGridTest {
             ),
             grid.walkablePositions,
         )
+    }
+
+    @Test
+    fun `route connects entrance to objective through room positions including endpoints`() {
+        val grid = dungeonGrid(
+            width = 5,
+            entrance = GridPosition(column = 0, row = 1),
+            objective = GridPosition(column = 4, row = 1),
+            placedRooms = listOf(
+                placedRoom(
+                    origin = GridPosition(column = 1, row = 1),
+                    footprint = setOf(
+                        GridPosition(column = 0, row = 0),
+                        GridPosition(column = 1, row = 0),
+                        GridPosition(column = 2, row = 0),
+                    ),
+                ),
+            ),
+        )
+
+        assertEquals(
+            listOf(
+                grid.entrance,
+                GridPosition(column = 1, row = 1),
+                GridPosition(column = 2, row = 1),
+                GridPosition(column = 3, row = 1),
+                grid.objective,
+            ),
+            grid.entranceToObjectiveRoute,
+        )
+    }
+
+    @Test
+    fun `route is absent when room positions leave a gap`() {
+        val grid = dungeonGrid(
+            width = 5,
+            entrance = GridPosition(column = 0, row = 1),
+            objective = GridPosition(column = 4, row = 1),
+            placedRooms = listOf(
+                placedRoom(origin = GridPosition(column = 1, row = 1)),
+            ),
+        )
+
+        assertNull(grid.entranceToObjectiveRoute)
+    }
+
+    @Test
+    fun `route is absent before rooms connect its endpoints`() {
+        assertNull(dungeonGrid().entranceToObjectiveRoute)
     }
 
     @Test
@@ -287,12 +337,13 @@ class DungeonGridTest {
     private fun placedRoom(
         origin: GridPosition,
         doorPosition: GridPosition = GridPosition(column = 0, row = 0),
+        footprint: Set<GridPosition> = setOf(
+            GridPosition(column = 0, row = 0),
+            GridPosition(column = 1, row = 0),
+        ),
     ) = PlacedRoom(
         blueprint = RoomBlueprint(
-            footprint = setOf(
-                GridPosition(column = 0, row = 0),
-                GridPosition(column = 1, row = 0),
-            ),
+            footprint = footprint,
             doorPositions = setOf(doorPosition),
         ),
         origin = origin,

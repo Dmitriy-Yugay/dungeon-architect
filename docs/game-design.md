@@ -50,7 +50,10 @@ content.
 
 - The dungeon uses a grid for predictable placement and navigation.
 - Rooms connect through compatible doors.
-- Every valid layout must leave a route from the entrance to the objective.
+- A layout is ready for a wave only when it has a route from the entrance to
+  the objective.
+- Individual room placements may leave that route incomplete while the player
+  is still constructing the layout.
 - Layout creates tactical value through distance, choke points, and defense
   coverage.
 - Construction and defense placement consume a shared, limited resource.

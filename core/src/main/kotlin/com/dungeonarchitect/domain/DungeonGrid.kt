@@ -1,5 +1,7 @@
 package com.dungeonarchitect.domain
 
+import com.dungeonarchitect.simulation.FourDirectionalPathfinder
+
 class DungeonGrid(
     val width: Int,
     val height: Int,
@@ -14,6 +16,12 @@ class DungeonGrid(
         get() = buildSet {
             mutablePlacedRooms.forEach { addAll(it.gridPositions) }
         }
+    val entranceToObjectiveRoute: List<GridPosition>?
+        get() = FourDirectionalPathfinder.findPath(
+            walkablePositions = walkablePositions + entrance + objective,
+            start = entrance,
+            end = objective,
+        )
 
     init {
         require(width > 0) { "Grid width must be positive." }
