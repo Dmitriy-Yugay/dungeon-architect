@@ -49,6 +49,8 @@ tests.
   local footprint without enforcing grid bounds; dungeon placement rules own
   bounds validation.
 - Load disposable game content from JSON or another simple text format.
+- Parse authored content from supplied text; the application layer owns file
+  loading so content validation does not depend on libGDX global state.
 - Manage asset lifetimes centrally through libGDX `AssetManager`.
 - Save versioned data rather than serialized runtime objects.
 - Add unit tests for placement validity, routing, combat, and wave completion.

@@ -83,7 +83,7 @@ Treat every numbered item below as a separate task:
 11. [x] Find a four-directional path through those positions; test success and
     failure.
 12. [x] Require a route between the entrance and objective.
-13. [ ] Add data describing one simple upcoming hero wave.
+13. [x] Add data describing one simple upcoming hero wave.
 14. [ ] Display the wave description and provide a start control.
 15. [ ] Move one plain Kotlin hero along a route using a fixed simulation step;
     test movement and arrival.
