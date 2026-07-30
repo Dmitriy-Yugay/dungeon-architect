@@ -8,6 +8,8 @@ import com.badlogic.gdx.utils.ScreenUtils
 import com.badlogic.gdx.utils.viewport.FitViewport
 import com.dungeonarchitect.domain.DungeonGrid
 import com.dungeonarchitect.domain.GridPosition
+import com.dungeonarchitect.domain.PlacedRoom
+import com.dungeonarchitect.domain.RoomBlueprint
 import com.dungeonarchitect.presentation.DungeonGridRenderer
 
 class PrototypeScreen(
@@ -54,17 +56,39 @@ class PrototypeScreen(
         }
     }
 
-    private companion object {
-        const val BACKGROUND_RED = 0.04f
-        const val BACKGROUND_GREEN = 0.05f
-        const val BACKGROUND_BLUE = 0.07f
-        const val BACKGROUND_ALPHA = 1f
+    companion object {
+        private val prototypeRoom = PlacedRoom(
+            blueprint = RoomBlueprint(
+                footprint = setOf(
+                    GridPosition(column = 0, row = 0),
+                    GridPosition(column = 1, row = 0),
+                    GridPosition(column = 2, row = 0),
+                    GridPosition(column = 0, row = 1),
+                    GridPosition(column = 1, row = 1),
+                    GridPosition(column = 2, row = 1),
+                    GridPosition(column = 0, row = 2),
+                    GridPosition(column = 1, row = 2),
+                    GridPosition(column = 2, row = 2),
+                ),
+                doorPositions = setOf(
+                    GridPosition(column = 0, row = 1),
+                    GridPosition(column = 2, row = 1),
+                ),
+            ),
+            origin = GridPosition(column = 6, row = 3),
+        )
 
-        fun prototypeGrid() = DungeonGrid(
+        private const val BACKGROUND_RED = 0.04f
+        private const val BACKGROUND_GREEN = 0.05f
+        private const val BACKGROUND_BLUE = 0.07f
+        private const val BACKGROUND_ALPHA = 1f
+
+        internal fun prototypeGrid() = DungeonGrid(
             width = 16,
             height = 9,
             entrance = GridPosition(column = 0, row = 4),
             objective = GridPosition(column = 15, row = 4),
+            placedRooms = listOf(prototypeRoom),
         )
     }
 }

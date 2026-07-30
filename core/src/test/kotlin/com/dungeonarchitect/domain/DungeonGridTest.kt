@@ -62,15 +62,62 @@ class DungeonGridTest {
         }
     }
 
+    @Test
+    fun `grid owns a snapshot of its placed rooms`() {
+        val room = placedRoom(origin = GridPosition(column = 1, row = 0))
+        val sourceRooms = mutableListOf(room)
+
+        val grid = dungeonGrid(placedRooms = sourceRooms)
+        sourceRooms.clear()
+
+        assertEquals(listOf(room), grid.placedRooms)
+    }
+
+    @Test
+    fun `grid rejects a placed room outside its bounds`() {
+        assertFailsWith<IllegalArgumentException> {
+            dungeonGrid(
+                placedRooms = listOf(
+                    placedRoom(origin = GridPosition(column = 3, row = 0)),
+                ),
+            )
+        }
+    }
+
+    @Test
+    fun `grid rejects overlapping placed rooms`() {
+        assertFailsWith<IllegalArgumentException> {
+            dungeonGrid(
+                placedRooms = listOf(
+                    placedRoom(origin = GridPosition(column = 0, row = 0)),
+                    placedRoom(origin = GridPosition(column = 1, row = 0)),
+                ),
+            )
+        }
+    }
+
     private fun dungeonGrid(
         width: Int = 4,
         height: Int = 3,
         entrance: GridPosition = GridPosition(column = 0, row = 1),
         objective: GridPosition = GridPosition(column = width - 1, row = 1),
+        placedRooms: List<PlacedRoom> = emptyList(),
     ) = DungeonGrid(
         width = width,
         height = height,
         entrance = entrance,
         objective = objective,
+        placedRooms = placedRooms,
+    )
+
+    private fun placedRoom(origin: GridPosition) = PlacedRoom(
+        blueprint = RoomBlueprint(
+            footprint = setOf(
+                GridPosition(column = 0, row = 0),
+                GridPosition(column = 1, row = 0),
+            ),
+            doorPositions = setOf(GridPosition(column = 0, row = 0)),
+        ),
+        origin = origin,
     )
 }

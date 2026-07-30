@@ -5,13 +5,26 @@ class DungeonGrid(
     val height: Int,
     val entrance: GridPosition,
     val objective: GridPosition,
+    placedRooms: List<PlacedRoom> = emptyList(),
 ) {
+    val placedRooms: List<PlacedRoom> = placedRooms.toList()
+
     init {
         require(width > 0) { "Grid width must be positive." }
         require(height > 0) { "Grid height must be positive." }
         require(contains(entrance)) { "Entrance must be inside the grid." }
         require(contains(objective)) { "Objective must be inside the grid." }
         require(entrance != objective) { "Entrance and objective must occupy different tiles." }
+        require(this.placedRooms.all { it.fitsInside(this) }) {
+            "Every placed room must fit inside the grid."
+        }
+        require(
+            this.placedRooms.withIndex().all { (index, room) ->
+                this.placedRooms.drop(index + 1).none(room::overlaps)
+            },
+        ) {
+            "Placed rooms must not overlap."
+        }
     }
 
     fun contains(position: GridPosition): Boolean =
