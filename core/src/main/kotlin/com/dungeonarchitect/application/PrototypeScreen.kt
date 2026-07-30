@@ -12,6 +12,7 @@ import com.dungeonarchitect.domain.GridPosition
 import com.dungeonarchitect.domain.PlacedRoom
 import com.dungeonarchitect.domain.RoomBlueprint
 import com.dungeonarchitect.domain.RoomPlacementPreview
+import com.dungeonarchitect.domain.RoomSocketType
 import com.dungeonarchitect.domain.StartedHeroWave
 import com.dungeonarchitect.domain.UpcomingHeroWave
 import com.dungeonarchitect.presentation.ControlBounds
@@ -130,6 +131,9 @@ class PrototypeScreen(
                 doorPositions = setOf(
                     GridPosition(column = 0, row = 1),
                     GridPosition(column = 2, row = 1),
+                ),
+                sockets = mapOf(
+                    GridPosition(column = 1, row = 1) to RoomSocketType.FLOOR,
                 ),
             ),
             origin = GridPosition(column = 6, row = 3),

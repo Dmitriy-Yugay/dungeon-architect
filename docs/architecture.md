@@ -44,7 +44,8 @@ tests.
 - Use a tile grid and a straightforward pathfinding algorithm.
 - Represent room footprints as normalized, four-directionally connected sets
   of local grid positions. Door positions identify exposed cells within that
-  footprint.
+  footprint. Room socket maps identify at most one typed defense socket per
+  local cell, and authored trap definitions declare compatible socket types.
 - A placed room combines a blueprint with a grid origin and translates its
   local footprint without enforcing grid bounds; dungeon placement rules own
   bounds validation.

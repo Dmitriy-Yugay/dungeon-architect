@@ -4,6 +4,7 @@ import com.dungeonarchitect.domain.DungeonGrid
 import com.dungeonarchitect.domain.GridPosition
 import com.dungeonarchitect.domain.PlacedRoom
 import com.dungeonarchitect.domain.RoomBlueprint
+import com.dungeonarchitect.domain.RoomSocketType
 import com.dungeonarchitect.domain.StartedHeroWave
 import com.dungeonarchitect.domain.UpcomingHeroWave
 import com.dungeonarchitect.presentation.ControlBounds
@@ -33,6 +34,18 @@ class PrototypeScreenTest {
                 GridPosition(column = 8, row = 5),
             ),
             room.gridPositions,
+        )
+    }
+
+    @Test
+    fun `authored prototype room has one floor trap socket`() {
+        val room = PrototypeScreen.prototypeGrid().placedRooms.single()
+
+        assertEquals(
+            mapOf(
+                GridPosition(column = 1, row = 1) to RoomSocketType.FLOOR,
+            ),
+            room.blueprint.sockets,
         )
     }
 

@@ -25,13 +25,40 @@ class RoomBlueprintTest {
     fun `blueprint snapshots mutable input collections`() {
         val footprint = mutableSetOf(position(0, 0), position(1, 0))
         val doors = mutableSetOf(position(0, 0))
-        val blueprint = RoomBlueprint(footprint, doors)
+        val sockets = mutableMapOf(position(1, 0) to RoomSocketType.FLOOR)
+        val blueprint = RoomBlueprint(footprint, doors, sockets)
 
         footprint += position(2, 0)
         doors += position(1, 0)
+        sockets.clear()
 
         assertEquals(setOf(position(0, 0), position(1, 0)), blueprint.footprint)
         assertEquals(setOf(position(0, 0)), blueprint.doorPositions)
+        assertEquals(
+            mapOf(position(1, 0) to RoomSocketType.FLOOR),
+            blueprint.sockets,
+        )
+    }
+
+    @Test
+    fun `blueprint allows no room sockets`() {
+        val blueprint = RoomBlueprint(
+            footprint = setOf(position(0, 0)),
+            doorPositions = setOf(position(0, 0)),
+        )
+
+        assertEquals(emptyMap(), blueprint.sockets)
+    }
+
+    @Test
+    fun `blueprint rejects a room socket outside its footprint`() {
+        assertFailsWith<IllegalArgumentException> {
+            RoomBlueprint(
+                footprint = setOf(position(0, 0)),
+                doorPositions = setOf(position(0, 0)),
+                sockets = mapOf(position(1, 0) to RoomSocketType.FLOOR),
+            )
+        }
     }
 
     @Test
