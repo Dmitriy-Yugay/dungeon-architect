@@ -17,6 +17,33 @@ class DungeonGridTest {
     }
 
     @Test
+    fun `grid classifies placed room cells as room tiles`() {
+        val grid = dungeonGrid(
+            placedRooms = listOf(
+                placedRoom(origin = GridPosition(column = 1, row = 0)),
+            ),
+        )
+
+        assertEquals(TileType.ROOM, grid.tileAt(column = 1, row = 0))
+        assertEquals(TileType.ROOM, grid.tileAt(column = 2, row = 0))
+        assertEquals(TileType.EMPTY, grid.tileAt(column = 1, row = 1))
+    }
+
+    @Test
+    fun `entrance and objective remain special when covered by a placed room`() {
+        val grid = dungeonGrid(
+            entrance = GridPosition(column = 1, row = 0),
+            objective = GridPosition(column = 2, row = 0),
+            placedRooms = listOf(
+                placedRoom(origin = GridPosition(column = 1, row = 0)),
+            ),
+        )
+
+        assertEquals(TileType.ENTRANCE, grid.tileAt(grid.entrance))
+        assertEquals(TileType.OBJECTIVE, grid.tileAt(grid.objective))
+    }
+
+    @Test
     fun `grid contains only positions inside its bounds`() {
         val grid = dungeonGrid()
 

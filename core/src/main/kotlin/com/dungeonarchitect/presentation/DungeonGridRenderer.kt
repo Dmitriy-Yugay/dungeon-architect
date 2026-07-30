@@ -91,6 +91,7 @@ class DungeonGridRenderer : Disposable {
     private fun colorFor(tileType: TileType): Color =
         when (tileType) {
             TileType.EMPTY -> EMPTY_TILE_COLOR
+            TileType.ROOM -> ROOM_COLOR
             TileType.ENTRANCE -> ENTRANCE_COLOR
             TileType.OBJECTIVE -> OBJECTIVE_COLOR
         }
@@ -102,6 +103,7 @@ class DungeonGridRenderer : Disposable {
         const val SELECTION_INSET = 8f
 
         val EMPTY_TILE_COLOR = Color.valueOf("252B33")
+        val ROOM_COLOR = Color.valueOf("5D6D7E")
         val ENTRANCE_COLOR = Color.valueOf("3A9D5D")
         val OBJECTIVE_COLOR = Color.valueOf("B84B4B")
         val HOVER_COLOR = Color.valueOf("E0B84B")

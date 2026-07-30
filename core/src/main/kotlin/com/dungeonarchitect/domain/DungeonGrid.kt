@@ -44,6 +44,7 @@ class DungeonGrid(
         return when {
             entrance.column == column && entrance.row == row -> TileType.ENTRANCE
             objective.column == column && objective.row == row -> TileType.OBJECTIVE
+            placedRooms.any { GridPosition(column, row) in it.gridPositions } -> TileType.ROOM
             else -> TileType.EMPTY
         }
     }

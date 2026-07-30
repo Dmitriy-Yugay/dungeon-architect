@@ -76,7 +76,7 @@ Treat every numbered item below as a separate task:
 4. [x] Reject overlap with an existing room; test touching and overlapping rooms.
 5. [x] Validate a connection between compatible adjacent doors.
 6. [x] Place one hard-coded room in the domain model.
-7. [ ] Render placed room cells with placeholder colors.
+7. [x] Render placed room cells with placeholder colors.
 8. [ ] Show a valid or invalid placement preview under the pointer.
 9. [ ] Commit a valid room placement on click.
 10. [ ] Produce walkable grid positions from placed rooms.
