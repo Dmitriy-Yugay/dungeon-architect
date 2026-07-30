@@ -8,16 +8,20 @@ import kotlin.math.abs
 import kotlin.math.floor
 import kotlin.math.min
 
-class FixedStepHeroSimulation(
+class FixedStepHeroSimulation internal constructor(
     startedWave: StartedHeroWave,
+    private val trapSystem: DeterministicTrapSystem,
 ) {
+    constructor(startedWave: StartedHeroWave) : this(
+        startedWave = startedWave,
+        trapSystem = DeterministicTrapSystem(startedWave.traps),
+    )
+
     private val routeSegments = startedWave.route
         .zipWithNext(::RouteSegment)
     private val finalPosition = startedWave.route.last().toHeroPosition()
     private val routeLength = routeSegments.sumOf(RouteSegment::length)
     private val speed = startedWave.wave.movementSpeedTilesPerSecond.toDouble()
-    private val trapSystem = DeterministicTrapSystem(startedWave.traps)
-
     private var simulatedDistance = 0.0
     private var accumulatedSeconds = 0.0
     private var health = startedWave.wave.heroHealth
@@ -35,14 +39,21 @@ class FixedStepHeroSimulation(
     }
 
     fun advance(elapsedSeconds: Float) {
-        require(elapsedSeconds.isFinite() && elapsedSeconds >= 0f) {
+        advanceAndReturnUnused(elapsedSeconds.toDouble())
+    }
+
+    internal fun advanceAndReturnUnused(elapsedSeconds: Double): Double {
+        require(elapsedSeconds.isFinite() && elapsedSeconds >= 0.0) {
             "Hero simulation elapsed time must be finite and non-negative."
         }
-        if (heroState.hasArrived || heroState.isDead || elapsedSeconds == 0f) {
-            return
+        if (heroState.hasArrived || heroState.isDead) {
+            return elapsedSeconds
+        }
+        if (elapsedSeconds == 0.0) {
+            return 0.0
         }
 
-        accumulatedSeconds += elapsedSeconds.toDouble()
+        accumulatedSeconds += elapsedSeconds
         var completedSteps = floor(
             (accumulatedSeconds + STEP_COMPARISON_TOLERANCE) /
                 FIXED_STEP_SECONDS,
@@ -73,9 +84,11 @@ class FixedStepHeroSimulation(
         }
 
         if (health == 0 || simulatedDistance >= routeLength) {
+            val unusedSeconds =
+                completedSteps * FIXED_STEP_SECONDS + accumulatedSeconds
             accumulatedSeconds = 0.0
             heroState = stateAt(simulatedDistance, health)
-            return
+            return unusedSeconds
         }
 
         val interpolatedDistance = min(
@@ -91,6 +104,8 @@ class FixedStepHeroSimulation(
             )
             accumulatedSeconds = 0.0
         }
+
+        return 0.0
     }
 
     private fun stateAt(

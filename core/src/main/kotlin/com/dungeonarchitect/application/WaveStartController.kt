@@ -27,4 +27,8 @@ class WaveStartController(
         )
         return true
     }
+
+    fun restart() {
+        startedWave = null
+    }
 }

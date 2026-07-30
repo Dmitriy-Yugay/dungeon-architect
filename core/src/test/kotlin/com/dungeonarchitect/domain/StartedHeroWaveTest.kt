@@ -15,6 +15,7 @@ class StartedHeroWaveTest {
                 heroDisplayName = "Militia Recruit",
                 count = 4,
                 heroHealth = 10,
+                objectiveDamage = 10,
                 movementSpeedTilesPerSecond = 2f,
                 traitDescription = "A straightforward melee fighter.",
             ),

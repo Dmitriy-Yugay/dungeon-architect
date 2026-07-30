@@ -156,6 +156,7 @@ class FixedStepHeroSimulationTest {
                 heroDisplayName = "Militia Recruit",
                 count = 4,
                 heroHealth = 10,
+                objectiveDamage = 10,
                 movementSpeedTilesPerSecond = speed,
                 traitDescription = "A straightforward melee fighter.",
             ),

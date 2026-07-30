@@ -6,15 +6,16 @@ import com.badlogic.gdx.graphics.OrthographicCamera
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.utils.ScreenUtils
 import com.badlogic.gdx.utils.viewport.FitViewport
+import com.dungeonarchitect.content.PrototypeRunDefinitionParser
 import com.dungeonarchitect.content.TrapDefinitionParser
 import com.dungeonarchitect.content.UpcomingHeroWaveParser
 import com.dungeonarchitect.domain.DungeonGrid
 import com.dungeonarchitect.domain.GridPosition
 import com.dungeonarchitect.domain.PlacedRoom
+import com.dungeonarchitect.domain.PrototypeRunDefinition
 import com.dungeonarchitect.domain.RoomBlueprint
 import com.dungeonarchitect.domain.RoomPlacementPreview
 import com.dungeonarchitect.domain.RoomSocketType
-import com.dungeonarchitect.domain.StartedHeroWave
 import com.dungeonarchitect.domain.TrapDefinition
 import com.dungeonarchitect.domain.UpcomingHeroWave
 import com.dungeonarchitect.presentation.ControlBounds
@@ -22,7 +23,6 @@ import com.dungeonarchitect.presentation.DungeonGridRenderer
 import com.dungeonarchitect.presentation.WavePanelLayout
 import com.dungeonarchitect.presentation.WavePanelRenderer
 import com.dungeonarchitect.presentation.WavePanelView
-import com.dungeonarchitect.simulation.FixedStepHeroSimulation
 
 class PrototypeScreen(
     private val grid: DungeonGrid = prototypeGrid(),
@@ -30,6 +30,9 @@ class PrototypeScreen(
         Gdx.files.internal(path).readString("UTF-8")
     },
     trapDefinition: TrapDefinition = loadTrapDefinition { path ->
+        Gdx.files.internal(path).readString("UTF-8")
+    },
+    runDefinition: PrototypeRunDefinition = loadRunDefinition { path ->
         Gdx.files.internal(path).readString("UTF-8")
     },
 ) : ScreenAdapter() {
@@ -50,33 +53,34 @@ class PrototypeScreen(
         camera,
     )
     private val pointerCoordinates = Vector2()
-    private val waveStartController = WaveStartController(grid, upcomingWave)
+    private val runController = PrototypeRunController(
+        grid = grid,
+        upcomingWave = upcomingWave,
+        runDefinition = runDefinition,
+    )
 
     private var hoveredPosition: GridPosition? = null
     private var selectedPosition: GridPosition? = null
-    private var heroSimulation: FixedStepHeroSimulation? = null
 
     override fun render(delta: Float) {
         updatePointerState()
-        heroSimulation = advanceHeroSimulation(
-            simulation = heroSimulation,
-            startedWave = waveStartController.startedWave,
-            elapsedSeconds = delta,
-        )
+        runController.advance(delta)
         ScreenUtils.clear(BACKGROUND_RED, BACKGROUND_GREEN, BACKGROUND_BLUE, BACKGROUND_ALPHA)
         gridRenderer.render(
             grid = grid,
             projection = camera.combined,
             placementPreview = placementPreview(grid, hoveredPosition),
-            heroState = heroSimulation?.heroState,
+            heroState = runController.heroState,
             hoveredPosition = hoveredPosition,
             selectedPosition = selectedPosition,
         )
         wavePanelRenderer.render(
             view = WavePanelView.from(
                 wave = upcomingWave,
-                isStartEnabled = waveStartController.isStartEnabled,
-                hasStarted = waveStartController.startedWave != null,
+                phase = runController.phase,
+                objectiveHealth = runController.objectiveHealth,
+                objectiveMaxHealth = runController.objectiveMaxHealth,
+                isStartEnabled = runController.isStartEnabled,
             ),
             projection = camera.combined,
             worldWidth = worldWidth,
@@ -113,7 +117,7 @@ class PrototypeScreen(
                     worldWidth = worldWidth,
                     panelBottom = gridWorldHeight,
                 ),
-                waveStartController = waveStartController,
+                runController = runController,
             )
             if (result == PrototypeClickResult.ROOM_PLACED ||
                 result == PrototypeClickResult.IGNORED
@@ -126,6 +130,7 @@ class PrototypeScreen(
     companion object {
         private const val UPCOMING_WAVE_PATH = "content/upcoming-hero-wave.json"
         private const val TRAP_DEFINITION_PATH = "content/spike-trap.json"
+        private const val RUN_DEFINITION_PATH = "content/prototype-run.json"
 
         private val prototypeRoom = PlacedRoom(
             blueprint = RoomBlueprint(
@@ -192,6 +197,13 @@ class PrototypeScreen(
                 readInternalText(TRAP_DEFINITION_PATH),
             )
 
+        internal fun loadRunDefinition(
+            readInternalText: (String) -> String,
+        ): PrototypeRunDefinition =
+            PrototypeRunDefinitionParser.parse(
+                readInternalText(RUN_DEFINITION_PATH),
+            )
+
         internal fun placePrototypeTrap(
             grid: DungeonGrid,
             definition: TrapDefinition,
@@ -207,27 +219,22 @@ class PrototypeScreen(
             )
         }
 
-        internal fun advanceHeroSimulation(
-            simulation: FixedStepHeroSimulation?,
-            startedWave: StartedHeroWave?,
-            elapsedSeconds: Float,
-        ): FixedStepHeroSimulation? =
-            (simulation ?: startedWave?.let(::FixedStepHeroSimulation))
-                ?.also { it.advance(elapsedSeconds) }
-
         internal fun handleClick(
             grid: DungeonGrid,
             clickedPosition: GridPosition?,
             worldX: Float,
             worldY: Float,
             startButtonBounds: ControlBounds,
-            waveStartController: WaveStartController,
+            runController: PrototypeRunController,
         ): PrototypeClickResult =
             if (startButtonBounds.contains(worldX, worldY)) {
-                if (waveStartController.start()) {
-                    PrototypeClickResult.WAVE_STARTED
-                } else {
-                    PrototypeClickResult.WAVE_START_REJECTED
+                when {
+                    runController.restart() ->
+                        PrototypeClickResult.RUN_RESTARTED
+                    runController.start() ->
+                        PrototypeClickResult.WAVE_STARTED
+                    else ->
+                        PrototypeClickResult.WAVE_START_REJECTED
                 }
             } else if (commitPlacement(grid, clickedPosition)) {
                 PrototypeClickResult.ROOM_PLACED
@@ -240,6 +247,7 @@ class PrototypeScreen(
 internal enum class PrototypeClickResult {
     WAVE_STARTED,
     WAVE_START_REJECTED,
+    RUN_RESTARTED,
     ROOM_PLACED,
     IGNORED,
 }

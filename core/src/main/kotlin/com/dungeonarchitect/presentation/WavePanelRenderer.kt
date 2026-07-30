@@ -7,28 +7,50 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 import com.badlogic.gdx.math.Matrix4
 import com.badlogic.gdx.utils.Disposable
+import com.dungeonarchitect.domain.PrototypeRunPhase
 import com.dungeonarchitect.domain.UpcomingHeroWave
 
 data class WavePanelView(
     val summary: String,
     val traitDescription: String,
-    val startLabel: String,
-    val isStartEnabled: Boolean,
+    val objectiveStatus: String,
+    val controlLabel: String,
+    val isControlEnabled: Boolean,
 ) {
     companion object {
         fun from(
             wave: UpcomingHeroWave,
+            phase: PrototypeRunPhase,
+            objectiveHealth: Int,
+            objectiveMaxHealth: Int,
             isStartEnabled: Boolean,
-            hasStarted: Boolean,
         ) = WavePanelView(
-            summary = "Upcoming wave: ${wave.count} x ${wave.heroDisplayName}",
-            traitDescription = wave.traitDescription,
-            startLabel = when {
-                hasStarted -> "WAVE STARTED"
-                isStartEnabled -> "START WAVE"
-                else -> "START WAVE - ROUTE REQUIRED"
+            summary = when (phase) {
+                PrototypeRunPhase.BUILDING ->
+                    "Upcoming wave: ${wave.count} x ${wave.heroDisplayName}"
+                PrototypeRunPhase.RUNNING ->
+                    "Wave in progress: ${wave.count} x ${wave.heroDisplayName}"
+                PrototypeRunPhase.VICTORY -> "VICTORY - Objective secured"
+                PrototypeRunPhase.DEFEAT -> "DEFEAT - Objective destroyed"
             },
-            isStartEnabled = isStartEnabled,
+            traitDescription = wave.traitDescription,
+            objectiveStatus =
+                "Objective health: $objectiveHealth / $objectiveMaxHealth",
+            controlLabel = when (phase) {
+                PrototypeRunPhase.BUILDING ->
+                    if (isStartEnabled) {
+                        "START WAVE"
+                    } else {
+                        "START WAVE - ROUTE REQUIRED"
+                    }
+                PrototypeRunPhase.RUNNING -> "WAVE IN PROGRESS"
+                PrototypeRunPhase.VICTORY,
+                PrototypeRunPhase.DEFEAT,
+                -> "RESTART"
+            },
+            isControlEnabled = isStartEnabled ||
+                phase == PrototypeRunPhase.VICTORY ||
+                phase == PrototypeRunPhase.DEFEAT,
         )
     }
 }
@@ -88,7 +110,8 @@ class WavePanelRenderer : Disposable {
         shapes.begin(ShapeRenderer.ShapeType.Filled)
         shapes.color = PANEL_COLOR
         shapes.rect(0f, panelBottom, worldWidth, WavePanelLayout.HEIGHT)
-        shapes.color = if (view.isStartEnabled) ENABLED_BUTTON_COLOR else DISABLED_BUTTON_COLOR
+        shapes.color =
+            if (view.isControlEnabled) ENABLED_BUTTON_COLOR else DISABLED_BUTTON_COLOR
         shapes.rect(startBounds.x, startBounds.y, startBounds.width, startBounds.height)
         shapes.end()
 
@@ -108,12 +131,19 @@ class WavePanelRenderer : Disposable {
             WavePanelLayout.HORIZONTAL_PADDING,
             panelBottom + WavePanelLayout.HEIGHT - DESCRIPTION_OFFSET,
         )
-
-        font.color = if (view.isStartEnabled) ENABLED_LABEL_COLOR else DISABLED_LABEL_COLOR
-        labelLayout.setText(font, view.startLabel)
         font.draw(
             batch,
-            view.startLabel,
+            view.objectiveStatus,
+            WavePanelLayout.HORIZONTAL_PADDING,
+            panelBottom + WavePanelLayout.HEIGHT - OBJECTIVE_STATUS_OFFSET,
+        )
+
+        font.color =
+            if (view.isControlEnabled) ENABLED_LABEL_COLOR else DISABLED_LABEL_COLOR
+        labelLayout.setText(font, view.controlLabel)
+        font.draw(
+            batch,
+            view.controlLabel,
             startBounds.x + (startBounds.width - labelLayout.width) / 2f,
             startBounds.y + (startBounds.height + labelLayout.height) / 2f,
         )
@@ -128,6 +158,7 @@ class WavePanelRenderer : Disposable {
 
     private companion object {
         const val DESCRIPTION_OFFSET = 48f
+        const val OBJECTIVE_STATUS_OFFSET = 80f
 
         val PANEL_COLOR = Color.valueOf("171B20")
         val ENABLED_BUTTON_COLOR = Color.valueOf("3A9D5D")

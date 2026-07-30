@@ -56,6 +56,11 @@ class WaveStartControllerTest {
         assertFalse(controller.start())
         assertEquals(wave, controller.startedWave?.wave)
         assertEquals(grid.entranceToObjectiveRoute, controller.startedWave?.route)
+
+        controller.restart()
+
+        assertTrue(controller.isStartEnabled)
+        assertNull(controller.startedWave)
     }
 
     private fun gridWithoutRoute() = DungeonGrid(
@@ -90,6 +95,7 @@ class WaveStartControllerTest {
         heroDisplayName = "Militia Recruit",
         count = 4,
         heroHealth = 10,
+        objectiveDamage = 10,
         movementSpeedTilesPerSecond = 2f,
         traitDescription = "A straightforward melee fighter.",
     )

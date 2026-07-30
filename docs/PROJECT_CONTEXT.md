@@ -34,9 +34,10 @@ additional platforms are deferred until the core loop is proven.
 ## Current state
 
 The repository contains a runnable Kotlin and libGDX desktop project split into
-`core` and `lwjgl3` modules. The current prototype renders a selectable dungeon
-grid with an entrance and objective. Enemy movement, tower placement, combat,
-assets, and audio have not been implemented.
+`core` and `lwjgl3` modules. The current prototype supports room placement,
+routing, an authored hero wave, a socketed trap, deterministic combat, objective
+damage, visible outcomes, and restart. Visuals remain placeholders, and audio
+has not been implemented.
 
 ## Technology
 
@@ -91,7 +92,7 @@ Treat every numbered item below as a separate task:
 17. [x] Add one room socket and one compatible trap definition.
 18. [x] Place the trap in the socket.
 19. [x] Apply deterministic trap damage; test targeting, cooldown, and death.
-20. [ ] Add objective damage, victory, defeat, and restart.
+20. [x] Add objective damage, victory, defeat, and restart.
 
 For every task:
 

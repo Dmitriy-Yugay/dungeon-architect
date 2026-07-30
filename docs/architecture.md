@@ -58,6 +58,13 @@ tests.
 - Resolve trap targeting and cooldown on that same fixed step. A trap targets
   the hero occupying its socket's grid cell; hero health, trap damage, and trap
   cooldown remain authored content.
+- Coordinate the prototype run in plain Kotlin. Heroes of the single authored
+  type traverse the route one at a time up to the wave's configured count and
+  share trap cooldown state. Arrivals apply authored objective damage; resolving
+  the wave with objective health remaining is victory, while zero health is
+  defeat.
+- Restart resets transient wave progress, objective health, hero state, and
+  trap cooldowns while preserving the player's room and trap layout.
 - Manage asset lifetimes centrally through libGDX `AssetManager`.
 - Save versioned data rather than serialized runtime objects.
 - Add unit tests for placement validity, routing, combat, and wave completion.

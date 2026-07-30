@@ -3,9 +3,10 @@ package com.dungeonarchitect.application
 import com.dungeonarchitect.domain.DungeonGrid
 import com.dungeonarchitect.domain.GridPosition
 import com.dungeonarchitect.domain.PlacedRoom
+import com.dungeonarchitect.domain.PrototypeRunDefinition
+import com.dungeonarchitect.domain.PrototypeRunPhase
 import com.dungeonarchitect.domain.RoomBlueprint
 import com.dungeonarchitect.domain.RoomSocketType
-import com.dungeonarchitect.domain.StartedHeroWave
 import com.dungeonarchitect.domain.TrapDefinition
 import com.dungeonarchitect.domain.UpcomingHeroWave
 import com.dungeonarchitect.presentation.ControlBounds
@@ -123,6 +124,7 @@ class PrototypeScreenTest {
                   "heroDisplayName": "Militia Recruit",
                   "count": 4,
                   "heroHealth": 10,
+                  "objectiveDamage": 10,
                   "movementSpeedTilesPerSecond": 2.0,
                   "traitDescription": "A straightforward melee fighter."
                 }
@@ -156,6 +158,19 @@ class PrototypeScreenTest {
     }
 
     @Test
+    fun `application loads authored run rules through the supplied internal text reader`() {
+        var requestedPath: String? = null
+
+        val runDefinition = PrototypeScreen.loadRunDefinition { path ->
+            requestedPath = path
+            """{ "objectiveHealth": 10 }"""
+        }
+
+        assertEquals("content/prototype-run.json", requestedPath)
+        assertEquals(10, runDefinition.objectiveHealth)
+    }
+
+    @Test
     fun `prototype places one authored trap in its translated room socket`() {
         val grid = PrototypeScreen.prototypeGrid()
         val definition = trapDefinition()
@@ -177,7 +192,7 @@ class PrototypeScreenTest {
     @Test
     fun `start control click wins over room placement and starts a ready wave`() {
         val grid = readyGrid()
-        val controller = WaveStartController(grid, upcomingWave())
+        val controller = runController(grid)
         val roomsBeforeClick = grid.placedRooms
         val bounds = ControlBounds(x = 10f, y = 20f, width = 100f, height = 40f)
 
@@ -187,7 +202,7 @@ class PrototypeScreenTest {
             worldX = 60f,
             worldY = 40f,
             startButtonBounds = bounds,
-            waveStartController = controller,
+            runController = controller,
         )
 
         assertEquals(PrototypeClickResult.WAVE_STARTED, result)
@@ -198,7 +213,7 @@ class PrototypeScreenTest {
     @Test
     fun `click outside start control remains a placement click`() {
         val grid = PrototypeScreen.prototypeGrid()
-        val controller = WaveStartController(grid, upcomingWave())
+        val controller = runController(grid)
         val clickedPosition = GridPosition(column = 3, row = 3)
 
         val result = PrototypeScreen.handleClick(
@@ -212,7 +227,7 @@ class PrototypeScreenTest {
                 width = 100f,
                 height = 40f,
             ),
-            waveStartController = controller,
+            runController = controller,
         )
 
         assertEquals(PrototypeClickResult.ROOM_PLACED, result)
@@ -221,40 +236,29 @@ class PrototypeScreenTest {
     }
 
     @Test
-    fun `started wave creates one hero simulation and render updates reuse it`() {
-        val startedWave = StartedHeroWave(
-            wave = upcomingWave(),
-            route = listOf(
-                GridPosition(column = 0, row = 0),
-                GridPosition(column = 2, row = 0),
+    fun `terminal control click restarts the run`() {
+        val grid = readyGrid()
+        val controller = runController(grid)
+        assertTrue(controller.start())
+        controller.advance(elapsedSeconds = 1f)
+        assertEquals(PrototypeRunPhase.DEFEAT, controller.phase)
+
+        val result = PrototypeScreen.handleClick(
+            grid = grid,
+            clickedPosition = null,
+            worldX = 60f,
+            worldY = 40f,
+            startButtonBounds = ControlBounds(
+                x = 10f,
+                y = 20f,
+                width = 100f,
+                height = 40f,
             ),
+            runController = controller,
         )
 
-        val simulation = PrototypeScreen.advanceHeroSimulation(
-            simulation = null,
-            startedWave = startedWave,
-            elapsedSeconds = 0.25f,
-        )!!
-        val advancedAgain = PrototypeScreen.advanceHeroSimulation(
-            simulation = simulation,
-            startedWave = startedWave,
-            elapsedSeconds = 0.25f,
-        )!!
-
-        assertSame(simulation, advancedAgain)
-        assertEquals(1f, advancedAgain.heroState.position.column)
-        assertFalse(advancedAgain.heroState.hasArrived)
-    }
-
-    @Test
-    fun `hero simulation remains absent before a wave starts`() {
-        assertNull(
-            PrototypeScreen.advanceHeroSimulation(
-                simulation = null,
-                startedWave = null,
-                elapsedSeconds = 0.25f,
-            ),
-        )
+        assertEquals(PrototypeClickResult.RUN_RESTARTED, result)
+        assertEquals(PrototypeRunPhase.BUILDING, controller.phase)
     }
 
     private fun readyGrid() = DungeonGrid(
@@ -278,8 +282,15 @@ class PrototypeScreenTest {
         heroDisplayName = "Militia Recruit",
         count = 4,
         heroHealth = 10,
+        objectiveDamage = 10,
         movementSpeedTilesPerSecond = 2f,
         traitDescription = "A straightforward melee fighter.",
+    )
+
+    private fun runController(grid: DungeonGrid) = PrototypeRunController(
+        grid = grid,
+        upcomingWave = upcomingWave(),
+        runDefinition = PrototypeRunDefinition(objectiveHealth = 10),
     )
 
     private fun trapDefinition() = TrapDefinition(
