@@ -84,7 +84,7 @@ Treat every numbered item below as a separate task:
     failure.
 12. [x] Require a route between the entrance and objective.
 13. [x] Add data describing one simple upcoming hero wave.
-14. [ ] Display the wave description and provide a start control.
+14. [x] Display the wave description and provide a start control.
 15. [ ] Move one plain Kotlin hero along a route using a fixed simulation step;
     test movement and arrival.
 16. [ ] Render the hero.

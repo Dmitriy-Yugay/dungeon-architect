@@ -6,24 +6,37 @@ import com.badlogic.gdx.graphics.OrthographicCamera
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.utils.ScreenUtils
 import com.badlogic.gdx.utils.viewport.FitViewport
+import com.dungeonarchitect.content.UpcomingHeroWaveParser
 import com.dungeonarchitect.domain.DungeonGrid
 import com.dungeonarchitect.domain.GridPosition
 import com.dungeonarchitect.domain.PlacedRoom
 import com.dungeonarchitect.domain.RoomBlueprint
 import com.dungeonarchitect.domain.RoomPlacementPreview
+import com.dungeonarchitect.domain.UpcomingHeroWave
+import com.dungeonarchitect.presentation.ControlBounds
 import com.dungeonarchitect.presentation.DungeonGridRenderer
+import com.dungeonarchitect.presentation.WavePanelLayout
+import com.dungeonarchitect.presentation.WavePanelRenderer
+import com.dungeonarchitect.presentation.WavePanelView
 
 class PrototypeScreen(
     private val grid: DungeonGrid = prototypeGrid(),
+    private val upcomingWave: UpcomingHeroWave = loadUpcomingWave { path ->
+        Gdx.files.internal(path).readString("UTF-8")
+    },
 ) : ScreenAdapter() {
     private val camera = OrthographicCamera()
     private val gridRenderer = DungeonGridRenderer()
+    private val wavePanelRenderer = WavePanelRenderer()
+    private val worldWidth = gridRenderer.worldWidth(grid)
+    private val gridWorldHeight = gridRenderer.worldHeight(grid)
     private val viewport = FitViewport(
-        gridRenderer.worldWidth(grid),
-        gridRenderer.worldHeight(grid),
+        worldWidth,
+        gridWorldHeight + WavePanelLayout.HEIGHT,
         camera,
     )
     private val pointerCoordinates = Vector2()
+    private val waveStartController = WaveStartController(grid, upcomingWave)
 
     private var hoveredPosition: GridPosition? = null
     private var selectedPosition: GridPosition? = null
@@ -38,6 +51,16 @@ class PrototypeScreen(
             hoveredPosition = hoveredPosition,
             selectedPosition = selectedPosition,
         )
+        wavePanelRenderer.render(
+            view = WavePanelView.from(
+                wave = upcomingWave,
+                isStartEnabled = waveStartController.isStartEnabled,
+                hasStarted = waveStartController.startedWave != null,
+            ),
+            projection = camera.combined,
+            worldWidth = worldWidth,
+            panelBottom = gridWorldHeight,
+        )
     }
 
     override fun resize(width: Int, height: Int) {
@@ -45,6 +68,7 @@ class PrototypeScreen(
     }
 
     override fun dispose() {
+        wavePanelRenderer.dispose()
         gridRenderer.dispose()
     }
 
@@ -59,12 +83,28 @@ class PrototypeScreen(
         )
 
         if (Gdx.input.justTouched()) {
-            selectedPosition = hoveredPosition
-            commitPlacement(grid, hoveredPosition)
+            val result = handleClick(
+                grid = grid,
+                clickedPosition = hoveredPosition,
+                worldX = pointerCoordinates.x,
+                worldY = pointerCoordinates.y,
+                startButtonBounds = WavePanelLayout.startButtonBounds(
+                    worldWidth = worldWidth,
+                    panelBottom = gridWorldHeight,
+                ),
+                waveStartController = waveStartController,
+            )
+            if (result == PrototypeClickResult.ROOM_PLACED ||
+                result == PrototypeClickResult.IGNORED
+            ) {
+                selectedPosition = hoveredPosition
+            }
         }
     }
 
     companion object {
+        private const val UPCOMING_WAVE_PATH = "content/upcoming-hero-wave.json"
+
         private val prototypeRoom = PlacedRoom(
             blueprint = RoomBlueprint(
                 footprint = setOf(
@@ -114,5 +154,37 @@ class PrototypeScreen(
             placementPreview(grid, clickedPosition)
                 ?.let { preview -> grid.place(preview.room) }
                 ?: false
+
+        internal fun loadUpcomingWave(
+            readInternalText: (String) -> String,
+        ): UpcomingHeroWave =
+            UpcomingHeroWaveParser.parse(readInternalText(UPCOMING_WAVE_PATH))
+
+        internal fun handleClick(
+            grid: DungeonGrid,
+            clickedPosition: GridPosition?,
+            worldX: Float,
+            worldY: Float,
+            startButtonBounds: ControlBounds,
+            waveStartController: WaveStartController,
+        ): PrototypeClickResult =
+            if (startButtonBounds.contains(worldX, worldY)) {
+                if (waveStartController.start()) {
+                    PrototypeClickResult.WAVE_STARTED
+                } else {
+                    PrototypeClickResult.WAVE_START_REJECTED
+                }
+            } else if (commitPlacement(grid, clickedPosition)) {
+                PrototypeClickResult.ROOM_PLACED
+            } else {
+                PrototypeClickResult.IGNORED
+            }
     }
+}
+
+internal enum class PrototypeClickResult {
+    WAVE_STARTED,
+    WAVE_START_REJECTED,
+    ROOM_PLACED,
+    IGNORED,
 }
