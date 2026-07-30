@@ -19,6 +19,8 @@ object TrapDefinitionParser {
         return TrapDefinition(
             id = root.requiredString("id"),
             displayName = root.requiredString("displayName"),
+            damage = root.requiredInt("damage"),
+            cooldownSeconds = root.requiredFloat("cooldownSeconds"),
             compatibleSocketTypes = root.requiredStringArray(
                 "compatibleSocketTypes",
             ).mapTo(mutableSetOf(), ::parseSocketType),
@@ -51,6 +53,27 @@ object TrapDefinitionParser {
             }
             item.asString()
         }
+    }
+
+    private fun JsonValue.requiredInt(name: String): Int {
+        val value = required(name)
+        require(value.isLong) {
+            "Trap definition field '$name' must be a whole number."
+        }
+
+        val number = value.asLong()
+        require(number in Int.MIN_VALUE..Int.MAX_VALUE) {
+            "Trap definition field '$name' must fit in a 32-bit integer."
+        }
+        return number.toInt()
+    }
+
+    private fun JsonValue.requiredFloat(name: String): Float {
+        val value = required(name)
+        require(value.isNumber) {
+            "Trap definition field '$name' must be a number."
+        }
+        return value.asFloat()
     }
 
     private fun JsonValue.required(name: String): JsonValue =

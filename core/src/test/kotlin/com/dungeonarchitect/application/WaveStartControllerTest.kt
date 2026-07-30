@@ -4,6 +4,8 @@ import com.dungeonarchitect.domain.DungeonGrid
 import com.dungeonarchitect.domain.GridPosition
 import com.dungeonarchitect.domain.PlacedRoom
 import com.dungeonarchitect.domain.RoomBlueprint
+import com.dungeonarchitect.domain.RoomSocketType
+import com.dungeonarchitect.domain.TrapDefinition
 import com.dungeonarchitect.domain.UpcomingHeroWave
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -25,8 +27,22 @@ class WaveStartControllerTest {
     }
 
     @Test
-    fun `ready route starts the wave exactly once and records its route`() {
+    fun `ready route starts the wave exactly once and snapshots its combat setup`() {
         val grid = gridWithRoute()
+        val room = grid.placedRooms.single()
+        assertTrue(
+            grid.placeTrap(
+                room = room,
+                localSocketPosition = GridPosition(column = 0, row = 0),
+                definition = TrapDefinition(
+                    id = "spike_trap",
+                    displayName = "Spike Trap",
+                    damage = 5,
+                    cooldownSeconds = 0.25f,
+                    compatibleSocketTypes = setOf(RoomSocketType.FLOOR),
+                ),
+            ),
+        )
         val wave = upcomingWave()
         val controller = WaveStartController(grid, wave)
 
@@ -35,6 +51,7 @@ class WaveStartControllerTest {
         assertFalse(controller.isStartEnabled)
         assertEquals(wave, controller.startedWave?.wave)
         assertEquals(grid.entranceToObjectiveRoute, controller.startedWave?.route)
+        assertEquals(grid.placedTraps, controller.startedWave?.traps)
 
         assertFalse(controller.start())
         assertEquals(wave, controller.startedWave?.wave)
@@ -58,6 +75,10 @@ class WaveStartControllerTest {
                 blueprint = RoomBlueprint(
                     footprint = setOf(GridPosition(column = 0, row = 0)),
                     doorPositions = setOf(GridPosition(column = 0, row = 0)),
+                    sockets = mapOf(
+                        GridPosition(column = 0, row = 0) to
+                            RoomSocketType.FLOOR,
+                    ),
                 ),
                 origin = GridPosition(column = 1, row = 0),
             ),
@@ -68,6 +89,7 @@ class WaveStartControllerTest {
         heroType = "militia_recruit",
         heroDisplayName = "Militia Recruit",
         count = 4,
+        heroHealth = 10,
         movementSpeedTilesPerSecond = 2f,
         traitDescription = "A straightforward melee fighter.",
     )

@@ -17,6 +17,7 @@ class UpcomingHeroWaveParserTest {
                 heroType = "militia_recruit",
                 heroDisplayName = "Militia Recruit",
                 count = 4,
+                heroHealth = 10,
                 movementSpeedTilesPerSecond = 2f,
                 traitDescription = "A straightforward melee fighter with no special defenses.",
             ),
@@ -31,6 +32,7 @@ class UpcomingHeroWaveParserTest {
               "heroType": "militia_recruit",
               "heroDisplayName": "Militia Recruit",
               "count": 0,
+              "heroHealth": 10,
               "movementSpeedTilesPerSecond": 2.0,
               "traitDescription": "A straightforward melee fighter."
             }
@@ -48,6 +50,7 @@ class UpcomingHeroWaveParserTest {
               "heroType": "militia_recruit",
               "heroDisplayName": "Militia Recruit",
               "count": 2.5,
+              "heroHealth": 10,
               "movementSpeedTilesPerSecond": 2.0,
               "traitDescription": "A straightforward melee fighter."
             }
@@ -65,6 +68,7 @@ class UpcomingHeroWaveParserTest {
               "heroType": "militia_recruit",
               "heroDisplayName": "Militia Recruit",
               "count": 4,
+              "heroHealth": 10,
               "movementSpeedTilesPerSecond": 2.0
             }
         """.trimIndent()
@@ -82,6 +86,7 @@ class UpcomingHeroWaveParserTest {
                   "heroType": "militia_recruit",
                   "heroDisplayName": "Militia Recruit",
                   "count": 4,
+                  "heroHealth": 10,
                   "movementSpeedTilesPerSecond": $speed,
                   "traitDescription": "A straightforward melee fighter."
                 }
@@ -90,6 +95,24 @@ class UpcomingHeroWaveParserTest {
             assertFailsWith<IllegalArgumentException> {
                 UpcomingHeroWaveParser.parse(json)
             }
+        }
+    }
+
+    @Test
+    fun `parser rejects non-positive hero health`() {
+        val json = """
+            {
+              "heroType": "militia_recruit",
+              "heroDisplayName": "Militia Recruit",
+              "count": 4,
+              "heroHealth": 0,
+              "movementSpeedTilesPerSecond": 2.0,
+              "traitDescription": "A straightforward melee fighter."
+            }
+        """.trimIndent()
+
+        assertFailsWith<IllegalArgumentException> {
+            UpcomingHeroWaveParser.parse(json)
         }
     }
 

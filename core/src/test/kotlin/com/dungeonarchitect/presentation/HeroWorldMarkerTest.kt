@@ -55,13 +55,29 @@ class HeroWorldMarkerTest {
         assertEquals(288f, marker?.centerY)
     }
 
+    @Test
+    fun `marker is absent after the hero dies`() {
+        assertNull(
+            heroWorldMarker(
+                heroState = heroState(
+                    column = 2f,
+                    row = 3f,
+                    health = 0,
+                ),
+                tileSize = TILE_SIZE,
+            ),
+        )
+    }
+
     private fun heroState(
         column: Float,
         row: Float,
         hasArrived: Boolean = false,
+        health: Int = 10,
     ) = PrototypeHeroState(
         position = HeroGridPosition(column = column, row = row),
         hasArrived = hasArrived,
+        health = health,
     )
 
     private companion object {

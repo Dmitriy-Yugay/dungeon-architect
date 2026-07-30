@@ -23,6 +23,7 @@ class WaveStartController(
         startedWave = StartedHeroWave(
             wave = upcomingWave,
             route = route,
+            traps = grid.placedTraps,
         )
         return true
     }

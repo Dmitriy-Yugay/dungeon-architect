@@ -55,6 +55,8 @@ class PlacedTrapTest {
     private fun trapFor(socketType: RoomSocketType) = TrapDefinition(
         id = "spike_trap",
         displayName = "Spike Trap",
+        damage = 5,
+        cooldownSeconds = 0.25f,
         compatibleSocketTypes = setOf(socketType),
     )
 }

@@ -2,7 +2,12 @@ package com.dungeonarchitect.simulation
 
 import com.dungeonarchitect.domain.GridPosition
 import com.dungeonarchitect.domain.HeroGridPosition
+import com.dungeonarchitect.domain.PlacedRoom
+import com.dungeonarchitect.domain.PlacedTrap
+import com.dungeonarchitect.domain.RoomBlueprint
+import com.dungeonarchitect.domain.RoomSocketType
 import com.dungeonarchitect.domain.StartedHeroWave
+import com.dungeonarchitect.domain.TrapDefinition
 import com.dungeonarchitect.domain.UpcomingHeroWave
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -22,6 +27,7 @@ class FixedStepHeroSimulationTest {
 
         assertEquals(HeroGridPosition(column = 0.5f, row = 0f), simulation.heroState.position)
         assertFalse(simulation.heroState.hasArrived)
+        assertEquals(10, simulation.heroState.health)
     }
 
     @Test
@@ -113,21 +119,78 @@ class FixedStepHeroSimulationTest {
         assertTrue(simulation.heroState.hasArrived)
     }
 
+    @Test
+    fun `lethal trap damage stops the hero before movement`() {
+        val trap = placedTrap(
+            trapPosition = position(0, 0),
+            damage = 10,
+        )
+        val simulation = simulation(
+            route = listOf(position(0, 0), position(2, 0)),
+            speed = 2f,
+            traps = listOf(trap),
+        )
+
+        simulation.advance(
+            elapsedSeconds = FixedStepHeroSimulation.FIXED_STEP_SECONDS.toFloat(),
+        )
+
+        assertEquals(0, simulation.heroState.health)
+        assertTrue(simulation.heroState.isDead)
+        assertFalse(simulation.heroState.hasArrived)
+        assertEquals(HeroGridPosition(column = 0f, row = 0f), simulation.heroState.position)
+
+        val deadState = simulation.heroState
+        simulation.advance(elapsedSeconds = 10f)
+        assertEquals(deadState, simulation.heroState)
+    }
+
     private fun simulation(
         route: List<GridPosition>,
         speed: Float,
+        traps: List<PlacedTrap> = emptyList(),
     ) = FixedStepHeroSimulation(
         StartedHeroWave(
             wave = UpcomingHeroWave(
                 heroType = "militia_recruit",
                 heroDisplayName = "Militia Recruit",
                 count = 4,
+                heroHealth = 10,
                 movementSpeedTilesPerSecond = speed,
                 traitDescription = "A straightforward melee fighter.",
             ),
             route = route,
+            traps = traps,
         ),
     )
+
+    private fun placedTrap(
+        trapPosition: GridPosition,
+        damage: Int,
+    ): PlacedTrap {
+        val localSocketPosition = position(0, 0)
+        val room = PlacedRoom(
+            blueprint = RoomBlueprint(
+                footprint = setOf(localSocketPosition),
+                doorPositions = setOf(localSocketPosition),
+                sockets = mapOf(
+                    localSocketPosition to RoomSocketType.FLOOR,
+                ),
+            ),
+            origin = trapPosition,
+        )
+        return PlacedTrap(
+            definition = TrapDefinition(
+                id = "spike_trap",
+                displayName = "Spike Trap",
+                damage = damage,
+                cooldownSeconds = 0.25f,
+                compatibleSocketTypes = setOf(RoomSocketType.FLOOR),
+            ),
+            room = room,
+            localSocketPosition = localSocketPosition,
+        )
+    }
 
     private fun position(column: Int, row: Int) = GridPosition(column, row)
 }

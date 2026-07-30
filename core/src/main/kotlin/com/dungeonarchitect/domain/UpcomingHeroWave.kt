@@ -4,6 +4,7 @@ data class UpcomingHeroWave(
     val heroType: String,
     val heroDisplayName: String,
     val count: Int,
+    val heroHealth: Int,
     val movementSpeedTilesPerSecond: Float,
     val traitDescription: String,
 ) {
@@ -16,6 +17,9 @@ data class UpcomingHeroWave(
         }
         require(count > 0) {
             "A hero wave must contain at least one hero."
+        }
+        require(heroHealth > 0) {
+            "A hero wave's hero health must be positive."
         }
         require(movementSpeedTilesPerSecond.isFinite() &&
             movementSpeedTilesPerSecond > 0f

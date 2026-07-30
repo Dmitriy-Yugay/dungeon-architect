@@ -1,6 +1,8 @@
 {
   "id": "spike_trap",
   "displayName": "Spike Trap",
+  "damage": 5,
+  "cooldownSeconds": 0.25,
   "compatibleSocketTypes": [
     "floor"
   ]

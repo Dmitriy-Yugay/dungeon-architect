@@ -443,6 +443,8 @@ class DungeonGridTest {
     ) = TrapDefinition(
         id = "spike_trap",
         displayName = "Spike Trap",
+        damage = 5,
+        cooldownSeconds = 0.25f,
         compatibleSocketTypes = compatibleSocketTypes,
     )
 }

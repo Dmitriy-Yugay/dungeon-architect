@@ -12,7 +12,7 @@ internal fun heroWorldMarker(
     heroState: PrototypeHeroState?,
     tileSize: Float,
 ): HeroWorldMarker? =
-    heroState?.let { state ->
+    heroState?.takeUnless(PrototypeHeroState::isDead)?.let { state ->
         HeroWorldMarker(
             centerX = (state.position.column + HALF_TILE) * tileSize,
             centerY = (state.position.row + HALF_TILE) * tileSize,

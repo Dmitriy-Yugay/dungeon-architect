@@ -55,6 +55,9 @@ tests.
 - Run prototype hero movement at a fixed 60 Hz simulation step. Hero movement
   speed remains authored wave content, while presentation-facing grid position
   interpolates the remainder between simulation steps.
+- Resolve trap targeting and cooldown on that same fixed step. A trap targets
+  the hero occupying its socket's grid cell; hero health, trap damage, and trap
+  cooldown remain authored content.
 - Manage asset lifetimes centrally through libGDX `AssetManager`.
 - Save versioned data rather than serialized runtime objects.
 - Add unit tests for placement validity, routing, combat, and wave completion.

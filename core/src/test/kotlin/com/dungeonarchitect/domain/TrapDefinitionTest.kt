@@ -13,6 +13,8 @@ class TrapDefinitionTest {
         val trap = TrapDefinition(
             id = "spike_trap",
             displayName = "Spike Trap",
+            damage = 5,
+            cooldownSeconds = 0.25f,
             compatibleSocketTypes = compatibleSocketTypes,
         )
 
@@ -26,6 +28,8 @@ class TrapDefinitionTest {
         val trap = TrapDefinition(
             id = "spike_trap",
             displayName = "Spike Trap",
+            damage = 5,
+            cooldownSeconds = 0.25f,
             compatibleSocketTypes = setOf(RoomSocketType.FLOOR),
         )
 
@@ -39,6 +43,8 @@ class TrapDefinitionTest {
             TrapDefinition(
                 id = " ",
                 displayName = "Spike Trap",
+                damage = 5,
+                cooldownSeconds = 0.25f,
                 compatibleSocketTypes = setOf(RoomSocketType.FLOOR),
             )
         }
@@ -50,6 +56,8 @@ class TrapDefinitionTest {
             TrapDefinition(
                 id = "spike_trap",
                 displayName = " ",
+                damage = 5,
+                cooldownSeconds = 0.25f,
                 compatibleSocketTypes = setOf(RoomSocketType.FLOOR),
             )
         }
@@ -61,8 +69,33 @@ class TrapDefinitionTest {
             TrapDefinition(
                 id = "spike_trap",
                 displayName = "Spike Trap",
+                damage = 5,
+                cooldownSeconds = 0.25f,
                 compatibleSocketTypes = emptySet(),
             )
         }
     }
+
+    @Test
+    fun `trap rejects invalid damage or cooldown`() {
+        assertFailsWith<IllegalArgumentException> {
+            trap(damage = 0)
+        }
+        listOf(0f, -1f, Float.NaN, Float.POSITIVE_INFINITY).forEach { cooldown ->
+            assertFailsWith<IllegalArgumentException> {
+                trap(cooldownSeconds = cooldown)
+            }
+        }
+    }
+
+    private fun trap(
+        damage: Int = 5,
+        cooldownSeconds: Float = 0.25f,
+    ) = TrapDefinition(
+        id = "spike_trap",
+        displayName = "Spike Trap",
+        damage = damage,
+        cooldownSeconds = cooldownSeconds,
+        compatibleSocketTypes = setOf(RoomSocketType.FLOOR),
+    )
 }

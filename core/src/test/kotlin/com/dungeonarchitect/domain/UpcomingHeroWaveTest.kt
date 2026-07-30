@@ -11,6 +11,7 @@ class UpcomingHeroWaveTest {
             heroType = "militia_recruit",
             heroDisplayName = "Militia Recruit",
             count = 4,
+            heroHealth = 10,
             movementSpeedTilesPerSecond = 2f,
             traitDescription = "A straightforward melee fighter.",
         )
@@ -18,8 +19,19 @@ class UpcomingHeroWaveTest {
         assertEquals("militia_recruit", wave.heroType)
         assertEquals("Militia Recruit", wave.heroDisplayName)
         assertEquals(4, wave.count)
+        assertEquals(10, wave.heroHealth)
         assertEquals(2f, wave.movementSpeedTilesPerSecond)
         assertEquals("A straightforward melee fighter.", wave.traitDescription)
+    }
+
+    @Test
+    fun `wave rejects non-positive hero health`() {
+        assertFailsWith<IllegalArgumentException> {
+            wave(heroHealth = 0)
+        }
+        assertFailsWith<IllegalArgumentException> {
+            wave(heroHealth = -1)
+        }
     }
 
     @Test
@@ -58,12 +70,14 @@ class UpcomingHeroWaveTest {
         heroType: String = "militia_recruit",
         heroDisplayName: String = "Militia Recruit",
         count: Int = 4,
+        heroHealth: Int = 10,
         movementSpeedTilesPerSecond: Float = 2f,
         traitDescription: String = "A straightforward melee fighter.",
     ) = UpcomingHeroWave(
         heroType = heroType,
         heroDisplayName = heroDisplayName,
         count = count,
+        heroHealth = heroHealth,
         movementSpeedTilesPerSecond = movementSpeedTilesPerSecond,
         traitDescription = traitDescription,
     )

@@ -90,7 +90,7 @@ Treat every numbered item below as a separate task:
 16. [x] Render the hero.
 17. [x] Add one room socket and one compatible trap definition.
 18. [x] Place the trap in the socket.
-19. [ ] Apply deterministic trap damage; test targeting, cooldown, and death.
+19. [x] Apply deterministic trap damage; test targeting, cooldown, and death.
 20. [ ] Add objective damage, victory, defeat, and restart.
 
 For every task:

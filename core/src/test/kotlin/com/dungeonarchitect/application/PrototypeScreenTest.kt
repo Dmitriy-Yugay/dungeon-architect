@@ -122,6 +122,7 @@ class PrototypeScreenTest {
                   "heroType": "militia_recruit",
                   "heroDisplayName": "Militia Recruit",
                   "count": 4,
+                  "heroHealth": 10,
                   "movementSpeedTilesPerSecond": 2.0,
                   "traitDescription": "A straightforward melee fighter."
                 }
@@ -142,6 +143,8 @@ class PrototypeScreenTest {
                 {
                   "id": "spike_trap",
                   "displayName": "Spike Trap",
+                  "damage": 5,
+                  "cooldownSeconds": 0.25,
                   "compatibleSocketTypes": ["floor"]
                 }
             """.trimIndent()
@@ -274,6 +277,7 @@ class PrototypeScreenTest {
         heroType = "militia_recruit",
         heroDisplayName = "Militia Recruit",
         count = 4,
+        heroHealth = 10,
         movementSpeedTilesPerSecond = 2f,
         traitDescription = "A straightforward melee fighter.",
     )
@@ -281,6 +285,8 @@ class PrototypeScreenTest {
     private fun trapDefinition() = TrapDefinition(
         id = "spike_trap",
         displayName = "Spike Trap",
+        damage = 5,
+        cooldownSeconds = 0.25f,
         compatibleSocketTypes = setOf(RoomSocketType.FLOOR),
     )
 }
