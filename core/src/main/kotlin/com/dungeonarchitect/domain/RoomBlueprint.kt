@@ -3,9 +3,11 @@ package com.dungeonarchitect.domain
 class RoomBlueprint(
     footprint: Set<GridPosition>,
     doorPositions: Set<GridPosition>,
+    sockets: Map<GridPosition, RoomSocketType> = emptyMap(),
 ) {
     val footprint: Set<GridPosition> = footprint.toSet()
     val doorPositions: Set<GridPosition> = doorPositions.toSet()
+    val sockets: Map<GridPosition, RoomSocketType> = sockets.toMap()
 
     init {
         require(this.footprint.isNotEmpty()) {
@@ -31,6 +33,9 @@ class RoomBlueprint(
         }
         require(this.doorPositions.all(::isOnFootprintEdge)) {
             "Every door position must be on an exposed edge of the room footprint."
+        }
+        require(this.sockets.keys.all { it in this.footprint }) {
+            "Every room socket must occupy a cell in the room footprint."
         }
     }
 

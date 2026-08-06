@@ -6,6 +6,8 @@ import com.badlogic.gdx.math.Matrix4
 import com.badlogic.gdx.utils.Disposable
 import com.dungeonarchitect.domain.DungeonGrid
 import com.dungeonarchitect.domain.GridPosition
+import com.dungeonarchitect.domain.PrototypeHeroState
+import com.dungeonarchitect.domain.RoomPlacementPreview
 import com.dungeonarchitect.domain.TileType
 import kotlin.math.floor
 
@@ -30,11 +32,15 @@ class DungeonGridRenderer : Disposable {
     fun render(
         grid: DungeonGrid,
         projection: Matrix4,
+        placementPreview: RoomPlacementPreview?,
+        heroState: PrototypeHeroState?,
         hoveredPosition: GridPosition?,
         selectedPosition: GridPosition?,
     ) {
         shapes.projectionMatrix = projection
         renderTiles(grid)
+        placementPreview?.let(::renderPlacementPreview)
+        heroWorldMarker(heroState, TILE_SIZE)?.let(::renderHero)
         renderHighlights(hoveredPosition, selectedPosition)
     }
 
@@ -57,6 +63,29 @@ class DungeonGridRenderer : Disposable {
             }
         }
 
+        shapes.end()
+    }
+
+    private fun renderPlacementPreview(preview: RoomPlacementPreview) {
+        shapes.begin(ShapeRenderer.ShapeType.Filled)
+        shapes.color = if (preview.isValid) VALID_PREVIEW_COLOR else INVALID_PREVIEW_COLOR
+
+        preview.room.gridPositions.forEach { position ->
+            shapes.rect(
+                position.column * TILE_SIZE + TILE_GAP,
+                position.row * TILE_SIZE + TILE_GAP,
+                TILE_SIZE - TILE_GAP * 2,
+                TILE_SIZE - TILE_GAP * 2,
+            )
+        }
+
+        shapes.end()
+    }
+
+    private fun renderHero(marker: HeroWorldMarker) {
+        shapes.begin(ShapeRenderer.ShapeType.Filled)
+        shapes.color = HERO_COLOR
+        shapes.circle(marker.centerX, marker.centerY, marker.radius)
         shapes.end()
     }
 
@@ -91,6 +120,7 @@ class DungeonGridRenderer : Disposable {
     private fun colorFor(tileType: TileType): Color =
         when (tileType) {
             TileType.EMPTY -> EMPTY_TILE_COLOR
+            TileType.ROOM -> ROOM_COLOR
             TileType.ENTRANCE -> ENTRANCE_COLOR
             TileType.OBJECTIVE -> OBJECTIVE_COLOR
         }
@@ -102,8 +132,12 @@ class DungeonGridRenderer : Disposable {
         const val SELECTION_INSET = 8f
 
         val EMPTY_TILE_COLOR = Color.valueOf("252B33")
+        val ROOM_COLOR = Color.valueOf("5D6D7E")
         val ENTRANCE_COLOR = Color.valueOf("3A9D5D")
         val OBJECTIVE_COLOR = Color.valueOf("B84B4B")
+        val VALID_PREVIEW_COLOR = Color.valueOf("4EA86B")
+        val INVALID_PREVIEW_COLOR = Color.valueOf("D85C5C")
+        val HERO_COLOR = Color.valueOf("4BA3D3")
         val HOVER_COLOR = Color.valueOf("E0B84B")
         val SELECTION_COLOR = Color.valueOf("F2F2F2")
     }

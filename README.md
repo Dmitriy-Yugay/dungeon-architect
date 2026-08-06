@@ -6,14 +6,20 @@ heroes.
 
 ## Status
 
-The initial project scaffold and first visual prototype are in place. The
-desktop application displays a selectable dungeon grid with an entrance and an
-objective; gameplay systems have not been implemented yet.
+The first end-to-end prototype is complete. The desktop application supports
+connected room placement, route validation, an authored hero wave, deterministic
+trap combat, objective damage, victory, defeat, and restart. Visuals remain
+placeholder shapes.
 
 ## Prototype controls
 
-- Move the pointer over a tile to highlight it.
-- Click a tile to select it.
+- Move the pointer over the grid to preview the prototype room.
+- Click a green preview to place the room; red previews are invalid.
+- Connect rooms from the entrance to the objective to enable the wave.
+- Click **START WAVE** to run the authored wave.
+- Click **RESTART** after victory or defeat.
+
+The current trap is installed automatically in the starter room.
 
 ## Requirements
 
@@ -36,9 +42,9 @@ thread.
 
 ## Modules
 
-- `core`: platform-independent game application and future shared game code.
+- `core`: shared domain, simulation, application, presentation, and tests.
 - `lwjgl3`: desktop launcher and LWJGL3-specific window configuration.
-- `assets`: shared game assets; currently empty.
+- `assets`: JSON definitions for the prototype run, wave, and trap.
 
 ## Documentation
 

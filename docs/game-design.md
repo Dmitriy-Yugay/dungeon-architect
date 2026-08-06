@@ -50,7 +50,10 @@ content.
 
 - The dungeon uses a grid for predictable placement and navigation.
 - Rooms connect through compatible doors.
-- Every valid layout must leave a route from the entrance to the objective.
+- A layout is ready for a wave only when it has a route from the entrance to
+  the objective.
+- Individual room placements may leave that route incomplete while the player
+  is still constructing the layout.
 - Layout creates tactical value through distance, choke points, and defense
   coverage.
 - Construction and defense placement consume a shared, limited resource.
@@ -75,7 +78,31 @@ clear strengths, counters, ranges, and costs.
 The player wins a wave by defeating all heroes. The run ends when the objective
 loses all health.
 
-## First playable content
+## Prototype stages
+
+### Foundation — complete
+
+The current prototype proves room connection, routing, one simple hero wave,
+one socketed trap, deterministic combat, outcomes, and restart. It uses one
+repeated room blueprint and installs the trap automatically.
+
+### Room choice — next
+
+The next prototype adds two simple authored room blueprints and lets the player
+choose which one to place. The rooms differ only in geometry, doors, and socket
+layout. The player also places the existing basic trap into a compatible socket.
+
+This stage may allow several rooms to be placed during the initial build phase
+so the current fixed map can form a complete route. It is a temporary prototype
+rule, not the final run economy.
+
+### Persistent drafting — later
+
+After room choice is playable, define how adding one room before each wave
+extends or changes the required route. Only then add multiple waves, rewards,
+one-room-per-wave limits, or late-game replacement costs.
+
+## First playable content target
 
 - One entrance, one objective, and a fixed build area
 - Two simple room blueprints without special effects
@@ -97,6 +124,7 @@ only providing small numerical bonuses.
 
 - How does adding a room extend or alter the required entrance-to-objective
   route?
-- When is room replacement unlocked, and how is its cost calculated?
+- At what late-game point is room replacement unlocked, and how is its
+  significant cost calculated?
 - How many room choices should appear before each wave?
 - Can some heroes pursue room-specific goals instead of the main objective?

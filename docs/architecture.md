@@ -18,16 +18,16 @@ Additional platform modules should be added only when needed.
 
 ## Core boundaries
 
-- **Domain:** currently contains the grid and tile model; it will also own
-  entities, stats, resources, waves, and rules.
-- **Simulation:** will contain pathfinding, targeting, combat, movement, and
-  wave updates.
-- **Presentation:** currently contains grid rendering; it will also contain
-  animation, audio, camera, and UI.
-- **Application:** currently contains the prototype screen and pointer input;
-  it will coordinate commands and game-state transitions.
-- **Content:** will contain external definitions for defenses, heroes, and
-  waves.
+- **Domain:** grids, rooms, doors, sockets, traps, authored wave data, hero
+  state, and run phases.
+- **Simulation:** four-directional pathfinding, fixed-step hero movement, trap
+  targeting, cooldown, and damage.
+- **Presentation:** placeholder grid, placement preview, hero marker, wave
+  information, objective health, and run controls.
+- **Application:** the prototype screen plus controllers for starting,
+  advancing, resolving, and restarting the wave.
+- **Content:** JSON definitions and parsers for the prototype run, hero wave,
+  and trap.
 
 Domain objects should not depend on rendering classes. Systems update the game
 state on a fixed simulation step; rendering may interpolate between steps.
@@ -44,14 +44,37 @@ tests.
 - Use a tile grid and a straightforward pathfinding algorithm.
 - Represent room footprints as normalized, four-directionally connected sets
   of local grid positions. Door positions identify exposed cells within that
-  footprint.
+  footprint. Room socket maps identify at most one typed defense socket per
+  local cell, and authored trap definitions declare compatible socket types.
 - A placed room combines a blueprint with a grid origin and translates its
   local footprint without enforcing grid bounds; dungeon placement rules own
   bounds validation.
 - Load disposable game content from JSON or another simple text format.
-- Manage asset lifetimes centrally through libGDX `AssetManager`.
-- Save versioned data rather than serialized runtime objects.
-- Add unit tests for placement validity, routing, combat, and wave completion.
+- Parse authored content from supplied text; the application layer owns file
+  loading so content validation does not depend on libGDX global state.
+- Run prototype hero movement at a fixed 60 Hz simulation step. Hero movement
+  speed remains authored wave content, while presentation-facing grid position
+  interpolates the remainder between simulation steps.
+- Resolve trap targeting and cooldown on that same fixed step. A trap targets
+  the hero occupying its socket's grid cell; hero health, trap damage, and trap
+  cooldown remain authored content.
+- Coordinate the prototype run in plain Kotlin. Heroes of the single authored
+  type traverse the route one at a time up to the wave's configured count and
+  share trap cooldown state. Arrivals apply authored objective damage; resolving
+  the wave with objective health remaining is victory, while zero health is
+  defeat.
+- Restart resets transient wave progress, objective health, hero state, and
+  trap cooldowns while preserving the player's room and trap layout.
 
-Final package names and detailed APIs should be chosen during the first
-prototype, when their responsibilities are concrete.
+## Near-term constraints
+
+- Keep early room differences limited to geometry, doors, and sockets.
+- Load room blueprints from authored content before adding special room rules.
+- Keep selection and build-phase rules in the application or domain layers,
+  not in renderers.
+- Do not allow room or trap placement after a wave starts.
+- Continue testing placement, routing, combat, and run outcomes without
+  starting libGDX.
+
+Central asset management, saves, additional platforms, and richer content are
+deferred until the room-choice loop is proven.
