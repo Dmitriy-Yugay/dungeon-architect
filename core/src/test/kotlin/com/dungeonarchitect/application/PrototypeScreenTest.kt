@@ -10,6 +10,8 @@ import com.dungeonarchitect.domain.RoomSocketType
 import com.dungeonarchitect.domain.TrapDefinition
 import com.dungeonarchitect.domain.UpcomingHeroWave
 import com.dungeonarchitect.presentation.ControlBounds
+import java.nio.file.Files
+import java.nio.file.Path
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -20,8 +22,10 @@ import kotlin.test.assertTrue
 class PrototypeScreenTest {
     @Test
     fun `prototype grid starts with one authored room`() {
-        val room = PrototypeScreen.prototypeGrid().placedRooms.single()
+        val room = prototypeGrid().placedRooms.single()
 
+        assertEquals("prototype-room", room.blueprint.id)
+        assertEquals("Prototype Room", room.blueprint.displayName)
         assertEquals(GridPosition(column = 6, row = 3), room.origin)
         assertEquals(
             setOf(
@@ -41,7 +45,7 @@ class PrototypeScreenTest {
 
     @Test
     fun `authored prototype room has one floor trap socket`() {
-        val room = PrototypeScreen.prototypeGrid().placedRooms.single()
+        val room = prototypeGrid().placedRooms.single()
 
         assertEquals(
             mapOf(
@@ -53,7 +57,7 @@ class PrototypeScreenTest {
 
     @Test
     fun `placement preview uses the authored blueprint at the hovered origin`() {
-        val grid = PrototypeScreen.prototypeGrid()
+        val grid = prototypeGrid()
 
         val preview = PrototypeScreen.placementPreview(
             grid = grid,
@@ -67,7 +71,7 @@ class PrototypeScreenTest {
 
     @Test
     fun `placement preview reports invalid candidate without changing placed rooms`() {
-        val grid = PrototypeScreen.prototypeGrid()
+        val grid = prototypeGrid()
 
         val preview = PrototypeScreen.placementPreview(
             grid = grid,
@@ -82,7 +86,7 @@ class PrototypeScreenTest {
     fun `placement preview is absent when the pointer is outside the grid`() {
         assertNull(
             PrototypeScreen.placementPreview(
-                grid = PrototypeScreen.prototypeGrid(),
+                grid = prototypeGrid(),
                 hoveredPosition = null,
             ),
         )
@@ -90,7 +94,7 @@ class PrototypeScreenTest {
 
     @Test
     fun `click commits the current valid placement preview`() {
-        val grid = PrototypeScreen.prototypeGrid()
+        val grid = prototypeGrid()
         val clickedPosition = GridPosition(column = 3, row = 3)
 
         assertTrue(PrototypeScreen.commitPlacement(grid, clickedPosition))
@@ -100,7 +104,7 @@ class PrototypeScreenTest {
 
     @Test
     fun `invalid click leaves prototype rooms unchanged`() {
-        val grid = PrototypeScreen.prototypeGrid()
+        val grid = prototypeGrid()
         val roomsBeforeClick = grid.placedRooms
 
         assertFalse(
@@ -133,6 +137,20 @@ class PrototypeScreenTest {
 
         assertEquals("content/upcoming-hero-wave.json", requestedPath)
         assertEquals("Militia Recruit", wave.heroDisplayName)
+    }
+
+    @Test
+    fun `application loads the authored room through the supplied internal text reader`() {
+        var requestedPath: String? = null
+
+        val blueprint = PrototypeScreen.loadRoomBlueprint { path ->
+            requestedPath = path
+            authoredRoomJson()
+        }
+
+        assertEquals("content/prototype-room.json", requestedPath)
+        assertEquals("prototype-room", blueprint.id)
+        assertEquals("Prototype Room", blueprint.displayName)
     }
 
     @Test
@@ -172,7 +190,7 @@ class PrototypeScreenTest {
 
     @Test
     fun `prototype places one authored trap in its translated room socket`() {
-        val grid = PrototypeScreen.prototypeGrid()
+        val grid = prototypeGrid()
         val definition = trapDefinition()
 
         assertTrue(PrototypeScreen.placePrototypeTrap(grid, definition))
@@ -212,7 +230,7 @@ class PrototypeScreenTest {
 
     @Test
     fun `click outside start control remains a placement click`() {
-        val grid = PrototypeScreen.prototypeGrid()
+        val grid = prototypeGrid()
         val controller = runController(grid)
         val clickedPosition = GridPosition(column = 3, row = 3)
 
@@ -278,6 +296,19 @@ class PrototypeScreenTest {
             ),
         ),
     )
+
+    private fun prototypeGrid() = PrototypeScreen.prototypeGrid(
+        PrototypeScreen.loadRoomBlueprint { authoredRoomJson() },
+    )
+
+    private fun authoredRoomJson(): String {
+        val config = generateSequence(Path.of("").toAbsolutePath()) { it.parent }
+            .map { it.resolve("assets/content/prototype-room.json") }
+            .firstOrNull { Files.isRegularFile(it) }
+            ?: error("Could not locate authored prototype room config.")
+
+        return Files.readString(config)
+    }
 
     private fun upcomingWave() = UpcomingHeroWave(
         heroType = "militia_recruit",

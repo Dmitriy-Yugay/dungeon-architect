@@ -139,7 +139,7 @@ Treat every numbered item as a separate task.
     validation.
 22. [x] Parse one room blueprint from supplied JSON text; test required fields,
     positions, doors, and sockets.
-23. [ ] Add authored JSON for the existing room and load it instead of
+23. [x] Add authored JSON for the existing room and load it instead of
     constructing it in `PrototypeScreen`.
 24. [ ] Add a second authored room with different geometry or socket placement,
     but no special effect.

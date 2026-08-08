@@ -7,6 +7,7 @@ import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.utils.ScreenUtils
 import com.badlogic.gdx.utils.viewport.FitViewport
 import com.dungeonarchitect.content.PrototypeRunDefinitionParser
+import com.dungeonarchitect.content.RoomBlueprintParser
 import com.dungeonarchitect.content.TrapDefinitionParser
 import com.dungeonarchitect.content.UpcomingHeroWaveParser
 import com.dungeonarchitect.domain.DungeonGrid
@@ -15,7 +16,6 @@ import com.dungeonarchitect.domain.PlacedRoom
 import com.dungeonarchitect.domain.PrototypeRunDefinition
 import com.dungeonarchitect.domain.RoomBlueprint
 import com.dungeonarchitect.domain.RoomPlacementPreview
-import com.dungeonarchitect.domain.RoomSocketType
 import com.dungeonarchitect.domain.TrapDefinition
 import com.dungeonarchitect.domain.UpcomingHeroWave
 import com.dungeonarchitect.presentation.ControlBounds
@@ -25,7 +25,11 @@ import com.dungeonarchitect.presentation.WavePanelRenderer
 import com.dungeonarchitect.presentation.WavePanelView
 
 class PrototypeScreen(
-    private val grid: DungeonGrid = prototypeGrid(),
+    private val grid: DungeonGrid = prototypeGrid(
+        loadRoomBlueprint { path ->
+            Gdx.files.internal(path).readString("UTF-8")
+        },
+    ),
     private val upcomingWave: UpcomingHeroWave = loadUpcomingWave { path ->
         Gdx.files.internal(path).readString("UTF-8")
     },
@@ -131,53 +135,36 @@ class PrototypeScreen(
         private const val UPCOMING_WAVE_PATH = "content/upcoming-hero-wave.json"
         private const val TRAP_DEFINITION_PATH = "content/spike-trap.json"
         private const val RUN_DEFINITION_PATH = "content/prototype-run.json"
-
-        private val prototypeRoom = PlacedRoom(
-            blueprint = RoomBlueprint(
-                id = "prototype-room",
-                displayName = "Prototype Room",
-                footprint = setOf(
-                    GridPosition(column = 0, row = 0),
-                    GridPosition(column = 1, row = 0),
-                    GridPosition(column = 2, row = 0),
-                    GridPosition(column = 0, row = 1),
-                    GridPosition(column = 1, row = 1),
-                    GridPosition(column = 2, row = 1),
-                    GridPosition(column = 0, row = 2),
-                    GridPosition(column = 1, row = 2),
-                    GridPosition(column = 2, row = 2),
-                ),
-                doorPositions = setOf(
-                    GridPosition(column = 0, row = 1),
-                    GridPosition(column = 2, row = 1),
-                ),
-                sockets = mapOf(
-                    GridPosition(column = 1, row = 1) to RoomSocketType.FLOOR,
-                ),
-            ),
-            origin = GridPosition(column = 6, row = 3),
-        )
+        private const val ROOM_BLUEPRINT_PATH = "content/prototype-room.json"
 
         private const val BACKGROUND_RED = 0.04f
         private const val BACKGROUND_GREEN = 0.05f
         private const val BACKGROUND_BLUE = 0.07f
         private const val BACKGROUND_ALPHA = 1f
 
-        internal fun prototypeGrid() = DungeonGrid(
+        internal fun prototypeGrid(blueprint: RoomBlueprint) = DungeonGrid(
             width = 16,
             height = 9,
             entrance = GridPosition(column = 0, row = 4),
             objective = GridPosition(column = 15, row = 4),
-            placedRooms = listOf(prototypeRoom),
+            placedRooms = listOf(
+                PlacedRoom(
+                    blueprint = blueprint,
+                    origin = GridPosition(column = 6, row = 3),
+                ),
+            ),
         )
 
         internal fun placementPreview(
             grid: DungeonGrid,
             hoveredPosition: GridPosition?,
-        ): RoomPlacementPreview? =
-            hoveredPosition?.let { origin ->
-                grid.placementPreview(prototypeRoom.blueprint, origin)
+        ): RoomPlacementPreview? {
+            val blueprint = grid.placedRooms.firstOrNull()?.blueprint
+                ?: return null
+            return hoveredPosition?.let { origin ->
+                grid.placementPreview(blueprint, origin)
             }
+        }
 
         internal fun commitPlacement(
             grid: DungeonGrid,
@@ -191,6 +178,13 @@ class PrototypeScreen(
             readInternalText: (String) -> String,
         ): UpcomingHeroWave =
             UpcomingHeroWaveParser.parse(readInternalText(UPCOMING_WAVE_PATH))
+
+        internal fun loadRoomBlueprint(
+            readInternalText: (String) -> String,
+        ): RoomBlueprint =
+            RoomBlueprintParser.parse(
+                readInternalText(ROOM_BLUEPRINT_PATH),
+            )
 
         internal fun loadTrapDefinition(
             readInternalText: (String) -> String,

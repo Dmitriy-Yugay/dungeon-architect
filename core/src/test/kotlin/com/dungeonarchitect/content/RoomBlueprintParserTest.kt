@@ -2,12 +2,31 @@ package com.dungeonarchitect.content
 
 import com.dungeonarchitect.domain.GridPosition
 import com.dungeonarchitect.domain.RoomSocketType
+import java.nio.file.Files
+import java.nio.file.Path
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFails
 import kotlin.test.assertFailsWith
 
 class RoomBlueprintParserTest {
+    @Test
+    fun `authored prototype room parses without libGDX global state`() {
+        val blueprint = RoomBlueprintParser.parse(authoredRoomJson())
+
+        assertEquals("prototype-room", blueprint.id)
+        assertEquals("Prototype Room", blueprint.displayName)
+        assertEquals(9, blueprint.footprint.size)
+        assertEquals(
+            setOf(position(0, 1), position(2, 1)),
+            blueprint.doorPositions,
+        )
+        assertEquals(
+            mapOf(position(1, 1) to RoomSocketType.FLOOR),
+            blueprint.sockets,
+        )
+    }
+
     @Test
     fun `parser reads identity positions doors and sockets from supplied JSON`() {
         val blueprint = RoomBlueprintParser.parse(roomJson())
@@ -175,6 +194,15 @@ class RoomBlueprintParserTest {
         fields.entries.joinToString(prefix = "{", postfix = "}") { (name, value) ->
             "\"$name\": $value"
         }
+
+    private fun authoredRoomJson(): String {
+        val config = generateSequence(Path.of("").toAbsolutePath()) { it.parent }
+            .map { it.resolve("assets/content/prototype-room.json") }
+            .firstOrNull { Files.isRegularFile(it) }
+            ?: error("Could not locate authored prototype room config.")
+
+        return Files.readString(config)
+    }
 
     private fun position(column: Int, row: Int) =
         GridPosition(column = column, row = row)
