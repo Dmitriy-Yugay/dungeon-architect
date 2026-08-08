@@ -149,7 +149,7 @@ Treat every numbered item as a separate task.
     unknown selections.
 27. [x] Make placement previews use the selected blueprint.
 28. [x] Make committed room placements use the selected blueprint.
-29. [ ] Add a presentation-only view model for the available room choices and
+29. [x] Add a presentation-only view model for the available room choices and
     selected state.
 30. [ ] Render two room-choice controls with placeholder shapes and text.
 31. [ ] Handle a room-choice click without also placing a room.
