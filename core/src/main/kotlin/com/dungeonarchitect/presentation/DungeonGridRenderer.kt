@@ -43,6 +43,7 @@ class DungeonGridRenderer : Disposable {
         placementPreview?.let(::renderPlacementPreview)
         renderDoorMarkers(roomDoorGridPositions(grid.placedRooms))
         renderSocketMarkers(roomSocketGridMarkers(grid.placedRooms))
+        renderTrapMarkers(placedTrapGridMarkers(grid))
         heroWorldMarker(heroState, TILE_SIZE)?.let(::renderHero)
         renderHighlights(hoveredPosition, selectedPosition)
     }
@@ -126,6 +127,35 @@ class DungeonGridRenderer : Disposable {
         shapes.end()
     }
 
+    private fun renderTrapMarkers(markers: List<PlacedTrapGridMarker>) {
+        shapes.begin(ShapeRenderer.ShapeType.Filled)
+        shapes.color = TRAP_MARKER_COLOR
+
+        markers.forEach { marker ->
+            val centerX = (marker.position.column + HALF_TILE) * TILE_SIZE
+            val centerY = (marker.position.row + HALF_TILE) * TILE_SIZE
+
+            shapes.triangle(
+                centerX,
+                centerY + TRAP_MARKER_RADIUS,
+                centerX + TRAP_MARKER_RADIUS,
+                centerY,
+                centerX,
+                centerY - TRAP_MARKER_RADIUS,
+            )
+            shapes.triangle(
+                centerX,
+                centerY + TRAP_MARKER_RADIUS,
+                centerX,
+                centerY - TRAP_MARKER_RADIUS,
+                centerX - TRAP_MARKER_RADIUS,
+                centerY,
+            )
+        }
+
+        shapes.end()
+    }
+
     private fun renderHighlights(
         hoveredPosition: GridPosition?,
         selectedPosition: GridPosition?,
@@ -171,6 +201,7 @@ class DungeonGridRenderer : Disposable {
         const val DOOR_MARKER_INSET = (TILE_SIZE - DOOR_MARKER_SIZE) / 2f
         const val HALF_TILE = 0.5f
         const val SOCKET_MARKER_RADIUS = 8f
+        const val TRAP_MARKER_RADIUS = 12f
 
         val EMPTY_TILE_COLOR = Color.valueOf("252B33")
         val ROOM_COLOR = Color.valueOf("5D6D7E")
@@ -181,6 +212,7 @@ class DungeonGridRenderer : Disposable {
         val DOOR_MARKER_COLOR = Color.valueOf("F0A44B")
         val FLOOR_SOCKET_MARKER_COLOR = Color.valueOf("47C6B5")
         val WALL_SOCKET_MARKER_COLOR = Color.valueOf("B779D0")
+        val TRAP_MARKER_COLOR = Color.valueOf("E84A5F")
         val HERO_COLOR = Color.valueOf("4BA3D3")
         val HOVER_COLOR = Color.valueOf("E0B84B")
         val SELECTION_COLOR = Color.valueOf("F2F2F2")

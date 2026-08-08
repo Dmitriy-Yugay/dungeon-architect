@@ -157,7 +157,7 @@ Treat every numbered item as a separate task.
     run phase.
 33. [x] Render door markers on placed rooms.
 34. [x] Render socket markers on placed rooms.
-35. [ ] Render the currently placed trap.
+35. [x] Render the currently placed trap.
 36. [ ] Add the selected trap definition to the build state.
 37. [ ] Resolve whether a hovered grid cell is a compatible empty socket; test
     valid, occupied, incompatible, and non-socket cells.
