@@ -18,6 +18,88 @@ import kotlin.test.assertTrue
 
 class TrapPlacementCommitTest {
     @Test
+    fun `started wave snapshots the exact player-placed trap`() {
+        val localSocketPosition = position(0, 0)
+        val room = PlacedRoom(
+            blueprint = RoomBlueprint(
+                id = "route-room",
+                displayName = "Route Room",
+                footprint = setOf(localSocketPosition),
+                doorPositions = setOf(localSocketPosition),
+                sockets = mapOf(
+                    localSocketPosition to RoomSocketType.FLOOR,
+                ),
+            ),
+            origin = position(1, 0),
+        )
+        val selectedTrapDefinition = TrapDefinition(
+            id = "spike_trap",
+            displayName = "Spike Trap",
+            damage = 5,
+            cooldownSeconds = 0.25f,
+            compatibleSocketTypes = setOf(RoomSocketType.FLOOR),
+        )
+        val buildState = BuildState(
+            availableRoomBlueprints = listOf(room.blueprint),
+            selectedRoomBlueprint = room.blueprint,
+            selectedTrapDefinition = selectedTrapDefinition,
+        )
+        val grid = DungeonGrid(
+            width = 3,
+            height = 1,
+            entrance = position(0, 0),
+            objective = position(2, 0),
+            placedRooms = listOf(room),
+        )
+        val controller = runController(grid)
+        val startButtonBounds = ControlBounds(
+            x = 10f,
+            y = 20f,
+            width = 100f,
+            height = 40f,
+        )
+
+        assertEquals(
+            PrototypeClickResult.TRAP_PLACED,
+            PrototypeScreen.handleClick(
+                grid = grid,
+                buildState = buildState,
+                clickedPosition = position(1, 0),
+                worldX = 0f,
+                worldY = 0f,
+                startButtonBounds = startButtonBounds,
+                roomChoiceControls = emptyList(),
+                runController = controller,
+            ),
+        )
+        val playerPlacedTrap = grid.placedTraps.single()
+
+        assertEquals(
+            PrototypeClickResult.WAVE_STARTED,
+            PrototypeScreen.handleClick(
+                grid = grid,
+                buildState = buildState,
+                clickedPosition = null,
+                worldX = 60f,
+                worldY = 40f,
+                startButtonBounds = startButtonBounds,
+                roomChoiceControls = emptyList(),
+                runController = controller,
+            ),
+        )
+
+        val snapshottedTrap = controller.startedWave!!.traps.single()
+        assertSame(playerPlacedTrap, snapshottedTrap)
+        assertSame(selectedTrapDefinition, snapshottedTrap.definition)
+        assertSame(room, snapshottedTrap.room)
+        assertSame(
+            playerPlacedTrap.localSocketPosition,
+            snapshottedTrap.localSocketPosition,
+        )
+        assertEquals(localSocketPosition, snapshottedTrap.localSocketPosition)
+    }
+
+    @Test
     fun `commit places selected trap in canonical translated socket target`() {
         val fixture = fixture()
 
