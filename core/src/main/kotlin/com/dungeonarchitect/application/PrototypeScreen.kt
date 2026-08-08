@@ -19,6 +19,7 @@ import com.dungeonarchitect.domain.PrototypeRunPhase
 import com.dungeonarchitect.domain.RoomBlueprint
 import com.dungeonarchitect.domain.RoomPlacementPreview
 import com.dungeonarchitect.domain.TrapDefinition
+import com.dungeonarchitect.domain.TrapSocketHoverResult
 import com.dungeonarchitect.domain.UpcomingHeroWave
 import com.dungeonarchitect.presentation.ControlBounds
 import com.dungeonarchitect.presentation.DungeonGridRenderer
@@ -211,6 +212,40 @@ class PrototypeScreen(
                 ?: false
         }
 
+        internal fun commitTrapPlacement(
+            grid: DungeonGrid,
+            buildState: BuildState,
+            clickedPosition: GridPosition?,
+            runPhase: PrototypeRunPhase,
+        ): TrapPlacementCommitResult {
+            val hoverResult = clickedPosition?.let { position ->
+                grid.trapSocketHoverResult(
+                    hoveredPosition = position,
+                    definition = buildState.selectedTrapDefinition,
+                )
+            } ?: return TrapPlacementCommitResult.NON_SOCKET
+
+            return when (hoverResult) {
+                is TrapSocketHoverResult.Valid ->
+                    if (runPhase == PrototypeRunPhase.BUILDING &&
+                        grid.placeTrap(
+                            room = hoverResult.room,
+                            localSocketPosition = hoverResult.localSocketPosition,
+                            definition = buildState.selectedTrapDefinition,
+                        )
+                    ) {
+                        TrapPlacementCommitResult.PLACED
+                    } else {
+                        TrapPlacementCommitResult.REJECTED
+                    }
+                is TrapSocketHoverResult.Occupied,
+                is TrapSocketHoverResult.Incompatible,
+                -> TrapPlacementCommitResult.REJECTED
+                TrapSocketHoverResult.NonSocket ->
+                    TrapPlacementCommitResult.NON_SOCKET
+            }
+        }
+
         internal fun loadUpcomingWave(
             readInternalText: (String) -> String,
         ): UpcomingHeroWave =
@@ -300,6 +335,21 @@ class PrototypeScreen(
                 }
             }
 
+            when (
+                commitTrapPlacement(
+                    grid = grid,
+                    buildState = buildState,
+                    clickedPosition = clickedPosition,
+                    runPhase = runController.phase,
+                )
+            ) {
+                TrapPlacementCommitResult.PLACED ->
+                    return PrototypeClickResult.TRAP_PLACED
+                TrapPlacementCommitResult.REJECTED ->
+                    return PrototypeClickResult.IGNORED
+                TrapPlacementCommitResult.NON_SOCKET -> Unit
+            }
+
             val wasPlaced = commitPlacement(
                 grid = grid,
                 buildState = buildState,
@@ -321,5 +371,12 @@ internal enum class PrototypeClickResult {
     RUN_RESTARTED,
     ROOM_CHOICE_SELECTED,
     ROOM_PLACED,
+    TRAP_PLACED,
     IGNORED,
+}
+
+internal enum class TrapPlacementCommitResult {
+    PLACED,
+    REJECTED,
+    NON_SOCKET,
 }
