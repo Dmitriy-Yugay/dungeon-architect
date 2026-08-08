@@ -417,6 +417,8 @@ class DungeonGridTest {
         ),
     ) = PlacedRoom(
         blueprint = RoomBlueprint(
+            id = "test-room",
+            displayName = "Test Room",
             footprint = footprint,
             doorPositions = setOf(doorPosition),
         ),
@@ -428,6 +430,8 @@ class DungeonGridTest {
         socketType: RoomSocketType = RoomSocketType.FLOOR,
     ) = PlacedRoom(
         blueprint = RoomBlueprint(
+            id = "socket-room",
+            displayName = "Socket Room",
             footprint = setOf(GridPosition(column = 0, row = 0)),
             doorPositions = setOf(GridPosition(column = 0, row = 0)),
             sockets = mapOf(

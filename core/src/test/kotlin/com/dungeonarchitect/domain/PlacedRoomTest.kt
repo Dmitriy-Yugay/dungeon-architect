@@ -10,6 +10,8 @@ class PlacedRoomTest {
     @Test
     fun `placed room translates its local footprint to grid positions`() {
         val blueprint = RoomBlueprint(
+            id = "test-room",
+            displayName = "Test Room",
             footprint = setOf(
                 position(0, 0),
                 position(1, 0),
@@ -37,6 +39,8 @@ class PlacedRoomTest {
     @Test
     fun `placed room rejects a local position outside its footprint`() {
         val blueprint = RoomBlueprint(
+            id = "test-room",
+            displayName = "Test Room",
             footprint = setOf(position(0, 0)),
             doorPositions = setOf(position(0, 0)),
         )
@@ -146,6 +150,8 @@ class PlacedRoomTest {
         doorPosition: GridPosition = position(0, 0),
     ) = PlacedRoom(
         blueprint = RoomBlueprint(
+            id = "test-room",
+            displayName = "Test Room",
             footprint = setOf(
                 position(0, 0),
                 position(1, 0),
@@ -159,6 +165,8 @@ class PlacedRoomTest {
 
     private fun singleCellRoom(origin: GridPosition) = PlacedRoom(
         blueprint = RoomBlueprint(
+            id = "single-cell-room",
+            displayName = "Single Cell Room",
             footprint = setOf(position(0, 0)),
             doorPositions = setOf(position(0, 0)),
         ),

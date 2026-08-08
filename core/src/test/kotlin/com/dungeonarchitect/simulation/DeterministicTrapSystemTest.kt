@@ -78,6 +78,8 @@ class DeterministicTrapSystemTest {
         val localSocketPosition = GridPosition(column = 0, row = 0)
         val room = PlacedRoom(
             blueprint = RoomBlueprint(
+                id = "socket-room",
+                displayName = "Socket Room",
                 footprint = setOf(localSocketPosition),
                 doorPositions = setOf(localSocketPosition),
                 sockets = mapOf(

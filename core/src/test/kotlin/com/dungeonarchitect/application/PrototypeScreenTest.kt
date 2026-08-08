@@ -269,6 +269,8 @@ class PrototypeScreenTest {
         placedRooms = listOf(
             PlacedRoom(
                 blueprint = RoomBlueprint(
+                    id = "test-room",
+                    displayName = "Test Room",
                     footprint = setOf(GridPosition(column = 0, row = 0)),
                     doorPositions = setOf(GridPosition(column = 0, row = 0)),
                 ),

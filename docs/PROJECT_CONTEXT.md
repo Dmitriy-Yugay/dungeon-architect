@@ -135,7 +135,7 @@ Treat every numbered item as a separate task.
 
 ### Room choice — next
 
-21. [ ] Add a stable ID and display name to a room blueprint; test blank-value
+21. [x] Add a stable ID and display name to a room blueprint; test blank-value
     validation.
 22. [ ] Parse one room blueprint from supplied JSON text; test required fields,
     positions, doors, and sockets.

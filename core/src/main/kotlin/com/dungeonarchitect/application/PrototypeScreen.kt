@@ -134,6 +134,8 @@ class PrototypeScreen(
 
         private val prototypeRoom = PlacedRoom(
             blueprint = RoomBlueprint(
+                id = "prototype-room",
+                displayName = "Prototype Room",
                 footprint = setOf(
                     GridPosition(column = 0, row = 0),
                     GridPosition(column = 1, row = 0),

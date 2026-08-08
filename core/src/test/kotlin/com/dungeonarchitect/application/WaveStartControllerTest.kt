@@ -78,6 +78,8 @@ class WaveStartControllerTest {
         placedRooms = listOf(
             PlacedRoom(
                 blueprint = RoomBlueprint(
+                    id = "socket-room",
+                    displayName = "Socket Room",
                     footprint = setOf(GridPosition(column = 0, row = 0)),
                     doorPositions = setOf(GridPosition(column = 0, row = 0)),
                     sockets = mapOf(

@@ -1,6 +1,8 @@
 package com.dungeonarchitect.domain
 
 class RoomBlueprint(
+    val id: String,
+    val displayName: String,
     footprint: Set<GridPosition>,
     doorPositions: Set<GridPosition>,
     sockets: Map<GridPosition, RoomSocketType> = emptyMap(),
@@ -10,6 +12,12 @@ class RoomBlueprint(
     val sockets: Map<GridPosition, RoomSocketType> = sockets.toMap()
 
     init {
+        require(id.isNotBlank()) {
+            "A room blueprint ID must not be blank."
+        }
+        require(displayName.isNotBlank()) {
+            "A room blueprint display name must not be blank."
+        }
         require(this.footprint.isNotEmpty()) {
             "A room footprint must contain at least one cell."
         }
