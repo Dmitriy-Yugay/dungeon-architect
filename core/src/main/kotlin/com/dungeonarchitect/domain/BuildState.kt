@@ -27,4 +27,12 @@ class BuildState(
                 "The selected room blueprint must be available to build.",
             )
     }
+
+    fun selectRoomBlueprint(id: String): Boolean {
+        val blueprint = availableRoomBlueprints.firstOrNull { it.id == id }
+            ?: return false
+
+        selectedRoomBlueprint = blueprint
+        return true
+    }
 }

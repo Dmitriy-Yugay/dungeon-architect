@@ -3,7 +3,9 @@ package com.dungeonarchitect.domain
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertFalse
 import kotlin.test.assertSame
+import kotlin.test.assertTrue
 
 class BuildStateTest {
     @Test
@@ -52,6 +54,34 @@ class BuildStateTest {
         )
 
         assertSame(availableBlueprint, state.selectedRoomBlueprint)
+    }
+
+    @Test
+    fun `selecting an available blueprint updates the canonical selection`() {
+        val squareRoom = blueprint("square-room")
+        val longGallery = blueprint("long-gallery")
+        val state = BuildState(
+            availableRoomBlueprints = listOf(squareRoom, longGallery),
+            selectedRoomBlueprint = squareRoom,
+        )
+
+        assertTrue(state.selectRoomBlueprint("long-gallery"))
+
+        assertSame(longGallery, state.selectedRoomBlueprint)
+    }
+
+    @Test
+    fun `selecting an unknown blueprint leaves the current selection unchanged`() {
+        val squareRoom = blueprint("square-room")
+        val longGallery = blueprint("long-gallery")
+        val state = BuildState(
+            availableRoomBlueprints = listOf(squareRoom, longGallery),
+            selectedRoomBlueprint = squareRoom,
+        )
+
+        assertFalse(state.selectRoomBlueprint("unknown-room"))
+
+        assertSame(squareRoom, state.selectedRoomBlueprint)
     }
 
     @Test

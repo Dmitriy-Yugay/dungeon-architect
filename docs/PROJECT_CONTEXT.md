@@ -145,7 +145,7 @@ Treat every numbered item as a separate task.
     but no special effect.
 25. [x] Add build state containing the available room blueprints and the
     currently selected blueprint.
-26. [ ] Select an available blueprint in that build state; test valid and
+26. [x] Select an available blueprint in that build state; test valid and
     unknown selections.
 27. [ ] Make placement previews use the selected blueprint.
 28. [ ] Make committed room placements use the selected blueprint.
