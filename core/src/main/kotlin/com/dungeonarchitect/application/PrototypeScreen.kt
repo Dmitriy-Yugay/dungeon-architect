@@ -75,14 +75,16 @@ class PrototypeScreen(
         updatePointerState()
         runController.advance(delta)
         ScreenUtils.clear(BACKGROUND_RED, BACKGROUND_GREEN, BACKGROUND_BLUE, BACKGROUND_ALPHA)
+        val placementPreviews = buildPlacementPreviews(
+            grid = grid,
+            buildState = buildState,
+            hoveredPosition = hoveredPosition,
+        )
         gridRenderer.render(
             grid = grid,
             projection = camera.combined,
-            placementPreview = placementPreview(
-                grid = grid,
-                buildState = buildState,
-                hoveredPosition = hoveredPosition,
-            ),
+            placementPreview = placementPreviews.room,
+            trapPlacementPreview = placementPreviews.trap,
             heroState = runController.heroState,
             hoveredPosition = hoveredPosition,
             selectedPosition = selectedPosition,

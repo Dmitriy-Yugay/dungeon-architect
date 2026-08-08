@@ -34,6 +34,7 @@ class DungeonGridRenderer : Disposable {
         grid: DungeonGrid,
         projection: Matrix4,
         placementPreview: RoomPlacementPreview?,
+        trapPlacementPreview: TrapPlacementPreview?,
         heroState: PrototypeHeroState?,
         hoveredPosition: GridPosition?,
         selectedPosition: GridPosition?,
@@ -44,6 +45,7 @@ class DungeonGridRenderer : Disposable {
         renderDoorMarkers(roomDoorGridPositions(grid.placedRooms))
         renderSocketMarkers(roomSocketGridMarkers(grid.placedRooms))
         renderTrapMarkers(placedTrapGridMarkers(grid))
+        trapPlacementPreview?.let(::renderTrapPlacementPreview)
         heroWorldMarker(heroState, TILE_SIZE)?.let(::renderHero)
         renderHighlights(hoveredPosition, selectedPosition)
     }
@@ -156,6 +158,21 @@ class DungeonGridRenderer : Disposable {
         shapes.end()
     }
 
+    private fun renderTrapPlacementPreview(preview: TrapPlacementPreview) {
+        shapes.begin(ShapeRenderer.ShapeType.Line)
+        shapes.color = if (preview.isValid) {
+            VALID_PREVIEW_COLOR
+        } else {
+            INVALID_PREVIEW_COLOR
+        }
+        shapes.circle(
+            (preview.position.column + HALF_TILE) * TILE_SIZE,
+            (preview.position.row + HALF_TILE) * TILE_SIZE,
+            TRAP_PREVIEW_RADIUS,
+        )
+        shapes.end()
+    }
+
     private fun renderHighlights(
         hoveredPosition: GridPosition?,
         selectedPosition: GridPosition?,
@@ -202,6 +219,7 @@ class DungeonGridRenderer : Disposable {
         const val HALF_TILE = 0.5f
         const val SOCKET_MARKER_RADIUS = 8f
         const val TRAP_MARKER_RADIUS = 12f
+        const val TRAP_PREVIEW_RADIUS = 18f
 
         val EMPTY_TILE_COLOR = Color.valueOf("252B33")
         val ROOM_COLOR = Color.valueOf("5D6D7E")
