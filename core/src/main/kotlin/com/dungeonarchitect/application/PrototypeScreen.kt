@@ -21,6 +21,8 @@ import com.dungeonarchitect.domain.TrapDefinition
 import com.dungeonarchitect.domain.UpcomingHeroWave
 import com.dungeonarchitect.presentation.ControlBounds
 import com.dungeonarchitect.presentation.DungeonGridRenderer
+import com.dungeonarchitect.presentation.RoomChoiceControl
+import com.dungeonarchitect.presentation.RoomChoicesLayout
 import com.dungeonarchitect.presentation.RoomChoicesRenderer
 import com.dungeonarchitect.presentation.RoomChoicesView
 import com.dungeonarchitect.presentation.WavePanelLayout
@@ -135,6 +137,11 @@ class PrototypeScreen(
                 worldX = pointerCoordinates.x,
                 worldY = pointerCoordinates.y,
                 startButtonBounds = WavePanelLayout.startButtonBounds(
+                    worldWidth = worldWidth,
+                    panelBottom = gridWorldHeight,
+                ),
+                roomChoiceControls = RoomChoicesLayout.controls(
+                    view = RoomChoicesView.from(buildState),
                     worldWidth = worldWidth,
                     panelBottom = gridWorldHeight,
                 ),
@@ -258,10 +265,11 @@ class PrototypeScreen(
             worldX: Float,
             worldY: Float,
             startButtonBounds: ControlBounds,
+            roomChoiceControls: List<RoomChoiceControl>,
             runController: PrototypeRunController,
-        ): PrototypeClickResult =
+        ): PrototypeClickResult {
             if (startButtonBounds.contains(worldX, worldY)) {
-                when {
+                return when {
                     runController.restart() ->
                         PrototypeClickResult.RUN_RESTARTED
                     runController.start() ->
@@ -269,11 +277,28 @@ class PrototypeScreen(
                     else ->
                         PrototypeClickResult.WAVE_START_REJECTED
                 }
-            } else if (commitPlacement(grid, buildState, clickedPosition)) {
+            }
+
+            val clickedChoice = roomChoiceControls.firstOrNull { control ->
+                control.bounds.contains(worldX, worldY)
+            }
+            if (clickedChoice != null) {
+                val wasSelected = buildState.selectRoomBlueprint(
+                    clickedChoice.choice.id,
+                )
+                return if (wasSelected) {
+                    PrototypeClickResult.ROOM_CHOICE_SELECTED
+                } else {
+                    PrototypeClickResult.IGNORED
+                }
+            }
+
+            return if (commitPlacement(grid, buildState, clickedPosition)) {
                 PrototypeClickResult.ROOM_PLACED
             } else {
                 PrototypeClickResult.IGNORED
             }
+        }
     }
 }
 
@@ -281,6 +306,7 @@ internal enum class PrototypeClickResult {
     WAVE_STARTED,
     WAVE_START_REJECTED,
     RUN_RESTARTED,
+    ROOM_CHOICE_SELECTED,
     ROOM_PLACED,
     IGNORED,
 }

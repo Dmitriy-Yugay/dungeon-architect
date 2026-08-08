@@ -11,6 +11,9 @@ import com.dungeonarchitect.domain.RoomSocketType
 import com.dungeonarchitect.domain.TrapDefinition
 import com.dungeonarchitect.domain.UpcomingHeroWave
 import com.dungeonarchitect.presentation.ControlBounds
+import com.dungeonarchitect.presentation.RoomChoicesLayout
+import com.dungeonarchitect.presentation.RoomChoicesView
+import com.dungeonarchitect.presentation.WavePanelLayout
 import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.test.Test
@@ -311,6 +314,65 @@ class PrototypeScreenTest {
     }
 
     @Test
+    fun `room choice click selects without placing or starting the wave`() {
+        val buildState = authoredBuildState()
+        val grid = prototypeGrid(buildState)
+        val controller = runController(grid)
+        val roomsBeforeClick = grid.placedRooms
+        val controls = roomChoiceControls(buildState)
+        val longGalleryControl = controls.single {
+            it.choice.id == "long-gallery"
+        }
+
+        val result = PrototypeScreen.handleClick(
+            grid = grid,
+            buildState = buildState,
+            clickedPosition = GridPosition(column = 3, row = 3),
+            worldX = longGalleryControl.bounds.x + 1f,
+            worldY = longGalleryControl.bounds.y + 1f,
+            startButtonBounds = startButtonBounds(),
+            roomChoiceControls = controls,
+            runController = controller,
+        )
+
+        assertEquals(PrototypeClickResult.ROOM_CHOICE_SELECTED, result)
+        assertEquals("long-gallery", buildState.selectedRoomBlueprint.id)
+        assertEquals(roomsBeforeClick, grid.placedRooms)
+        assertEquals(PrototypeRunPhase.BUILDING, controller.phase)
+        assertNull(controller.startedWave)
+    }
+
+    @Test
+    fun `room choice click does not restart a terminal run`() {
+        val buildState = authoredBuildState()
+        val grid = readyGrid()
+        val controller = runController(grid)
+        assertTrue(controller.start())
+        controller.advance(elapsedSeconds = 1f)
+        assertEquals(PrototypeRunPhase.DEFEAT, controller.phase)
+        val roomsBeforeClick = grid.placedRooms
+        val controls = roomChoiceControls(buildState)
+        val longGalleryControl = controls.single {
+            it.choice.id == "long-gallery"
+        }
+
+        val result = PrototypeScreen.handleClick(
+            grid = grid,
+            buildState = buildState,
+            clickedPosition = GridPosition(column = 1, row = 0),
+            worldX = longGalleryControl.bounds.x + 1f,
+            worldY = longGalleryControl.bounds.y + 1f,
+            startButtonBounds = startButtonBounds(),
+            roomChoiceControls = controls,
+            runController = controller,
+        )
+
+        assertEquals(PrototypeClickResult.ROOM_CHOICE_SELECTED, result)
+        assertEquals(PrototypeRunPhase.DEFEAT, controller.phase)
+        assertEquals(roomsBeforeClick, grid.placedRooms)
+    }
+
+    @Test
     fun `start control click wins over room placement and starts a ready wave`() {
         val buildState = authoredBuildState()
         val grid = readyGrid()
@@ -325,6 +387,7 @@ class PrototypeScreenTest {
             worldX = 60f,
             worldY = 40f,
             startButtonBounds = bounds,
+            roomChoiceControls = roomChoiceControls(buildState),
             runController = controller,
         )
 
@@ -353,6 +416,7 @@ class PrototypeScreenTest {
                 width = 100f,
                 height = 40f,
             ),
+            roomChoiceControls = roomChoiceControls(buildState),
             runController = controller,
         )
 
@@ -386,6 +450,7 @@ class PrototypeScreenTest {
                 width = 100f,
                 height = 40f,
             ),
+            roomChoiceControls = roomChoiceControls(buildState),
             runController = controller,
         )
 
@@ -420,6 +485,18 @@ class PrototypeScreenTest {
 
     private fun authoredBuildState() = PrototypeScreen.loadBuildState(
         ::authoredContentJson,
+    )
+
+    private fun roomChoiceControls(buildState: BuildState) =
+        RoomChoicesLayout.controls(
+            view = RoomChoicesView.from(buildState),
+            worldWidth = WORLD_WIDTH,
+            panelBottom = PANEL_BOTTOM,
+        )
+
+    private fun startButtonBounds() = WavePanelLayout.startButtonBounds(
+        worldWidth = WORLD_WIDTH,
+        panelBottom = PANEL_BOTTOM,
     )
 
     private fun authoredRoomJson(): String =
@@ -457,4 +534,9 @@ class PrototypeScreenTest {
         cooldownSeconds = 0.25f,
         compatibleSocketTypes = setOf(RoomSocketType.FLOOR),
     )
+
+    private companion object {
+        const val WORLD_WIDTH = 1_024f
+        const val PANEL_BOTTOM = 576f
+    }
 }

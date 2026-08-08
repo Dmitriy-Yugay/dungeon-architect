@@ -152,7 +152,7 @@ Treat every numbered item as a separate task.
 29. [x] Add a presentation-only view model for the available room choices and
     selected state.
 30. [x] Render two room-choice controls with placeholder shapes and text.
-31. [ ] Handle a room-choice click without also placing a room.
+31. [x] Handle a room-choice click without also placing a room.
 32. [ ] Reject room placement after the wave starts; test every non-building
     run phase.
 33. [ ] Render door markers on placed rooms.
