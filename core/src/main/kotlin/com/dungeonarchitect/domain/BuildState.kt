@@ -1,0 +1,30 @@
+package com.dungeonarchitect.domain
+
+class BuildState(
+    availableRoomBlueprints: List<RoomBlueprint>,
+    selectedRoomBlueprint: RoomBlueprint,
+) {
+    val availableRoomBlueprints: List<RoomBlueprint> =
+        availableRoomBlueprints.toList()
+
+    var selectedRoomBlueprint: RoomBlueprint = selectedRoomBlueprint
+        private set
+
+    init {
+        require(this.availableRoomBlueprints.isNotEmpty()) {
+            "Build state must contain at least one available room blueprint."
+        }
+        require(
+            this.availableRoomBlueprints.distinctBy(RoomBlueprint::id).size ==
+                this.availableRoomBlueprints.size,
+        ) {
+            "Available room blueprints must have distinct IDs."
+        }
+
+        this.selectedRoomBlueprint = this.availableRoomBlueprints
+            .singleOrNull { it.id == selectedRoomBlueprint.id }
+            ?: throw IllegalArgumentException(
+                "The selected room blueprint must be available to build.",
+            )
+    }
+}

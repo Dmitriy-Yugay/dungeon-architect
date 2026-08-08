@@ -143,7 +143,7 @@ Treat every numbered item as a separate task.
     constructing it in `PrototypeScreen`.
 24. [x] Add a second authored room with different geometry or socket placement,
     but no special effect.
-25. [ ] Add build state containing the available room blueprints and the
+25. [x] Add build state containing the available room blueprints and the
     currently selected blueprint.
 26. [ ] Select an available blueprint in that build state; test valid and
     unknown selections.
