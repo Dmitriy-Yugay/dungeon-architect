@@ -40,15 +40,12 @@ class PrototypeScreen(
     private val upcomingWave: UpcomingHeroWave = loadUpcomingWave { path ->
         Gdx.files.internal(path).readString("UTF-8")
     },
-    trapDefinition: TrapDefinition = loadTrapDefinition { path ->
-        Gdx.files.internal(path).readString("UTF-8")
-    },
     runDefinition: PrototypeRunDefinition = loadRunDefinition { path ->
         Gdx.files.internal(path).readString("UTF-8")
     },
 ) : ScreenAdapter() {
     init {
-        check(placePrototypeTrap(grid, trapDefinition)) {
+        check(placePrototypeTrap(grid, buildState.selectedTrapDefinition)) {
             "The prototype trap could not be placed in its authored socket."
         }
     }
@@ -233,6 +230,7 @@ class PrototypeScreen(
             return BuildState(
                 availableRoomBlueprints = blueprints,
                 selectedRoomBlueprint = blueprints.first(),
+                selectedTrapDefinition = loadTrapDefinition(readInternalText),
             )
         }
 

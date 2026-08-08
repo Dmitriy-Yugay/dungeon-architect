@@ -16,6 +16,7 @@ class BuildStateTest {
         val state = BuildState(
             availableRoomBlueprints = listOf(squareRoom, longGallery),
             selectedRoomBlueprint = longGallery,
+            selectedTrapDefinition = trapDefinition(),
         )
 
         assertEquals(
@@ -33,6 +34,7 @@ class BuildStateTest {
         val state = BuildState(
             availableRoomBlueprints = choices,
             selectedRoomBlueprint = squareRoom,
+            selectedTrapDefinition = trapDefinition(),
         )
 
         choices.clear()
@@ -51,6 +53,7 @@ class BuildStateTest {
         val state = BuildState(
             availableRoomBlueprints = listOf(availableBlueprint),
             selectedRoomBlueprint = equivalentSelection,
+            selectedTrapDefinition = trapDefinition(),
         )
 
         assertSame(availableBlueprint, state.selectedRoomBlueprint)
@@ -63,6 +66,7 @@ class BuildStateTest {
         val state = BuildState(
             availableRoomBlueprints = listOf(squareRoom, longGallery),
             selectedRoomBlueprint = squareRoom,
+            selectedTrapDefinition = trapDefinition(),
         )
 
         assertTrue(state.selectRoomBlueprint("long-gallery"))
@@ -77,6 +81,7 @@ class BuildStateTest {
         val state = BuildState(
             availableRoomBlueprints = listOf(squareRoom, longGallery),
             selectedRoomBlueprint = squareRoom,
+            selectedTrapDefinition = trapDefinition(),
         )
 
         assertFalse(state.selectRoomBlueprint("unknown-room"))
@@ -90,6 +95,7 @@ class BuildStateTest {
             BuildState(
                 availableRoomBlueprints = emptyList(),
                 selectedRoomBlueprint = blueprint("square-room"),
+                selectedTrapDefinition = trapDefinition(),
             )
         }
     }
@@ -103,6 +109,7 @@ class BuildStateTest {
                     blueprint("repeated-room"),
                 ),
                 selectedRoomBlueprint = blueprint("repeated-room"),
+                selectedTrapDefinition = trapDefinition(),
             )
         }
     }
@@ -113,8 +120,22 @@ class BuildStateTest {
             BuildState(
                 availableRoomBlueprints = listOf(blueprint("square-room")),
                 selectedRoomBlueprint = blueprint("unknown-room"),
+                selectedTrapDefinition = trapDefinition(),
             )
         }
+    }
+
+    @Test
+    fun `build state stores the selected trap definition`() {
+        val selectedTrapDefinition = trapDefinition()
+
+        val state = BuildState(
+            availableRoomBlueprints = listOf(blueprint("square-room")),
+            selectedRoomBlueprint = blueprint("square-room"),
+            selectedTrapDefinition = selectedTrapDefinition,
+        )
+
+        assertSame(selectedTrapDefinition, state.selectedTrapDefinition)
     }
 
     private fun blueprint(id: String) = RoomBlueprint(
@@ -122,5 +143,13 @@ class BuildStateTest {
         displayName = id,
         footprint = setOf(GridPosition(column = 0, row = 0)),
         doorPositions = setOf(GridPosition(column = 0, row = 0)),
+    )
+
+    private fun trapDefinition() = TrapDefinition(
+        id = "spike_trap",
+        displayName = "Spike Trap",
+        damage = 5,
+        cooldownSeconds = 0.25f,
+        compatibleSocketTypes = setOf(RoomSocketType.FLOOR),
     )
 }

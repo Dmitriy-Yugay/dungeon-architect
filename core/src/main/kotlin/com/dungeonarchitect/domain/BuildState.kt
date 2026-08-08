@@ -3,6 +3,7 @@ package com.dungeonarchitect.domain
 class BuildState(
     availableRoomBlueprints: List<RoomBlueprint>,
     selectedRoomBlueprint: RoomBlueprint,
+    val selectedTrapDefinition: TrapDefinition,
 ) {
     val availableRoomBlueprints: List<RoomBlueprint> =
         availableRoomBlueprints.toList()

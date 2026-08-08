@@ -251,7 +251,7 @@ class PrototypeScreenTest {
     }
 
     @Test
-    fun `application loads both authored room choices into build state`() {
+    fun `application loads authored room choices and selected trap into build state`() {
         val requestedPaths = mutableListOf<String>()
 
         val buildState = PrototypeScreen.loadBuildState { path ->
@@ -263,6 +263,7 @@ class PrototypeScreenTest {
             listOf(
                 "content/prototype-room.json",
                 "content/long-gallery.json",
+                "content/spike-trap.json",
             ),
             requestedPaths,
         )
@@ -271,6 +272,8 @@ class PrototypeScreenTest {
             buildState.availableRoomBlueprints.map(RoomBlueprint::id),
         )
         assertEquals("prototype-room", buildState.selectedRoomBlueprint.id)
+        assertEquals("spike_trap", buildState.selectedTrapDefinition.id)
+        assertEquals("Spike Trap", buildState.selectedTrapDefinition.displayName)
     }
 
     @Test
@@ -309,9 +312,10 @@ class PrototypeScreenTest {
     }
 
     @Test
-    fun `prototype places one authored trap in its translated room socket`() {
-        val grid = prototypeGrid()
-        val definition = trapDefinition()
+    fun `prototype places the selected build-state trap in its translated room socket`() {
+        val buildState = authoredBuildState()
+        val grid = prototypeGrid(buildState)
+        val definition = buildState.selectedTrapDefinition
 
         assertTrue(PrototypeScreen.placePrototypeTrap(grid, definition))
 
@@ -393,6 +397,7 @@ class PrototypeScreenTest {
         val buildState = BuildState(
             availableRoomBlueprints = listOf(blueprint),
             selectedRoomBlueprint = blueprint,
+            selectedTrapDefinition = trapDefinition(),
         )
         val clickedPosition = GridPosition(column = 1, row = 1)
         assertTrue(

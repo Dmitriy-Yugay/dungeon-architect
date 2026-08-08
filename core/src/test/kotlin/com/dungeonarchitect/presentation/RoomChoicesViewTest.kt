@@ -3,6 +3,8 @@ package com.dungeonarchitect.presentation
 import com.dungeonarchitect.domain.BuildState
 import com.dungeonarchitect.domain.GridPosition
 import com.dungeonarchitect.domain.RoomBlueprint
+import com.dungeonarchitect.domain.RoomSocketType
+import com.dungeonarchitect.domain.TrapDefinition
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -21,6 +23,7 @@ class RoomChoicesViewTest {
         val buildState = BuildState(
             availableRoomBlueprints = listOf(squareRoom, longGallery),
             selectedRoomBlueprint = squareRoom,
+            selectedTrapDefinition = trapDefinition(),
         )
 
         val view = RoomChoicesView.from(buildState)
@@ -49,6 +52,7 @@ class RoomChoicesViewTest {
         val buildState = BuildState(
             availableRoomBlueprints = listOf(squareRoom, longGallery),
             selectedRoomBlueprint = squareRoom,
+            selectedTrapDefinition = trapDefinition(),
         )
         val beforeSelection = RoomChoicesView.from(buildState)
 
@@ -70,5 +74,13 @@ class RoomChoicesViewTest {
         displayName = displayName,
         footprint = setOf(GridPosition(column = 0, row = 0)),
         doorPositions = setOf(GridPosition(column = 0, row = 0)),
+    )
+
+    private fun trapDefinition() = TrapDefinition(
+        id = "spike_trap",
+        displayName = "Spike Trap",
+        damage = 5,
+        cooldownSeconds = 0.25f,
+        compatibleSocketTypes = setOf(RoomSocketType.FLOOR),
     )
 }
