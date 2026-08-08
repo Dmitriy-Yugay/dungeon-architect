@@ -156,7 +156,7 @@ Treat every numbered item as a separate task.
 32. [x] Reject room placement after the wave starts; test every non-building
     run phase.
 33. [x] Render door markers on placed rooms.
-34. [ ] Render socket markers on placed rooms.
+34. [x] Render socket markers on placed rooms.
 35. [ ] Render the currently placed trap.
 36. [ ] Add the selected trap definition to the build state.
 37. [ ] Resolve whether a hovered grid cell is a compatible empty socket; test
