@@ -141,7 +141,7 @@ Treat every numbered item as a separate task.
     positions, doors, and sockets.
 23. [x] Add authored JSON for the existing room and load it instead of
     constructing it in `PrototypeScreen`.
-24. [ ] Add a second authored room with different geometry or socket placement,
+24. [x] Add a second authored room with different geometry or socket placement,
     but no special effect.
 25. [ ] Add build state containing the available room blueprints and the
     currently selected blueprint.

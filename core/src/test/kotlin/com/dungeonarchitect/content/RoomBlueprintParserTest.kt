@@ -8,6 +8,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFails
 import kotlin.test.assertFailsWith
+import kotlin.test.assertNotEquals
 
 class RoomBlueprintParserTest {
     @Test
@@ -25,6 +26,41 @@ class RoomBlueprintParserTest {
             mapOf(position(1, 1) to RoomSocketType.FLOOR),
             blueprint.sockets,
         )
+    }
+
+    @Test
+    fun `second authored room has distinct identity and route geometry`() {
+        val prototypeRoom = RoomBlueprintParser.parse(authoredRoomJson())
+        val longGallery = RoomBlueprintParser.parse(
+            authoredRoomJson("long-gallery.json"),
+        )
+
+        assertEquals("long-gallery", longGallery.id)
+        assertEquals("Long Gallery", longGallery.displayName)
+        assertNotEquals(prototypeRoom.id, longGallery.id)
+        assertEquals(
+            setOf(
+                position(0, 0),
+                position(1, 0),
+                position(2, 0),
+                position(3, 0),
+                position(0, 1),
+                position(1, 1),
+                position(2, 1),
+                position(3, 1),
+            ),
+            longGallery.footprint,
+        )
+        assertEquals(
+            setOf(position(0, 1), position(3, 1)),
+            longGallery.doorPositions,
+        )
+        assertEquals(
+            mapOf(position(2, 1) to RoomSocketType.FLOOR),
+            longGallery.sockets,
+        )
+        assertNotEquals(prototypeRoom.footprint, longGallery.footprint)
+        assertNotEquals(prototypeRoom.sockets, longGallery.sockets)
     }
 
     @Test
@@ -195,11 +231,13 @@ class RoomBlueprintParserTest {
             "\"$name\": $value"
         }
 
-    private fun authoredRoomJson(): String {
+    private fun authoredRoomJson(
+        fileName: String = "prototype-room.json",
+    ): String {
         val config = generateSequence(Path.of("").toAbsolutePath()) { it.parent }
-            .map { it.resolve("assets/content/prototype-room.json") }
+            .map { it.resolve("assets/content/$fileName") }
             .firstOrNull { Files.isRegularFile(it) }
-            ?: error("Could not locate authored prototype room config.")
+            ?: error("Could not locate authored room config '$fileName'.")
 
         return Files.readString(config)
     }
