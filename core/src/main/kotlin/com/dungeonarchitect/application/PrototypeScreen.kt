@@ -120,6 +120,7 @@ class PrototypeScreen(
         if (Gdx.input.justTouched()) {
             val result = handleClick(
                 grid = grid,
+                buildState = buildState,
                 clickedPosition = hoveredPosition,
                 worldX = pointerCoordinates.x,
                 worldY = pointerCoordinates.y,
@@ -180,17 +181,12 @@ class PrototypeScreen(
 
         internal fun commitPlacement(
             grid: DungeonGrid,
+            buildState: BuildState,
             clickedPosition: GridPosition?,
-        ): Boolean {
-            val prototypeBlueprint = grid.placedRooms.firstOrNull()?.blueprint
-                ?: return false
-            return clickedPosition
-                ?.let { origin ->
-                    grid.placementPreview(prototypeBlueprint, origin)
-                }
+        ): Boolean =
+            placementPreview(grid, buildState, clickedPosition)
                 ?.let { preview -> grid.place(preview.room) }
                 ?: false
-        }
 
         internal fun loadUpcomingWave(
             readInternalText: (String) -> String,
@@ -247,6 +243,7 @@ class PrototypeScreen(
 
         internal fun handleClick(
             grid: DungeonGrid,
+            buildState: BuildState,
             clickedPosition: GridPosition?,
             worldX: Float,
             worldY: Float,
@@ -262,7 +259,7 @@ class PrototypeScreen(
                     else ->
                         PrototypeClickResult.WAVE_START_REJECTED
                 }
-            } else if (commitPlacement(grid, clickedPosition)) {
+            } else if (commitPlacement(grid, buildState, clickedPosition)) {
                 PrototypeClickResult.ROOM_PLACED
             } else {
                 PrototypeClickResult.IGNORED

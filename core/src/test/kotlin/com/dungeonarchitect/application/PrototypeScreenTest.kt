@@ -131,20 +131,31 @@ class PrototypeScreenTest {
     }
 
     @Test
-    fun `click commits the current valid placement preview`() {
-        val grid = prototypeGrid()
-        val clickedPosition = GridPosition(column = 3, row = 3)
-
-        assertTrue(PrototypeScreen.commitPlacement(grid, clickedPosition))
-        assertEquals(2, grid.placedRooms.size)
-        assertEquals(clickedPosition, grid.placedRooms.last().origin)
-    }
-
-    @Test
-    fun `commit placement remains on the prototype blueprint after selection changes`() {
+    fun `commit placement uses the initially selected prototype room`() {
         val buildState = authoredBuildState()
         val grid = prototypeGrid(buildState)
         val clickedPosition = GridPosition(column = 3, row = 3)
+
+        assertTrue(
+            PrototypeScreen.commitPlacement(
+                grid = grid,
+                buildState = buildState,
+                clickedPosition = clickedPosition,
+            ),
+        )
+        assertEquals(2, grid.placedRooms.size)
+        assertEquals(clickedPosition, grid.placedRooms.last().origin)
+        assertSame(
+            buildState.selectedRoomBlueprint,
+            grid.placedRooms.last().blueprint,
+        )
+    }
+
+    @Test
+    fun `commit placement uses the newly selected long gallery`() {
+        val buildState = authoredBuildState()
+        val grid = prototypeGrid(buildState)
+        val clickedPosition = GridPosition(column = 2, row = 3)
         assertTrue(buildState.selectRoomBlueprint("long-gallery"))
 
         val preview = PrototypeScreen.placementPreview(
@@ -153,19 +164,32 @@ class PrototypeScreenTest {
             hoveredPosition = clickedPosition,
         )!!
         assertEquals("long-gallery", preview.room.blueprint.id)
+        assertTrue(preview.isValid)
 
-        assertTrue(PrototypeScreen.commitPlacement(grid, clickedPosition))
-        assertEquals("prototype-room", grid.placedRooms.last().blueprint.id)
+        assertTrue(
+            PrototypeScreen.commitPlacement(
+                grid = grid,
+                buildState = buildState,
+                clickedPosition = clickedPosition,
+            ),
+        )
+        assertSame(
+            buildState.selectedRoomBlueprint,
+            grid.placedRooms.last().blueprint,
+        )
     }
 
     @Test
     fun `invalid click leaves prototype rooms unchanged`() {
-        val grid = prototypeGrid()
+        val buildState = authoredBuildState()
+        val grid = prototypeGrid(buildState)
+        assertTrue(buildState.selectRoomBlueprint("long-gallery"))
         val roomsBeforeClick = grid.placedRooms
 
         assertFalse(
             PrototypeScreen.commitPlacement(
                 grid = grid,
+                buildState = buildState,
                 clickedPosition = GridPosition(column = 6, row = 3),
             ),
         )
@@ -288,6 +312,7 @@ class PrototypeScreenTest {
 
     @Test
     fun `start control click wins over room placement and starts a ready wave`() {
+        val buildState = authoredBuildState()
         val grid = readyGrid()
         val controller = runController(grid)
         val roomsBeforeClick = grid.placedRooms
@@ -295,6 +320,7 @@ class PrototypeScreenTest {
 
         val result = PrototypeScreen.handleClick(
             grid = grid,
+            buildState = buildState,
             clickedPosition = GridPosition(column = 1, row = 0),
             worldX = 60f,
             worldY = 40f,
@@ -309,12 +335,15 @@ class PrototypeScreenTest {
 
     @Test
     fun `click outside start control remains a placement click`() {
-        val grid = prototypeGrid()
+        val buildState = authoredBuildState()
+        val grid = prototypeGrid(buildState)
         val controller = runController(grid)
-        val clickedPosition = GridPosition(column = 3, row = 3)
+        val clickedPosition = GridPosition(column = 2, row = 3)
+        assertTrue(buildState.selectRoomBlueprint("long-gallery"))
 
         val result = PrototypeScreen.handleClick(
             grid = grid,
+            buildState = buildState,
             clickedPosition = clickedPosition,
             worldX = 9f,
             worldY = 40f,
@@ -329,11 +358,16 @@ class PrototypeScreenTest {
 
         assertEquals(PrototypeClickResult.ROOM_PLACED, result)
         assertEquals(clickedPosition, grid.placedRooms.last().origin)
+        assertSame(
+            buildState.selectedRoomBlueprint,
+            grid.placedRooms.last().blueprint,
+        )
         assertNull(controller.startedWave)
     }
 
     @Test
     fun `terminal control click restarts the run`() {
+        val buildState = authoredBuildState()
         val grid = readyGrid()
         val controller = runController(grid)
         assertTrue(controller.start())
@@ -342,6 +376,7 @@ class PrototypeScreenTest {
 
         val result = PrototypeScreen.handleClick(
             grid = grid,
+            buildState = buildState,
             clickedPosition = null,
             worldX = 60f,
             worldY = 40f,

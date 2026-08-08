@@ -148,7 +148,7 @@ Treat every numbered item as a separate task.
 26. [x] Select an available blueprint in that build state; test valid and
     unknown selections.
 27. [x] Make placement previews use the selected blueprint.
-28. [ ] Make committed room placements use the selected blueprint.
+28. [x] Make committed room placements use the selected blueprint.
 29. [ ] Add a presentation-only view model for the available room choices and
     selected state.
 30. [ ] Render two room-choice controls with placeholder shapes and text.
