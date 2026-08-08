@@ -50,6 +50,35 @@ libGDX
 Platform:
 Steam
 
+## Strategic technical direction
+
+The game should remain deterministic, inspectable, and testable without
+rendering. Its most useful agent-inspired architecture is not an LLM inside the
+gameplay loop. It is a closed, verifiable workflow:
+
+1. represent game state and authored content in structured forms;
+2. expose constrained player and simulation actions;
+3. execute those actions through deterministic gameplay systems;
+4. record observable events and outcomes;
+5. evaluate layouts, waves, and balance automatically;
+6. keep design and content changes subject to human review.
+
+This direction supports the product pillars directly. It makes defense results
+easier to explain, enables rapid balance experiments, and leaves room for
+development-time AI tools without making core gameplay dependent on an online
+model.
+
+Near-term technical priorities are:
+
+- validated, data-driven room and defense content;
+- property-based tests for placement, routing, and simulation invariants;
+- structured simulation events and post-wave metrics;
+- a headless evaluator that uses the same rules as the playable game;
+- deterministic seeds and command records before meaningful randomness is
+  introduced;
+- batch balance experiments after the game contains enough strategic choices
+  to produce useful comparisons.
+
 ## Completed milestone
 
 The first end-to-end desktop loop is complete. The player can:
@@ -138,9 +167,52 @@ Treat every numbered item as a separate task.
 41. [ ] Verify with an application test that the started wave snapshots the
     player-placed trap.
 
-After item 41, stop implementation and resolve the persistent-dungeon topology
-question in `game-design.md` before planning multiple waves or a one-room-per-wave
-limit.
+After item 41, stop feature expansion and complete the persistent-dungeon
+topology decision in item 42 before implementing multiple waves, rewards, or a
+one-room-per-wave limit. Evaluation and observability work may follow that
+decision without adding new gameplay content.
+
+### Persistent topology and evaluation foundation — after room choice
+
+42. [ ] Compare two or three persistent-dungeon topology rules against explicit
+    criteria, run the smallest useful playable or test-fixture experiments, and
+    record the selected rule in `game-design.md`.
+43. [ ] Add Kotest and one focused property-based test suite for room placement
+    and route invariants; record why the dependency is useful.
+44. [ ] Define small, immutable simulation events for the significant actions
+    already present: hero spawn, movement or arrival, trap activation, damage,
+    death, objective damage, and wave resolution.
+45. [ ] Emit those events from non-visual gameplay code without making domain or
+    simulation classes depend on rendering or analytics infrastructure.
+46. [ ] Add a structured wave evaluation report containing outcome, objective
+    health, hero kills and arrivals, elapsed simulation time, trap activations,
+    and trap damage.
+47. [ ] Add a headless scenario evaluator that accepts an authored layout and
+    wave, executes the same gameplay rules as the application, and returns the
+    wave evaluation report.
+48. [ ] Add determinism regression tests proving that identical scenario inputs
+    produce identical reports and event sequences.
+49. [ ] Compare the two authored room choices with the evaluator and document
+    whether their geometry and socket placement create meaningfully different
+    results; adjust authored values only through a separate reviewed task.
+50. [ ] Add a presentation-only post-wave explanation model derived from the
+    report, showing why the defense won or lost.
+
+### Replayable runs and balance tooling — after multiple waves are designed
+
+51. [ ] Introduce an injected, seeded randomness source before adding the first
+    random gameplay rule; preserve deterministic behavior for a known seed.
+52. [ ] Represent player decisions as recordable application commands and add a
+    replay test that reconstructs the same final state from commands and seed.
+53. [ ] Add a batch balance runner that evaluates authored combinations of room
+    layouts, trap placements, and waves without rendering.
+54. [ ] Report dominant choices, unwinnable scenarios, near-identical choices,
+    and large difficulty discontinuities using explicit, documented metrics.
+55. [ ] Export balance results in a stable machine-readable format for offline
+    analysis and optional visualization.
+56. [ ] Decide whether a separate Python analysis tool provides enough benefit
+    for statistical analysis, charts, or AI-assisted balance investigation;
+    document the decision before adding it.
 
 For every task:
 
@@ -148,6 +220,9 @@ For every task:
 - avoid adding abstractions needed only by later items;
 - keep gameplay rules independent of libGDX rendering;
 - add tests for new non-visual behavior;
+- use property-based tests when invariants are more important than individual
+  examples;
+- justify new frameworks or tools by the concrete problem they solve;
 - run `./gradlew test` and `./gradlew build`;
 - update the documents when a design or architecture decision changes.
 

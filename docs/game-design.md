@@ -120,6 +120,16 @@ variation without hiding the reason for an outcome.
 Rooms should change geometry, available actions, or hero behavior rather than
 only providing small numerical bonuses.
 
+Important combat decisions and outcomes should be explainable from recorded
+game state. A post-wave summary should eventually identify facts such as hero
+arrivals, trap activations, damage, cooldown gaps, and route length instead of
+presenting only victory or defeat.
+
+Automated evaluation may search or simulate player choices for design and
+balance analysis, but it does not define the intended experience by itself.
+Human playtesting remains the authority on whether a choice is understandable,
+interesting, and consistent with the player fantasy.
+
 ## Open questions
 
 - How does adding a room extend or alter the required entrance-to-objective
@@ -128,3 +138,19 @@ only providing small numerical bonuses.
   significant cost calculated?
 - How many room choices should appear before each wave?
 - Can some heroes pursue room-specific goals instead of the main objective?
+
+## Future gameplay decision points
+
+- Start advanced hero behavior with the simplest suitable model. Finite-state
+  machines fit small mode changes; utility scoring may fit transparent choices
+  between competing goals; behavior trees may fit larger designer-authored
+  hierarchies. Do not add one until a concrete hero behavior needs it.
+- Consider constraint-based generation only when authored layouts or ordinary
+  Kotlin search can no longer provide enough valid variation. Generated
+  dungeons must remain solvable, readable, and reproducible.
+- LLM-generated narrative, intelligence reports, or flavor text may be explored
+  as optional authored-content assistance. Core combat and progression must not
+  require an online model response.
+- Runtime LLM-controlled heroes are not currently aligned with deterministic,
+  readable defense. Reconsider only if a future design specifically requires
+  open-ended language or behavior that simpler gameplay AI cannot provide.

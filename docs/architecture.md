@@ -6,6 +6,9 @@
 - Separate simulation, presentation, and platform startup.
 - Prefer simple composition over a large framework or premature ECS.
 - Make content data-driven where practical.
+- Make important simulation outcomes observable and explainable.
+- Adopt useful frameworks and tools when their benefit is clearer than the
+  maintenance cost of a custom alternative.
 
 ## Current project shape
 
@@ -38,6 +41,17 @@ Player input becomes an application command. The simulation validates and
 applies the command to domain state. Presentation reads that state and displays
 the result. This keeps placement rules and combat deterministic enough for unit
 tests.
+
+As the prototype grows, application commands should become recordable and
+simulation systems should emit small immutable events. Events are observations
+of completed gameplay facts, not a replacement for domain state and not a
+global event-bus requirement. A headless evaluator should compose the same
+commands and systems used by the playable application and summarize their
+events into evaluation reports.
+
+This creates the intended future flow:
+
+`authored scenario + commands + seed -> deterministic simulation -> events -> evaluation report -> presentation or balance analysis`
 
 ## Early technical decisions
 
@@ -78,3 +92,67 @@ tests.
 
 Central asset management, saves, additional platforms, and richer content are
 deferred until the room-choice loop is proven.
+
+## Technology candidates and adoption triggers
+
+These technologies are recorded so they can be reconsidered when the project
+has the corresponding problem. Listing one is not a commitment to adopt it.
+
+### Near-term candidates
+
+- **Kotest property testing:** useful after room choice for generated placement,
+  routing, parsing, and determinism invariants. Prefer it when it produces
+  broader, clearer coverage than a table of example cases.
+- **Structured simulation events:** implement as small Kotlin types first. Add a
+  logging or telemetry framework only when local reports and tests no longer
+  satisfy the diagnostic need.
+- **JSON Schema or stronger serialization validation:** reconsider when the
+  authored content surface becomes large enough that editor validation,
+  migrations, or cross-file tooling would materially improve iteration.
+
+### Later gameplay and generation candidates
+
+- **Finite-state machines:** suitable for a few explicit hero modes.
+- **Utility AI:** suitable when heroes choose among competing goals and the
+  scores should remain visible to designers and players.
+- **Behavior trees:** suitable for reusable, hierarchical, designer-authored
+  behaviors. Avoid adopting a framework before such behaviors exist.
+- **Constraint solving:** begin with Kotlin search or backtracking. Reconsider a
+  JVM solver such as Choco Solver when generation has numerous interacting
+  constraints and custom search becomes difficult to maintain.
+- **Seeded procedural generation:** useful only with reproducible seeds,
+  solvability validation, and evaluation metrics.
+
+### Development and analysis candidates
+
+- **Python balance-analysis sidecar:** potentially useful once the headless
+  evaluator can export stable results. It may provide statistics,
+  visualizations, experiment orchestration, or AI-assisted investigation
+  without introducing Python into the game runtime.
+- **OpenTelemetry or an observability platform:** reconsider if local event logs
+  are insufficient for playtest builds or production diagnostics. Do not make
+  the deterministic simulation depend directly on a vendor SDK.
+- **LLM tool-calling or an agent framework such as LangGraph:** potentially
+  useful for an offline content or balance assistant that invokes validators
+  and the headless evaluator. All proposed changes must remain reviewable and
+  pass deterministic checks.
+- **RAG, embeddings, and a vector store:** reconsider only when design documents
+  and content are numerous enough that ordinary repository search is no longer
+  effective. They are unnecessary for the current project size.
+- **Natural-language content authoring:** may draft structured rooms, waves, or
+  flavor text, but generated output must pass parsers, cross-reference checks,
+  simulation evaluation, and human review.
+
+### Explicitly deferred
+
+- Runtime LLM-controlled heroes, multi-agent NPC frameworks, and online model
+  calls in combat are deferred because they conflict with deterministic,
+  readable outcomes and create availability, latency, cost, and testing risks.
+- An ECS remains deferred until the number and interaction of gameplay entities
+  demonstrate a concrete need.
+- A large telemetry, asset, or procedural-generation platform remains deferred
+  until the corresponding workflow exists and can justify it.
+
+When adopting a significant tool, record the problem, considered alternatives,
+chosen scope, and removal or migration cost in this document or a focused
+architecture decision record.
