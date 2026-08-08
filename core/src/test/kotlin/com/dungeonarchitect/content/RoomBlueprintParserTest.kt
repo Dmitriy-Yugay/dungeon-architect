@@ -1,0 +1,181 @@
+package com.dungeonarchitect.content
+
+import com.dungeonarchitect.domain.GridPosition
+import com.dungeonarchitect.domain.RoomSocketType
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFails
+import kotlin.test.assertFailsWith
+
+class RoomBlueprintParserTest {
+    @Test
+    fun `parser reads identity positions doors and sockets from supplied JSON`() {
+        val blueprint = RoomBlueprintParser.parse(roomJson())
+
+        assertEquals("guard-hall", blueprint.id)
+        assertEquals("Guard Hall", blueprint.displayName)
+        assertEquals(
+            setOf(position(0, 0), position(1, 0), position(0, 1), position(1, 1)),
+            blueprint.footprint,
+        )
+        assertEquals(
+            setOf(position(0, 0), position(1, 1)),
+            blueprint.doorPositions,
+        )
+        assertEquals(
+            mapOf(position(1, 0) to RoomSocketType.FLOOR),
+            blueprint.sockets,
+        )
+    }
+
+    @Test
+    fun `parser requires every room blueprint field`() {
+        val fields = requiredFields()
+
+        fields.keys.forEach { omittedField ->
+            val json = jsonObject(fields - omittedField)
+
+            assertFailsWith<IllegalArgumentException>(omittedField) {
+                RoomBlueprintParser.parse(json)
+            }
+        }
+    }
+
+    @Test
+    fun `parser rejects blank malformed and non-object JSON`() {
+        assertFailsWith<IllegalArgumentException> {
+            RoomBlueprintParser.parse(" \t")
+        }
+        assertFails {
+            RoomBlueprintParser.parse("{")
+        }
+        assertFailsWith<IllegalArgumentException> {
+            RoomBlueprintParser.parse("[]")
+        }
+    }
+
+    @Test
+    fun `parser rejects malformed grid positions`() {
+        listOf(
+            roomJson(footprint = "[7]"),
+            roomJson(footprint = """[{"column": 0}]"""),
+            roomJson(doors = """[{"column": "left", "row": 0}]"""),
+            roomJson(
+                sockets = """
+                    [
+                      {
+                        "position": {"column": 1, "row": 0.5},
+                        "type": "floor"
+                      }
+                    ]
+                """.trimIndent(),
+            ),
+        ).forEach { json ->
+            assertFailsWith<IllegalArgumentException> {
+                RoomBlueprintParser.parse(json)
+            }
+        }
+    }
+
+    @Test
+    fun `parser applies room door validation`() {
+        val doorOutsideFootprint = roomJson(
+            doors = """[{"column": 2, "row": 0}]""",
+        )
+
+        assertFailsWith<IllegalArgumentException> {
+            RoomBlueprintParser.parse(doorOutsideFootprint)
+        }
+    }
+
+    @Test
+    fun `parser requires complete socket entries and known socket types`() {
+        listOf(
+            """[{"type": "floor"}]""",
+            """[{"position": {"column": 1, "row": 0}}]""",
+            """
+                [
+                  {
+                    "position": {"column": 1, "row": 0},
+                    "type": "ceiling"
+                  }
+                ]
+            """.trimIndent(),
+        ).forEach { sockets ->
+            assertFailsWith<IllegalArgumentException> {
+                RoomBlueprintParser.parse(roomJson(sockets = sockets))
+            }
+        }
+    }
+
+    @Test
+    fun `parser rejects multiple sockets at one position`() {
+        val sockets = """
+            [
+              {
+                "position": {"column": 1, "row": 0},
+                "type": "floor"
+              },
+              {
+                "position": {"column": 1, "row": 0},
+                "type": "floor"
+              }
+            ]
+        """.trimIndent()
+
+        assertFailsWith<IllegalArgumentException> {
+            RoomBlueprintParser.parse(roomJson(sockets = sockets))
+        }
+    }
+
+    private fun roomJson(
+        footprint: String = """
+            [
+              {"column": 0, "row": 0},
+              {"column": 1, "row": 0},
+              {"column": 0, "row": 1},
+              {"column": 1, "row": 1}
+            ]
+        """.trimIndent(),
+        doors: String = """
+            [
+              {"column": 0, "row": 0},
+              {"column": 1, "row": 1}
+            ]
+        """.trimIndent(),
+        sockets: String = """
+            [
+              {
+                "position": {"column": 1, "row": 0},
+                "type": "floor"
+              }
+            ]
+        """.trimIndent(),
+    ): String = jsonObject(
+        requiredFields(
+            footprint = footprint,
+            doors = doors,
+            sockets = sockets,
+        ),
+    )
+
+    private fun requiredFields(
+        footprint: String = """[{"column": 0, "row": 0}]""",
+        doors: String = """[{"column": 0, "row": 0}]""",
+        sockets: String = "[]",
+    ): Map<String, String> = linkedMapOf(
+        "id" to "\"guard-hall\"",
+        "displayName" to "\"Guard Hall\"",
+        "footprint" to footprint,
+        "doors" to doors,
+        "sockets" to sockets,
+    )
+
+    private fun jsonObject(fields: Map<String, String>): String =
+        fields.entries.joinToString(prefix = "{", postfix = "}") { (name, value) ->
+            "\"$name\": $value"
+        }
+
+    private fun position(column: Int, row: Int) =
+        GridPosition(column = column, row = row)
+}

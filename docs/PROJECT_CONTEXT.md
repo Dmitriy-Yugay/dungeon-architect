@@ -137,7 +137,7 @@ Treat every numbered item as a separate task.
 
 21. [x] Add a stable ID and display name to a room blueprint; test blank-value
     validation.
-22. [ ] Parse one room blueprint from supplied JSON text; test required fields,
+22. [x] Parse one room blueprint from supplied JSON text; test required fields,
     positions, doors, and sockets.
 23. [ ] Add authored JSON for the existing room and load it instead of
     constructing it in `PrototypeScreen`.
