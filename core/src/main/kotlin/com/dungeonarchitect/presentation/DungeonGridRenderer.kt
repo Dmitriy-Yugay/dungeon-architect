@@ -40,6 +40,7 @@ class DungeonGridRenderer : Disposable {
         shapes.projectionMatrix = projection
         renderTiles(grid)
         placementPreview?.let(::renderPlacementPreview)
+        renderDoorMarkers(roomDoorGridPositions(grid.placedRooms))
         heroWorldMarker(heroState, TILE_SIZE)?.let(::renderHero)
         renderHighlights(hoveredPosition, selectedPosition)
     }
@@ -89,6 +90,22 @@ class DungeonGridRenderer : Disposable {
         shapes.end()
     }
 
+    private fun renderDoorMarkers(positions: Set<GridPosition>) {
+        shapes.begin(ShapeRenderer.ShapeType.Filled)
+        shapes.color = DOOR_MARKER_COLOR
+
+        positions.forEach { position ->
+            shapes.rect(
+                position.column * TILE_SIZE + DOOR_MARKER_INSET,
+                position.row * TILE_SIZE + DOOR_MARKER_INSET,
+                DOOR_MARKER_SIZE,
+                DOOR_MARKER_SIZE,
+            )
+        }
+
+        shapes.end()
+    }
+
     private fun renderHighlights(
         hoveredPosition: GridPosition?,
         selectedPosition: GridPosition?,
@@ -130,6 +147,8 @@ class DungeonGridRenderer : Disposable {
         const val TILE_GAP = 2f
         const val HOVER_INSET = 4f
         const val SELECTION_INSET = 8f
+        const val DOOR_MARKER_SIZE = 12f
+        const val DOOR_MARKER_INSET = (TILE_SIZE - DOOR_MARKER_SIZE) / 2f
 
         val EMPTY_TILE_COLOR = Color.valueOf("252B33")
         val ROOM_COLOR = Color.valueOf("5D6D7E")
@@ -137,6 +156,7 @@ class DungeonGridRenderer : Disposable {
         val OBJECTIVE_COLOR = Color.valueOf("B84B4B")
         val VALID_PREVIEW_COLOR = Color.valueOf("4EA86B")
         val INVALID_PREVIEW_COLOR = Color.valueOf("D85C5C")
+        val DOOR_MARKER_COLOR = Color.valueOf("F0A44B")
         val HERO_COLOR = Color.valueOf("4BA3D3")
         val HOVER_COLOR = Color.valueOf("E0B84B")
         val SELECTION_COLOR = Color.valueOf("F2F2F2")

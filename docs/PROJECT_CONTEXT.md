@@ -155,7 +155,7 @@ Treat every numbered item as a separate task.
 31. [x] Handle a room-choice click without also placing a room.
 32. [x] Reject room placement after the wave starts; test every non-building
     run phase.
-33. [ ] Render door markers on placed rooms.
+33. [x] Render door markers on placed rooms.
 34. [ ] Render socket markers on placed rooms.
 35. [ ] Render the currently placed trap.
 36. [ ] Add the selected trap definition to the build state.
