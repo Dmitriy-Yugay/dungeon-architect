@@ -57,12 +57,19 @@ This creates the intended future flow:
 
 - Use a tile grid and a straightforward pathfinding algorithm.
 - Represent room footprints as normalized, four-directionally connected sets
-  of local grid positions. Door positions identify exposed cells within that
-  footprint. Room socket maps identify at most one typed defense socket per
-  local cell, and authored trap definitions declare compatible socket types.
+  of local grid positions. Each door identifies an exposed footprint cell and
+  a cardinal facing. Room socket maps identify at most one typed defense socket
+  per local cell, and authored trap definitions declare compatible socket types.
 - A placed room combines a blueprint with a grid origin and translates its
   local footprint without enforcing grid bounds; dungeon placement rules own
   bounds validation.
+- Grow the persistent dungeon through an open-door frontier. Placement snaps a
+  compatible candidate door to exactly one unused placed-room door, consumes
+  the connected pair, and rejects accidental multi-door joins. Entrance and
+  objective cells are directional ports rather than room floor.
+- Build pathfinding neighbors from cells within the same room plus explicit
+  room-door and endpoint connections. Adjacent cells in different rooms are not
+  traversable unless their directional doors connect.
 - Load disposable game content from JSON or another simple text format.
 - Parse authored content from supplied text; the application layer owns file
   loading so content validation does not depend on libGDX global state.

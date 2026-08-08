@@ -174,7 +174,7 @@ decision without adding new gameplay content.
 
 ### Persistent topology and evaluation foundation — after room choice
 
-42. [ ] Compare two or three persistent-dungeon topology rules against explicit
+42. [x] Compare two or three persistent-dungeon topology rules against explicit
     criteria, run the smallest useful playable or test-fixture experiments, and
     record the selected rule in `game-design.md`.
 43. [ ] Add Kotest and one focused property-based test suite for room placement

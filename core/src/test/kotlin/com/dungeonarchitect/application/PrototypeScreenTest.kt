@@ -1,12 +1,14 @@
 package com.dungeonarchitect.application
 
 import com.dungeonarchitect.domain.BuildState
+import com.dungeonarchitect.domain.CardinalDirection
 import com.dungeonarchitect.domain.DungeonGrid
 import com.dungeonarchitect.domain.GridPosition
 import com.dungeonarchitect.domain.PlacedRoom
 import com.dungeonarchitect.domain.PrototypeRunDefinition
 import com.dungeonarchitect.domain.PrototypeRunPhase
 import com.dungeonarchitect.domain.RoomBlueprint
+import com.dungeonarchitect.domain.RoomDoor
 import com.dungeonarchitect.domain.RoomSocketType
 import com.dungeonarchitect.domain.TrapDefinition
 import com.dungeonarchitect.domain.UpcomingHeroWave
@@ -30,18 +32,18 @@ class PrototypeScreenTest {
 
         assertEquals("prototype-room", room.blueprint.id)
         assertEquals("Prototype Room", room.blueprint.displayName)
-        assertEquals(GridPosition(column = 6, row = 3), room.origin)
+        assertEquals(GridPosition(column = 1, row = 3), room.origin)
         assertEquals(
             setOf(
-                GridPosition(column = 6, row = 3),
-                GridPosition(column = 7, row = 3),
-                GridPosition(column = 8, row = 3),
-                GridPosition(column = 6, row = 4),
-                GridPosition(column = 7, row = 4),
-                GridPosition(column = 8, row = 4),
-                GridPosition(column = 6, row = 5),
-                GridPosition(column = 7, row = 5),
-                GridPosition(column = 8, row = 5),
+                GridPosition(column = 1, row = 3),
+                GridPosition(column = 2, row = 3),
+                GridPosition(column = 3, row = 3),
+                GridPosition(column = 1, row = 4),
+                GridPosition(column = 2, row = 4),
+                GridPosition(column = 3, row = 4),
+                GridPosition(column = 1, row = 5),
+                GridPosition(column = 2, row = 5),
+                GridPosition(column = 3, row = 5),
             ),
             room.gridPositions,
         )
@@ -67,10 +69,10 @@ class PrototypeScreenTest {
         val preview = PrototypeScreen.placementPreview(
             grid = grid,
             buildState = buildState,
-            hoveredPosition = GridPosition(column = 3, row = 3),
+            hoveredPosition = GridPosition(column = 4, row = 4),
         )!!
 
-        assertEquals(GridPosition(column = 3, row = 3), preview.room.origin)
+        assertEquals(GridPosition(column = 4, row = 3), preview.room.origin)
         assertEquals(grid.placedRooms.single().blueprint, preview.room.blueprint)
         assertTrue(preview.isValid)
     }
@@ -79,7 +81,7 @@ class PrototypeScreenTest {
     fun `changing build selection changes placement preview blueprint and geometry`() {
         val buildState = authoredBuildState()
         val grid = prototypeGrid(buildState)
-        val hoveredPosition = GridPosition(column = 1, row = 1)
+        val hoveredPosition = GridPosition(column = 4, row = 4)
 
         assertTrue(buildState.selectRoomBlueprint("long-gallery"))
         val preview = PrototypeScreen.placementPreview(
@@ -92,31 +94,31 @@ class PrototypeScreenTest {
         assertEquals("long-gallery", preview.room.blueprint.id)
         assertEquals(
             setOf(
-                GridPosition(column = 1, row = 1),
-                GridPosition(column = 2, row = 1),
-                GridPosition(column = 3, row = 1),
-                GridPosition(column = 4, row = 1),
-                GridPosition(column = 1, row = 2),
-                GridPosition(column = 2, row = 2),
-                GridPosition(column = 3, row = 2),
-                GridPosition(column = 4, row = 2),
+                GridPosition(column = 4, row = 3),
+                GridPosition(column = 5, row = 3),
+                GridPosition(column = 6, row = 3),
+                GridPosition(column = 7, row = 3),
+                GridPosition(column = 4, row = 4),
+                GridPosition(column = 5, row = 4),
+                GridPosition(column = 6, row = 4),
+                GridPosition(column = 7, row = 4),
             ),
             preview.room.gridPositions,
         )
     }
 
     @Test
-    fun `placement preview reports invalid candidate without changing placed rooms`() {
+    fun `placement preview is absent away from an open door`() {
         val buildState = authoredBuildState()
         val grid = prototypeGrid(buildState)
 
-        val preview = PrototypeScreen.placementPreview(
-            grid = grid,
-            buildState = buildState,
-            hoveredPosition = GridPosition(column = 6, row = 3),
-        )!!
-
-        assertFalse(preview.isValid)
+        assertNull(
+            PrototypeScreen.placementPreview(
+                grid = grid,
+                buildState = buildState,
+                hoveredPosition = GridPosition(column = 10, row = 8),
+            ),
+        )
         assertEquals(1, grid.placedRooms.size)
     }
 
@@ -148,7 +150,7 @@ class PrototypeScreenTest {
             val wasPlaced = PrototypeScreen.commitPlacement(
                 grid = grid,
                 buildState = buildState,
-                clickedPosition = GridPosition(column = 3, row = 3),
+                clickedPosition = GridPosition(column = 4, row = 4),
                 runPhase = phase,
             )
 
@@ -170,7 +172,7 @@ class PrototypeScreenTest {
     fun `commit placement uses the newly selected long gallery`() {
         val buildState = authoredBuildState()
         val grid = prototypeGrid(buildState)
-        val clickedPosition = GridPosition(column = 2, row = 3)
+        val clickedPosition = GridPosition(column = 4, row = 4)
         assertTrue(buildState.selectRoomBlueprint("long-gallery"))
 
         val preview = PrototypeScreen.placementPreview(
@@ -206,7 +208,7 @@ class PrototypeScreenTest {
             PrototypeScreen.commitPlacement(
                 grid = grid,
                 buildState = buildState,
-                clickedPosition = GridPosition(column = 6, row = 3),
+                clickedPosition = GridPosition(column = 10, row = 8),
                 runPhase = PrototypeRunPhase.BUILDING,
             ),
         )
@@ -442,7 +444,7 @@ class PrototypeScreenTest {
         val buildState = authoredBuildState()
         val grid = prototypeGrid(buildState)
         val controller = runController(grid)
-        val clickedPosition = GridPosition(column = 2, row = 3)
+        val clickedPosition = GridPosition(column = 4, row = 4)
         assertTrue(buildState.selectRoomBlueprint("long-gallery"))
 
         val result = PrototypeScreen.handleClick(
@@ -462,7 +464,7 @@ class PrototypeScreenTest {
         )
 
         assertEquals(PrototypeClickResult.ROOM_PLACED, result)
-        assertEquals(clickedPosition, grid.placedRooms.last().origin)
+        assertEquals(GridPosition(column = 4, row = 3), grid.placedRooms.last().origin)
         assertSame(
             buildState.selectedRoomBlueprint,
             grid.placedRooms.last().blueprint,
@@ -510,7 +512,12 @@ class PrototypeScreenTest {
                     id = "test-room",
                     displayName = "Test Room",
                     footprint = setOf(GridPosition(column = 0, row = 0)),
-                    doorPositions = setOf(GridPosition(column = 0, row = 0)),
+                    doors = CardinalDirection.entries.map { facing ->
+                        RoomDoor(
+                            position = GridPosition(column = 0, row = 0),
+                            facing = facing,
+                        )
+                    },
                 ),
                 origin = GridPosition(column = 1, row = 0),
             ),

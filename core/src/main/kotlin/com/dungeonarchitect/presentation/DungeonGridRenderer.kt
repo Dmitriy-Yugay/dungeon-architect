@@ -4,6 +4,7 @@ import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 import com.badlogic.gdx.math.Matrix4
 import com.badlogic.gdx.utils.Disposable
+import com.dungeonarchitect.domain.CardinalDirection
 import com.dungeonarchitect.domain.DungeonGrid
 import com.dungeonarchitect.domain.GridPosition
 import com.dungeonarchitect.domain.PrototypeHeroState
@@ -42,7 +43,7 @@ class DungeonGridRenderer : Disposable {
         shapes.projectionMatrix = projection
         renderTiles(grid)
         placementPreview?.let(::renderPlacementPreview)
-        renderDoorMarkers(roomDoorGridPositions(grid.placedRooms))
+        renderDoorMarkers(roomDoorGridMarkers(grid))
         renderSocketMarkers(roomSocketGridMarkers(grid.placedRooms))
         renderTrapMarkers(placedTrapGridMarkers(grid))
         trapPlacementPreview?.let(::renderTrapPlacementPreview)
@@ -95,20 +96,38 @@ class DungeonGridRenderer : Disposable {
         shapes.end()
     }
 
-    private fun renderDoorMarkers(positions: Set<GridPosition>) {
+    private fun renderDoorMarkers(markers: Set<RoomDoorGridMarker>) {
         shapes.begin(ShapeRenderer.ShapeType.Filled)
-        shapes.color = DOOR_MARKER_COLOR
 
-        positions.forEach { position ->
+        markers.forEach { marker ->
+            shapes.color = if (marker.isOpen) {
+                OPEN_DOOR_MARKER_COLOR
+            } else {
+                CONNECTED_DOOR_MARKER_COLOR
+            }
+            val (offsetX, offsetY) = doorMarkerOffset(marker.facing)
+            val isHorizontalEdge = marker.facing == CardinalDirection.NORTH ||
+                marker.facing == CardinalDirection.SOUTH
             shapes.rect(
-                position.column * TILE_SIZE + DOOR_MARKER_INSET,
-                position.row * TILE_SIZE + DOOR_MARKER_INSET,
-                DOOR_MARKER_SIZE,
-                DOOR_MARKER_SIZE,
+                marker.position.column * TILE_SIZE + offsetX,
+                marker.position.row * TILE_SIZE + offsetY,
+                if (isHorizontalEdge) DOOR_MARKER_LENGTH else DOOR_MARKER_THICKNESS,
+                if (isHorizontalEdge) DOOR_MARKER_THICKNESS else DOOR_MARKER_LENGTH,
             )
         }
 
         shapes.end()
+    }
+
+    private fun doorMarkerOffset(
+        facing: CardinalDirection,
+    ): Pair<Float, Float> = when (facing) {
+        CardinalDirection.WEST -> 0f to DOOR_MARKER_CROSS_INSET
+        CardinalDirection.EAST ->
+            TILE_SIZE - DOOR_MARKER_THICKNESS to DOOR_MARKER_CROSS_INSET
+        CardinalDirection.SOUTH -> DOOR_MARKER_CROSS_INSET to 0f
+        CardinalDirection.NORTH ->
+            DOOR_MARKER_CROSS_INSET to TILE_SIZE - DOOR_MARKER_THICKNESS
     }
 
     private fun renderSocketMarkers(markers: Set<RoomSocketGridMarker>) {
@@ -214,8 +233,10 @@ class DungeonGridRenderer : Disposable {
         const val TILE_GAP = 2f
         const val HOVER_INSET = 4f
         const val SELECTION_INSET = 8f
-        const val DOOR_MARKER_SIZE = 12f
-        const val DOOR_MARKER_INSET = (TILE_SIZE - DOOR_MARKER_SIZE) / 2f
+        const val DOOR_MARKER_LENGTH = 20f
+        const val DOOR_MARKER_THICKNESS = 6f
+        const val DOOR_MARKER_CROSS_INSET =
+            (TILE_SIZE - DOOR_MARKER_LENGTH) / 2f
         const val HALF_TILE = 0.5f
         const val SOCKET_MARKER_RADIUS = 8f
         const val TRAP_MARKER_RADIUS = 12f
@@ -227,7 +248,8 @@ class DungeonGridRenderer : Disposable {
         val OBJECTIVE_COLOR = Color.valueOf("B84B4B")
         val VALID_PREVIEW_COLOR = Color.valueOf("4EA86B")
         val INVALID_PREVIEW_COLOR = Color.valueOf("D85C5C")
-        val DOOR_MARKER_COLOR = Color.valueOf("F0A44B")
+        val OPEN_DOOR_MARKER_COLOR = Color.valueOf("F0A44B")
+        val CONNECTED_DOOR_MARKER_COLOR = Color.valueOf("8A6A45")
         val FLOOR_SOCKET_MARKER_COLOR = Color.valueOf("47C6B5")
         val WALL_SOCKET_MARKER_COLOR = Color.valueOf("B779D0")
         val TRAP_MARKER_COLOR = Color.valueOf("E84A5F")

@@ -1,12 +1,14 @@
 package com.dungeonarchitect.application
 
 import com.dungeonarchitect.domain.BuildState
+import com.dungeonarchitect.domain.CardinalDirection
 import com.dungeonarchitect.domain.DungeonGrid
 import com.dungeonarchitect.domain.GridPosition
 import com.dungeonarchitect.domain.PlacedRoom
 import com.dungeonarchitect.domain.PrototypeRunDefinition
 import com.dungeonarchitect.domain.PrototypeRunPhase
 import com.dungeonarchitect.domain.RoomBlueprint
+import com.dungeonarchitect.domain.RoomDoor
 import com.dungeonarchitect.domain.RoomSocketType
 import com.dungeonarchitect.domain.TrapDefinition
 import com.dungeonarchitect.domain.UpcomingHeroWave
@@ -25,7 +27,10 @@ class TrapPlacementCommitTest {
                 id = "route-room",
                 displayName = "Route Room",
                 footprint = setOf(localSocketPosition),
-                doorPositions = setOf(localSocketPosition),
+                doors = listOf(
+                    RoomDoor(localSocketPosition, CardinalDirection.WEST),
+                    RoomDoor(localSocketPosition, CardinalDirection.EAST),
+                ),
                 sockets = mapOf(
                     localSocketPosition to RoomSocketType.FLOOR,
                 ),
@@ -198,13 +203,6 @@ class TrapPlacementCommitTest {
         val fixture = fixture()
         val clickedPosition = position(4, 3)
         val roomsBeforeClick = fixture.grid.placedRooms
-        assertTrue(
-            fixture.grid.placementPreview(
-                blueprint = fixture.buildState.selectedRoomBlueprint,
-                origin = clickedPosition,
-            ).isValid,
-        )
-
         val result = handleClick(fixture, clickedPosition = clickedPosition)
 
         assertEquals(PrototypeClickResult.TRAP_PLACED, result)
@@ -227,13 +225,6 @@ class TrapPlacementCommitTest {
         )
         val occupiedRooms = occupiedFixture.grid.placedRooms
         val occupiedTraps = occupiedFixture.grid.placedTraps
-        assertTrue(
-            occupiedFixture.grid.placementPreview(
-                blueprint = occupiedFixture.buildState.selectedRoomBlueprint,
-                origin = position(4, 3),
-            ).isValid,
-        )
-
         assertEquals(
             PrototypeClickResult.IGNORED,
             handleClick(occupiedFixture, clickedPosition = position(4, 3)),
@@ -255,7 +246,7 @@ class TrapPlacementCommitTest {
     fun `non-socket click retains existing room placement path`() {
         val fixture = fixture()
 
-        val result = handleClick(fixture, clickedPosition = position(5, 2))
+        val result = handleClick(fixture, clickedPosition = position(5, 3))
 
         assertEquals(PrototypeClickResult.ROOM_PLACED, result)
         assertEquals(position(5, 2), fixture.grid.placedRooms.last().origin)

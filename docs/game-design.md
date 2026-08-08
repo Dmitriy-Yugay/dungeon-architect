@@ -49,7 +49,17 @@ content.
 ## Dungeon rules
 
 - The dungeon uses a grid for predictable placement and navigation.
-- Rooms connect through compatible doors.
+- A room door belongs to an exposed edge of a footprint cell and has a cardinal
+  facing. Two room doors connect only when they occupy adjacent cells and face
+  directly toward one another.
+- New rooms snap one compatible door to exactly one unused door on the existing
+  dungeon. The connected pair is then consumed; any other doors on the new room
+  become possible attachment points for later choices.
+- Merely touching another room does not connect floor space. Heroes cross room
+  boundaries only through recorded door connections.
+- The entrance faces east and the objective faces west in the prototype. A room
+  must meet each endpoint through a correspondingly facing door; rooms cannot
+  cover endpoint cells.
 - A layout is ready for a wave only when it has a route from the entrance to
   the objective.
 - Individual room placements may leave that route incomplete while the player
@@ -57,6 +67,32 @@ content.
 - Layout creates tactical value through distance, choke points, and defense
   coverage.
 - Construction and defense placement consume a shared, limited resource.
+
+### Persistent topology decision
+
+Three rules were compared for growing the dungeon:
+
+1. **Open-door frontier:** attach each new room to one unused directional door,
+   consume the connected pair, and leave the new room's remaining doors open.
+2. **Flexible attachment:** permit a placement to connect every compatible door
+   it touches, allowing loops and accidental multi-room joins.
+3. **Single active tail:** permit attachment only to the most recently placed
+   room, producing a strict chain.
+
+The comparison used four criteria: whether a legal placement is obvious before
+clicking, whether earlier room choices constrain later choices, whether the
+rule can create branches and varied layouts, and how easily routing can be
+tested and explained. Small non-rendering fixtures covered facing compatibility,
+consumed doors, wall-to-wall contact, multi-door joins, endpoint connections,
+and snapped preview placement.
+
+The selected rule is **open-door frontier**. It makes every future attachment
+point visible and persistent, supports branching without permitting a single
+placement to create a surprising loop, and gives routing an explicit graph of
+door connections. Flexible attachment offered more topology but made accidental
+joins hard to preview; the single active tail was clear but discarded too much
+spatial choice. Rotation remains deferred, so authored room orientation is part
+of the choice for now.
 
 ## Wave intelligence
 
@@ -82,25 +118,24 @@ loses all health.
 
 ### Foundation — complete
 
-The current prototype proves room connection, routing, one simple hero wave,
-one socketed trap, deterministic combat, outcomes, and restart. It uses one
-repeated room blueprint and installs the trap automatically.
+The foundation proved room connection, routing, one simple hero wave, one
+socketed trap, deterministic combat, outcomes, and restart.
 
-### Room choice — next
+### Room choice — complete
 
-The next prototype adds two simple authored room blueprints and lets the player
-choose which one to place. The rooms differ only in geometry, doors, and socket
-layout. The player also places the existing basic trap into a compatible socket.
+The prototype has two simple authored room blueprints and lets the player choose
+which one to place. The rooms differ only in geometry, doors, and socket layout.
+The player also places the existing basic trap into a compatible socket.
 
 This stage may allow several rooms to be placed during the initial build phase
 so the current fixed map can form a complete route. It is a temporary prototype
 rule, not the final run economy.
 
-### Persistent drafting — later
+### Persistent drafting — topology selected
 
-After room choice is playable, define how adding one room before each wave
-extends or changes the required route. Only then add multiple waves, rewards,
-one-room-per-wave limits, or late-game replacement costs.
+Each new room extends the open-door frontier described above. Multiple waves,
+rewards, one-room-per-wave limits, and late-game replacement costs remain later
+work.
 
 ## First playable content target
 
@@ -132,8 +167,6 @@ interesting, and consistent with the player fantasy.
 
 ## Open questions
 
-- How does adding a room extend or alter the required entrance-to-objective
-  route?
 - At what late-game point is room replacement unlocked, and how is its
   significant cost calculated?
 - How many room choices should appear before each wave?

@@ -160,6 +160,45 @@ class RoomBlueprintTest {
         }
     }
 
+    @Test
+    fun `blueprint allows differently facing doors on the same cell`() {
+        val blueprint = RoomBlueprint(
+            id = "junction",
+            displayName = "Junction",
+            footprint = setOf(position(0, 0)),
+            doors = listOf(
+                RoomDoor(position(0, 0), CardinalDirection.WEST),
+                RoomDoor(position(0, 0), CardinalDirection.EAST),
+            ),
+        )
+
+        assertEquals(2, blueprint.doors.size)
+        assertEquals(setOf(position(0, 0)), blueprint.doorPositions)
+    }
+
+    @Test
+    fun `blueprint rejects repeated and inward-facing directional doors`() {
+        val westDoor = RoomDoor(position(0, 0), CardinalDirection.WEST)
+        assertFailsWith<IllegalArgumentException> {
+            RoomBlueprint(
+                id = "repeated-door",
+                displayName = "Repeated Door",
+                footprint = setOf(position(0, 0)),
+                doors = listOf(westDoor, westDoor),
+            )
+        }
+        assertFailsWith<IllegalArgumentException> {
+            RoomBlueprint(
+                id = "inward-door",
+                displayName = "Inward Door",
+                footprint = setOf(position(0, 0), position(1, 0)),
+                doors = listOf(
+                    RoomDoor(position(0, 0), CardinalDirection.EAST),
+                ),
+            )
+        }
+    }
+
     private fun position(column: Int, row: Int) =
         GridPosition(column = column, row = row)
 

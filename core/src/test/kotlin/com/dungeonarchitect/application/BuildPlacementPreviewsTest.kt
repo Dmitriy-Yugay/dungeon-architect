@@ -1,10 +1,12 @@
 package com.dungeonarchitect.application
 
 import com.dungeonarchitect.domain.BuildState
+import com.dungeonarchitect.domain.CardinalDirection
 import com.dungeonarchitect.domain.DungeonGrid
 import com.dungeonarchitect.domain.GridPosition
 import com.dungeonarchitect.domain.PlacedRoom
 import com.dungeonarchitect.domain.RoomBlueprint
+import com.dungeonarchitect.domain.RoomDoor
 import com.dungeonarchitect.domain.RoomSocketType
 import com.dungeonarchitect.domain.TrapDefinition
 import com.dungeonarchitect.presentation.TrapPlacementPreview
@@ -80,12 +82,12 @@ class BuildPlacementPreviewsTest {
         val previews = buildPlacementPreviews(
             grid = fixture.grid,
             buildState = fixture.buildState,
-            hoveredPosition = position(4, 2),
+            hoveredPosition = position(6, 2),
         )
 
         assertNull(previews.trap)
-        assertEquals(position(4, 2), previews.room?.room?.origin)
-        assertFalse(previews.room!!.isValid)
+        assertEquals(position(6, 2), previews.room?.room?.origin)
+        assertTrue(previews.room!!.isValid)
     }
 
     private fun fixture(): Fixture {
@@ -99,7 +101,10 @@ class BuildPlacementPreviewsTest {
                     WALL_SOCKET,
                     FLOOR_SOCKET,
                 ),
-                doorPositions = setOf(position(0, 0)),
+                doors = listOf(
+                    RoomDoor(position(0, 0), CardinalDirection.WEST),
+                    RoomDoor(position(1, 0), CardinalDirection.EAST),
+                ),
                 sockets = mapOf(
                     WALL_SOCKET to RoomSocketType.WALL,
                     FLOOR_SOCKET to RoomSocketType.FLOOR,

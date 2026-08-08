@@ -2,8 +2,10 @@ package com.dungeonarchitect.content
 
 import com.badlogic.gdx.utils.JsonReader
 import com.badlogic.gdx.utils.JsonValue
+import com.dungeonarchitect.domain.CardinalDirection
 import com.dungeonarchitect.domain.GridPosition
 import com.dungeonarchitect.domain.RoomBlueprint
+import com.dungeonarchitect.domain.RoomDoor
 import com.dungeonarchitect.domain.RoomSocketType
 
 object RoomBlueprintParser {
@@ -17,13 +19,36 @@ object RoomBlueprintParser {
             "Room blueprint JSON must contain an object."
         }
 
+        val doors = root.requiredDoors("doors")
         return RoomBlueprint(
             id = root.requiredString("id"),
             displayName = root.requiredString("displayName"),
             footprint = root.requiredPositions("footprint"),
-            doorPositions = root.requiredPositions("doors"),
+            doors = doors,
             sockets = root.requiredSockets("sockets"),
         )
+    }
+
+    private fun JsonValue.requiredDoors(name: String): List<RoomDoor> {
+        val value = required(name)
+        require(value.isArray) {
+            "Room blueprint field '$name' must be an array."
+        }
+
+        val doors = value.mapIndexed { index, item ->
+            require(item.isObject) {
+                "Room blueprint field '$name' item $index must be an object."
+            }
+            val owner = "Room blueprint door $index"
+            RoomDoor(
+                position = item.requiredPosition("position", owner),
+                facing = parseDirection(item.requiredString("facing", owner)),
+            )
+        }
+        require(doors.distinct().size == doors.size) {
+            "Room blueprint doors must be distinct by position and facing."
+        }
+        return doors
     }
 
     private fun JsonValue.requiredPositions(name: String): Set<GridPosition> {
@@ -80,6 +105,13 @@ object RoomBlueprintParser {
             it.name.equals(value, ignoreCase = true)
         } ?: throw IllegalArgumentException(
             "Unknown room socket type '$value'.",
+        )
+
+    private fun parseDirection(value: String): CardinalDirection =
+        CardinalDirection.entries.firstOrNull {
+            it.name.equals(value, ignoreCase = true)
+        } ?: throw IllegalArgumentException(
+            "Unknown cardinal direction '$value'.",
         )
 
     private fun JsonValue.requiredString(

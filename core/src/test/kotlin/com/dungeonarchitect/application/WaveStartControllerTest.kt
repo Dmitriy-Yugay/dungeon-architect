@@ -1,9 +1,11 @@
 package com.dungeonarchitect.application
 
 import com.dungeonarchitect.domain.DungeonGrid
+import com.dungeonarchitect.domain.CardinalDirection
 import com.dungeonarchitect.domain.GridPosition
 import com.dungeonarchitect.domain.PlacedRoom
 import com.dungeonarchitect.domain.RoomBlueprint
+import com.dungeonarchitect.domain.RoomDoor
 import com.dungeonarchitect.domain.RoomSocketType
 import com.dungeonarchitect.domain.TrapDefinition
 import com.dungeonarchitect.domain.UpcomingHeroWave
@@ -81,7 +83,16 @@ class WaveStartControllerTest {
                     id = "socket-room",
                     displayName = "Socket Room",
                     footprint = setOf(GridPosition(column = 0, row = 0)),
-                    doorPositions = setOf(GridPosition(column = 0, row = 0)),
+                    doors = listOf(
+                        RoomDoor(
+                            position = GridPosition(column = 0, row = 0),
+                            facing = CardinalDirection.WEST,
+                        ),
+                        RoomDoor(
+                            position = GridPosition(column = 0, row = 0),
+                            facing = CardinalDirection.EAST,
+                        ),
+                    ),
                     sockets = mapOf(
                         GridPosition(column = 0, row = 0) to
                             RoomSocketType.FLOOR,

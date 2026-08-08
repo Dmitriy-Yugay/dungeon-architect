@@ -1,6 +1,8 @@
 package com.dungeonarchitect.content
 
+import com.dungeonarchitect.domain.CardinalDirection
 import com.dungeonarchitect.domain.GridPosition
+import com.dungeonarchitect.domain.RoomDoor
 import com.dungeonarchitect.domain.RoomSocketType
 import java.nio.file.Files
 import java.nio.file.Path
@@ -21,6 +23,13 @@ class RoomBlueprintParserTest {
         assertEquals(
             setOf(position(0, 1), position(2, 1)),
             blueprint.doorPositions,
+        )
+        assertEquals(
+            setOf(
+                RoomDoor(position(0, 1), CardinalDirection.WEST),
+                RoomDoor(position(2, 1), CardinalDirection.EAST),
+            ),
+            blueprint.doors,
         )
         assertEquals(
             mapOf(position(1, 1) to RoomSocketType.FLOOR),
@@ -54,6 +63,13 @@ class RoomBlueprintParserTest {
         assertEquals(
             setOf(position(0, 1), position(3, 1)),
             longGallery.doorPositions,
+        )
+        assertEquals(
+            setOf(
+                RoomDoor(position(0, 1), CardinalDirection.WEST),
+                RoomDoor(position(3, 1), CardinalDirection.EAST),
+            ),
+            longGallery.doors,
         )
         assertEquals(
             mapOf(position(2, 1) to RoomSocketType.FLOOR),
@@ -114,7 +130,16 @@ class RoomBlueprintParserTest {
         listOf(
             roomJson(footprint = "[7]"),
             roomJson(footprint = """[{"column": 0}]"""),
-            roomJson(doors = """[{"column": "left", "row": 0}]"""),
+            roomJson(
+                doors = """
+                    [
+                      {
+                        "position": {"column": "left", "row": 0},
+                        "facing": "west"
+                      }
+                    ]
+                """.trimIndent(),
+            ),
             roomJson(
                 sockets = """
                     [
@@ -135,11 +160,57 @@ class RoomBlueprintParserTest {
     @Test
     fun `parser applies room door validation`() {
         val doorOutsideFootprint = roomJson(
-            doors = """[{"column": 2, "row": 0}]""",
+            doors = """
+                [
+                  {
+                    "position": {"column": 2, "row": 0},
+                    "facing": "east"
+                  }
+                ]
+            """.trimIndent(),
         )
 
         assertFailsWith<IllegalArgumentException> {
             RoomBlueprintParser.parse(doorOutsideFootprint)
+        }
+    }
+
+    @Test
+    fun `parser requires a known facing for every door`() {
+        listOf(
+            """[{"position": {"column": 0, "row": 0}}]""",
+            """
+                [
+                  {
+                    "position": {"column": 0, "row": 0},
+                    "facing": "diagonal"
+                  }
+                ]
+            """.trimIndent(),
+        ).forEach { doors ->
+            assertFailsWith<IllegalArgumentException> {
+                RoomBlueprintParser.parse(roomJson(doors = doors))
+            }
+        }
+    }
+
+    @Test
+    fun `parser rejects a repeated directional door`() {
+        val repeatedDoor = """
+            [
+              {
+                "position": {"column": 0, "row": 0},
+                "facing": "west"
+              },
+              {
+                "position": {"column": 0, "row": 0},
+                "facing": "west"
+              }
+            ]
+        """.trimIndent()
+
+        assertFailsWith<IllegalArgumentException> {
+            RoomBlueprintParser.parse(roomJson(doors = repeatedDoor))
         }
     }
 
@@ -194,8 +265,14 @@ class RoomBlueprintParserTest {
         """.trimIndent(),
         doors: String = """
             [
-              {"column": 0, "row": 0},
-              {"column": 1, "row": 1}
+              {
+                "position": {"column": 0, "row": 0},
+                "facing": "west"
+              },
+              {
+                "position": {"column": 1, "row": 1},
+                "facing": "east"
+              }
             ]
         """.trimIndent(),
         sockets: String = """
@@ -216,7 +293,14 @@ class RoomBlueprintParserTest {
 
     private fun requiredFields(
         footprint: String = """[{"column": 0, "row": 0}]""",
-        doors: String = """[{"column": 0, "row": 0}]""",
+        doors: String = """
+            [
+              {
+                "position": {"column": 0, "row": 0},
+                "facing": "west"
+              }
+            ]
+        """.trimIndent(),
         sockets: String = "[]",
     ): Map<String, String> = linkedMapOf(
         "id" to "\"guard-hall\"",

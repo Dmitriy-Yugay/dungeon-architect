@@ -38,9 +38,9 @@ internal fun buildPlacementPreviews(
         BuildPlacementPreviews(room = null, trap = trapPreview)
     } else {
         BuildPlacementPreviews(
-            room = grid.placementPreview(
+            room = grid.snappedPlacementPreview(
                 blueprint = buildState.selectedRoomBlueprint,
-                origin = hoveredPosition,
+                hoveredPosition = hoveredPosition,
             ),
             trap = null,
         )

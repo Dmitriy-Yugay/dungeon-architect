@@ -11,6 +11,7 @@ import com.dungeonarchitect.content.RoomBlueprintParser
 import com.dungeonarchitect.content.TrapDefinitionParser
 import com.dungeonarchitect.content.UpcomingHeroWaveParser
 import com.dungeonarchitect.domain.BuildState
+import com.dungeonarchitect.domain.CardinalDirection
 import com.dungeonarchitect.domain.DungeonGrid
 import com.dungeonarchitect.domain.GridPosition
 import com.dungeonarchitect.domain.PlacedRoom
@@ -171,10 +172,12 @@ class PrototypeScreen(
             height = 9,
             entrance = GridPosition(column = 0, row = 4),
             objective = GridPosition(column = 15, row = 4),
+            entranceFacing = CardinalDirection.EAST,
+            objectiveFacing = CardinalDirection.WEST,
             placedRooms = listOf(
                 PlacedRoom(
                     blueprint = blueprint,
-                    origin = GridPosition(column = 6, row = 3),
+                    origin = GridPosition(column = 1, row = 3),
                 ),
             ),
         )
@@ -184,10 +187,10 @@ class PrototypeScreen(
             buildState: BuildState,
             hoveredPosition: GridPosition?,
         ): RoomPlacementPreview? =
-            hoveredPosition?.let { origin ->
-                grid.placementPreview(
-                    buildState.selectedRoomBlueprint,
-                    origin,
+            hoveredPosition?.let { position ->
+                grid.snappedPlacementPreview(
+                    blueprint = buildState.selectedRoomBlueprint,
+                    hoveredPosition = position,
                 )
             }
 

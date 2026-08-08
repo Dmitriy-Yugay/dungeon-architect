@@ -12,8 +12,14 @@
     {"column": 3, "row": 1}
   ],
   "doors": [
-    {"column": 0, "row": 1},
-    {"column": 3, "row": 1}
+    {
+      "position": {"column": 0, "row": 1},
+      "facing": "west"
+    },
+    {
+      "position": {"column": 3, "row": 1},
+      "facing": "east"
+    }
   ],
   "sockets": [
     {
