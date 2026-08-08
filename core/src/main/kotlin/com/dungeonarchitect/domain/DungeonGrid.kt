@@ -93,6 +93,40 @@ class DungeonGrid(
         return true
     }
 
+    fun trapSocketHoverResult(
+        hoveredPosition: GridPosition,
+        definition: TrapDefinition,
+    ): TrapSocketHoverResult {
+        val (room, localSocketPosition) = mutablePlacedRooms
+            .firstNotNullOfOrNull { placedRoom ->
+                placedRoom.blueprint.sockets.keys
+                    .firstOrNull { localPosition ->
+                        placedRoom.toGridPosition(localPosition) == hoveredPosition
+                    }
+                    ?.let { localPosition -> placedRoom to localPosition }
+            }
+            ?: return TrapSocketHoverResult.NonSocket
+
+        val socketType = requireNotNull(
+            room.blueprint.sockets[localSocketPosition],
+        )
+        if (!definition.isCompatibleWith(socketType)) {
+            return TrapSocketHoverResult.Incompatible(socketType)
+        }
+
+        val placedTrap = mutablePlacedTraps.firstOrNull { trap ->
+            trap.gridPosition == hoveredPosition
+        }
+        if (placedTrap != null) {
+            return TrapSocketHoverResult.Occupied(placedTrap)
+        }
+
+        return TrapSocketHoverResult.Valid(
+            room = room,
+            localSocketPosition = localSocketPosition,
+        )
+    }
+
     fun placementPreview(
         blueprint: RoomBlueprint,
         origin: GridPosition,
