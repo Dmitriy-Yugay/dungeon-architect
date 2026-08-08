@@ -134,24 +134,36 @@ class PrototypeScreenTest {
     }
 
     @Test
-    fun `commit placement uses the initially selected prototype room`() {
-        val buildState = authoredBuildState()
-        val grid = prototypeGrid(buildState)
-        val clickedPosition = GridPosition(column = 3, row = 3)
+    fun `room placement is allowed only during the building phase`() {
+        listOf(
+            PrototypeRunPhase.BUILDING to true,
+            PrototypeRunPhase.RUNNING to false,
+            PrototypeRunPhase.VICTORY to false,
+            PrototypeRunPhase.DEFEAT to false,
+        ).forEach { (phase, expectedPlacement) ->
+            val buildState = authoredBuildState()
+            val grid = prototypeGrid(buildState)
+            val roomsBeforeClick = grid.placedRooms
 
-        assertTrue(
-            PrototypeScreen.commitPlacement(
+            val wasPlaced = PrototypeScreen.commitPlacement(
                 grid = grid,
                 buildState = buildState,
-                clickedPosition = clickedPosition,
-            ),
-        )
-        assertEquals(2, grid.placedRooms.size)
-        assertEquals(clickedPosition, grid.placedRooms.last().origin)
-        assertSame(
-            buildState.selectedRoomBlueprint,
-            grid.placedRooms.last().blueprint,
-        )
+                clickedPosition = GridPosition(column = 3, row = 3),
+                runPhase = phase,
+            )
+
+            assertEquals(expectedPlacement, wasPlaced, phase.name)
+            if (expectedPlacement) {
+                assertEquals(2, grid.placedRooms.size, phase.name)
+                assertSame(
+                    buildState.selectedRoomBlueprint,
+                    grid.placedRooms.last().blueprint,
+                    phase.name,
+                )
+            } else {
+                assertEquals(roomsBeforeClick, grid.placedRooms, phase.name)
+            }
+        }
     }
 
     @Test
@@ -174,6 +186,7 @@ class PrototypeScreenTest {
                 grid = grid,
                 buildState = buildState,
                 clickedPosition = clickedPosition,
+                runPhase = PrototypeRunPhase.BUILDING,
             ),
         )
         assertSame(
@@ -194,6 +207,7 @@ class PrototypeScreenTest {
                 grid = grid,
                 buildState = buildState,
                 clickedPosition = GridPosition(column = 6, row = 3),
+                runPhase = PrototypeRunPhase.BUILDING,
             ),
         )
         assertEquals(roomsBeforeClick, grid.placedRooms)
@@ -373,6 +387,43 @@ class PrototypeScreenTest {
     }
 
     @Test
+    fun `placement click cannot add a room after the wave starts`() {
+        val grid = readyGrid()
+        val blueprint = grid.placedRooms.single().blueprint
+        val buildState = BuildState(
+            availableRoomBlueprints = listOf(blueprint),
+            selectedRoomBlueprint = blueprint,
+        )
+        val clickedPosition = GridPosition(column = 1, row = 1)
+        assertTrue(
+            PrototypeScreen.placementPreview(
+                grid = grid,
+                buildState = buildState,
+                hoveredPosition = clickedPosition,
+            )!!.isValid,
+        )
+        val controller = runController(grid)
+        assertTrue(controller.start())
+        assertEquals(PrototypeRunPhase.RUNNING, controller.phase)
+        val roomsBeforeClick = grid.placedRooms
+
+        val result = PrototypeScreen.handleClick(
+            grid = grid,
+            buildState = buildState,
+            clickedPosition = clickedPosition,
+            worldX = 0f,
+            worldY = 0f,
+            startButtonBounds = startButtonBounds(),
+            roomChoiceControls = roomChoiceControls(buildState),
+            runController = controller,
+        )
+
+        assertEquals(PrototypeClickResult.IGNORED, result)
+        assertEquals(roomsBeforeClick, grid.placedRooms)
+        assertEquals(PrototypeRunPhase.RUNNING, controller.phase)
+    }
+
+    @Test
     fun `start control click wins over room placement and starts a ready wave`() {
         val buildState = authoredBuildState()
         val grid = readyGrid()
@@ -460,7 +511,7 @@ class PrototypeScreenTest {
 
     private fun readyGrid() = DungeonGrid(
         width = 3,
-        height = 1,
+        height = 2,
         entrance = GridPosition(column = 0, row = 0),
         objective = GridPosition(column = 2, row = 0),
         placedRooms = listOf(

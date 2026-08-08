@@ -15,6 +15,7 @@ import com.dungeonarchitect.domain.DungeonGrid
 import com.dungeonarchitect.domain.GridPosition
 import com.dungeonarchitect.domain.PlacedRoom
 import com.dungeonarchitect.domain.PrototypeRunDefinition
+import com.dungeonarchitect.domain.PrototypeRunPhase
 import com.dungeonarchitect.domain.RoomBlueprint
 import com.dungeonarchitect.domain.RoomPlacementPreview
 import com.dungeonarchitect.domain.TrapDefinition
@@ -200,10 +201,16 @@ class PrototypeScreen(
             grid: DungeonGrid,
             buildState: BuildState,
             clickedPosition: GridPosition?,
-        ): Boolean =
-            placementPreview(grid, buildState, clickedPosition)
+            runPhase: PrototypeRunPhase,
+        ): Boolean {
+            if (runPhase != PrototypeRunPhase.BUILDING) {
+                return false
+            }
+
+            return placementPreview(grid, buildState, clickedPosition)
                 ?.let { preview -> grid.place(preview.room) }
                 ?: false
+        }
 
         internal fun loadUpcomingWave(
             readInternalText: (String) -> String,
@@ -293,7 +300,13 @@ class PrototypeScreen(
                 }
             }
 
-            return if (commitPlacement(grid, buildState, clickedPosition)) {
+            val wasPlaced = commitPlacement(
+                grid = grid,
+                buildState = buildState,
+                clickedPosition = clickedPosition,
+                runPhase = runController.phase,
+            )
+            return if (wasPlaced) {
                 PrototypeClickResult.ROOM_PLACED
             } else {
                 PrototypeClickResult.IGNORED
