@@ -1,5 +1,6 @@
 package com.dungeonarchitect.application
 
+import com.dungeonarchitect.domain.BuildState
 import com.dungeonarchitect.domain.DungeonGrid
 import com.dungeonarchitect.domain.GridPosition
 import com.dungeonarchitect.domain.PlacedRoom
@@ -57,10 +58,12 @@ class PrototypeScreenTest {
 
     @Test
     fun `placement preview uses the authored blueprint at the hovered origin`() {
-        val grid = prototypeGrid()
+        val buildState = authoredBuildState()
+        val grid = prototypeGrid(buildState)
 
         val preview = PrototypeScreen.placementPreview(
             grid = grid,
+            buildState = buildState,
             hoveredPosition = GridPosition(column = 3, row = 3),
         )!!
 
@@ -70,11 +73,43 @@ class PrototypeScreenTest {
     }
 
     @Test
+    fun `changing build selection changes placement preview blueprint and geometry`() {
+        val buildState = authoredBuildState()
+        val grid = prototypeGrid(buildState)
+        val hoveredPosition = GridPosition(column = 1, row = 1)
+
+        assertTrue(buildState.selectRoomBlueprint("long-gallery"))
+        val preview = PrototypeScreen.placementPreview(
+            grid = grid,
+            buildState = buildState,
+            hoveredPosition = hoveredPosition,
+        )!!
+
+        assertSame(buildState.selectedRoomBlueprint, preview.room.blueprint)
+        assertEquals("long-gallery", preview.room.blueprint.id)
+        assertEquals(
+            setOf(
+                GridPosition(column = 1, row = 1),
+                GridPosition(column = 2, row = 1),
+                GridPosition(column = 3, row = 1),
+                GridPosition(column = 4, row = 1),
+                GridPosition(column = 1, row = 2),
+                GridPosition(column = 2, row = 2),
+                GridPosition(column = 3, row = 2),
+                GridPosition(column = 4, row = 2),
+            ),
+            preview.room.gridPositions,
+        )
+    }
+
+    @Test
     fun `placement preview reports invalid candidate without changing placed rooms`() {
-        val grid = prototypeGrid()
+        val buildState = authoredBuildState()
+        val grid = prototypeGrid(buildState)
 
         val preview = PrototypeScreen.placementPreview(
             grid = grid,
+            buildState = buildState,
             hoveredPosition = GridPosition(column = 6, row = 3),
         )!!
 
@@ -84,9 +119,12 @@ class PrototypeScreenTest {
 
     @Test
     fun `placement preview is absent when the pointer is outside the grid`() {
+        val buildState = authoredBuildState()
+
         assertNull(
             PrototypeScreen.placementPreview(
-                grid = prototypeGrid(),
+                grid = prototypeGrid(buildState),
+                buildState = buildState,
                 hoveredPosition = null,
             ),
         )
@@ -100,6 +138,24 @@ class PrototypeScreenTest {
         assertTrue(PrototypeScreen.commitPlacement(grid, clickedPosition))
         assertEquals(2, grid.placedRooms.size)
         assertEquals(clickedPosition, grid.placedRooms.last().origin)
+    }
+
+    @Test
+    fun `commit placement remains on the prototype blueprint after selection changes`() {
+        val buildState = authoredBuildState()
+        val grid = prototypeGrid(buildState)
+        val clickedPosition = GridPosition(column = 3, row = 3)
+        assertTrue(buildState.selectRoomBlueprint("long-gallery"))
+
+        val preview = PrototypeScreen.placementPreview(
+            grid = grid,
+            buildState = buildState,
+            hoveredPosition = clickedPosition,
+        )!!
+        assertEquals("long-gallery", preview.room.blueprint.id)
+
+        assertTrue(PrototypeScreen.commitPlacement(grid, clickedPosition))
+        assertEquals("prototype-room", grid.placedRooms.last().blueprint.id)
     }
 
     @Test
@@ -151,6 +207,29 @@ class PrototypeScreenTest {
         assertEquals("content/prototype-room.json", requestedPath)
         assertEquals("prototype-room", blueprint.id)
         assertEquals("Prototype Room", blueprint.displayName)
+    }
+
+    @Test
+    fun `application loads both authored room choices into build state`() {
+        val requestedPaths = mutableListOf<String>()
+
+        val buildState = PrototypeScreen.loadBuildState { path ->
+            requestedPaths += path
+            authoredContentJson(path)
+        }
+
+        assertEquals(
+            listOf(
+                "content/prototype-room.json",
+                "content/long-gallery.json",
+            ),
+            requestedPaths,
+        )
+        assertEquals(
+            listOf("prototype-room", "long-gallery"),
+            buildState.availableRoomBlueprints.map(RoomBlueprint::id),
+        )
+        assertEquals("prototype-room", buildState.selectedRoomBlueprint.id)
     }
 
     @Test
@@ -298,14 +377,24 @@ class PrototypeScreenTest {
     )
 
     private fun prototypeGrid() = PrototypeScreen.prototypeGrid(
-        PrototypeScreen.loadRoomBlueprint { authoredRoomJson() },
+        authoredBuildState().selectedRoomBlueprint,
     )
 
-    private fun authoredRoomJson(): String {
+    private fun prototypeGrid(buildState: BuildState) =
+        PrototypeScreen.prototypeGrid(buildState.selectedRoomBlueprint)
+
+    private fun authoredBuildState() = PrototypeScreen.loadBuildState(
+        ::authoredContentJson,
+    )
+
+    private fun authoredRoomJson(): String =
+        authoredContentJson("content/prototype-room.json")
+
+    private fun authoredContentJson(path: String): String {
         val config = generateSequence(Path.of("").toAbsolutePath()) { it.parent }
-            .map { it.resolve("assets/content/prototype-room.json") }
+            .map { it.resolve("assets/$path") }
             .firstOrNull { Files.isRegularFile(it) }
-            ?: error("Could not locate authored prototype room config.")
+            ?: error("Could not locate authored content '$path'.")
 
         return Files.readString(config)
     }

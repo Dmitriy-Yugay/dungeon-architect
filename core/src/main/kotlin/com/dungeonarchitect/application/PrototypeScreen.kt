@@ -10,6 +10,7 @@ import com.dungeonarchitect.content.PrototypeRunDefinitionParser
 import com.dungeonarchitect.content.RoomBlueprintParser
 import com.dungeonarchitect.content.TrapDefinitionParser
 import com.dungeonarchitect.content.UpcomingHeroWaveParser
+import com.dungeonarchitect.domain.BuildState
 import com.dungeonarchitect.domain.DungeonGrid
 import com.dungeonarchitect.domain.GridPosition
 import com.dungeonarchitect.domain.PlacedRoom
@@ -25,10 +26,11 @@ import com.dungeonarchitect.presentation.WavePanelRenderer
 import com.dungeonarchitect.presentation.WavePanelView
 
 class PrototypeScreen(
+    private val buildState: BuildState = loadBuildState { path ->
+        Gdx.files.internal(path).readString("UTF-8")
+    },
     private val grid: DungeonGrid = prototypeGrid(
-        loadRoomBlueprint { path ->
-            Gdx.files.internal(path).readString("UTF-8")
-        },
+        buildState.selectedRoomBlueprint,
     ),
     private val upcomingWave: UpcomingHeroWave = loadUpcomingWave { path ->
         Gdx.files.internal(path).readString("UTF-8")
@@ -73,7 +75,11 @@ class PrototypeScreen(
         gridRenderer.render(
             grid = grid,
             projection = camera.combined,
-            placementPreview = placementPreview(grid, hoveredPosition),
+            placementPreview = placementPreview(
+                grid = grid,
+                buildState = buildState,
+                hoveredPosition = hoveredPosition,
+            ),
             heroState = runController.heroState,
             hoveredPosition = hoveredPosition,
             selectedPosition = selectedPosition,
@@ -136,6 +142,11 @@ class PrototypeScreen(
         private const val TRAP_DEFINITION_PATH = "content/spike-trap.json"
         private const val RUN_DEFINITION_PATH = "content/prototype-run.json"
         private const val ROOM_BLUEPRINT_PATH = "content/prototype-room.json"
+        private const val LONG_GALLERY_PATH = "content/long-gallery.json"
+        private val ROOM_BLUEPRINT_PATHS = listOf(
+            ROOM_BLUEPRINT_PATH,
+            LONG_GALLERY_PATH,
+        )
 
         private const val BACKGROUND_RED = 0.04f
         private const val BACKGROUND_GREEN = 0.05f
@@ -157,22 +168,29 @@ class PrototypeScreen(
 
         internal fun placementPreview(
             grid: DungeonGrid,
+            buildState: BuildState,
             hoveredPosition: GridPosition?,
-        ): RoomPlacementPreview? {
-            val blueprint = grid.placedRooms.firstOrNull()?.blueprint
-                ?: return null
-            return hoveredPosition?.let { origin ->
-                grid.placementPreview(blueprint, origin)
+        ): RoomPlacementPreview? =
+            hoveredPosition?.let { origin ->
+                grid.placementPreview(
+                    buildState.selectedRoomBlueprint,
+                    origin,
+                )
             }
-        }
 
         internal fun commitPlacement(
             grid: DungeonGrid,
             clickedPosition: GridPosition?,
-        ): Boolean =
-            placementPreview(grid, clickedPosition)
+        ): Boolean {
+            val prototypeBlueprint = grid.placedRooms.firstOrNull()?.blueprint
+                ?: return false
+            return clickedPosition
+                ?.let { origin ->
+                    grid.placementPreview(prototypeBlueprint, origin)
+                }
                 ?.let { preview -> grid.place(preview.room) }
                 ?: false
+        }
 
         internal fun loadUpcomingWave(
             readInternalText: (String) -> String,
@@ -185,6 +203,18 @@ class PrototypeScreen(
             RoomBlueprintParser.parse(
                 readInternalText(ROOM_BLUEPRINT_PATH),
             )
+
+        internal fun loadBuildState(
+            readInternalText: (String) -> String,
+        ): BuildState {
+            val blueprints = ROOM_BLUEPRINT_PATHS.map { path ->
+                RoomBlueprintParser.parse(readInternalText(path))
+            }
+            return BuildState(
+                availableRoomBlueprints = blueprints,
+                selectedRoomBlueprint = blueprints.first(),
+            )
+        }
 
         internal fun loadTrapDefinition(
             readInternalText: (String) -> String,
