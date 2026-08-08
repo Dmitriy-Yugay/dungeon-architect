@@ -163,7 +163,7 @@ Treat every numbered item as a separate task.
     valid, occupied, incompatible, and non-socket cells.
 38. [x] Render valid and invalid trap-placement previews.
 39. [x] Place the selected trap through a click on a compatible socket.
-40. [ ] Remove automatic trap placement from prototype startup.
+40. [x] Remove automatic trap placement from prototype startup.
 41. [ ] Verify with an application test that the started wave snapshots the
     player-placed trap.
 

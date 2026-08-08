@@ -45,12 +45,6 @@ class PrototypeScreen(
         Gdx.files.internal(path).readString("UTF-8")
     },
 ) : ScreenAdapter() {
-    init {
-        check(placePrototypeTrap(grid, buildState.selectedTrapDefinition)) {
-            "The prototype trap could not be placed in its authored socket."
-        }
-    }
-
     private val camera = OrthographicCamera()
     private val gridRenderer = DungeonGridRenderer()
     private val roomChoicesRenderer = RoomChoicesRenderer()
@@ -284,21 +278,6 @@ class PrototypeScreen(
             PrototypeRunDefinitionParser.parse(
                 readInternalText(RUN_DEFINITION_PATH),
             )
-
-        internal fun placePrototypeTrap(
-            grid: DungeonGrid,
-            definition: TrapDefinition,
-        ): Boolean {
-            val room = grid.placedRooms.singleOrNull() ?: return false
-            val localSocketPosition =
-                room.blueprint.sockets.keys.singleOrNull() ?: return false
-
-            return grid.placeTrap(
-                room = room,
-                localSocketPosition = localSocketPosition,
-                definition = definition,
-            )
-        }
 
         internal fun handleClick(
             grid: DungeonGrid,

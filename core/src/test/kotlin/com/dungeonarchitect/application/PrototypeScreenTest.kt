@@ -312,23 +312,8 @@ class PrototypeScreenTest {
     }
 
     @Test
-    fun `prototype places the selected build-state trap in its translated room socket`() {
-        val buildState = authoredBuildState()
-        val grid = prototypeGrid(buildState)
-        val definition = buildState.selectedTrapDefinition
-
-        assertTrue(PrototypeScreen.placePrototypeTrap(grid, definition))
-
-        val placedTrap = grid.placedTraps.single()
-        assertSame(definition, placedTrap.definition)
-        assertEquals(grid.placedRooms.single(), placedTrap.room)
-        assertEquals(
-            GridPosition(column = 1, row = 1),
-            placedTrap.localSocketPosition,
-        )
-        assertEquals(GridPosition(column = 7, row = 4), placedTrap.gridPosition)
-        assertFalse(PrototypeScreen.placePrototypeTrap(grid, definition))
-        assertEquals(1, grid.placedTraps.size)
+    fun `prototype grid starts without placed traps`() {
+        assertEquals(emptyList(), prototypeGrid().placedTraps)
     }
 
     @Test
