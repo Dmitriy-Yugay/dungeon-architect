@@ -21,6 +21,8 @@ import com.dungeonarchitect.domain.TrapDefinition
 import com.dungeonarchitect.domain.UpcomingHeroWave
 import com.dungeonarchitect.presentation.ControlBounds
 import com.dungeonarchitect.presentation.DungeonGridRenderer
+import com.dungeonarchitect.presentation.RoomChoicesRenderer
+import com.dungeonarchitect.presentation.RoomChoicesView
 import com.dungeonarchitect.presentation.WavePanelLayout
 import com.dungeonarchitect.presentation.WavePanelRenderer
 import com.dungeonarchitect.presentation.WavePanelView
@@ -50,6 +52,7 @@ class PrototypeScreen(
 
     private val camera = OrthographicCamera()
     private val gridRenderer = DungeonGridRenderer()
+    private val roomChoicesRenderer = RoomChoicesRenderer()
     private val wavePanelRenderer = WavePanelRenderer()
     private val worldWidth = gridRenderer.worldWidth(grid)
     private val gridWorldHeight = gridRenderer.worldHeight(grid)
@@ -96,6 +99,12 @@ class PrototypeScreen(
             worldWidth = worldWidth,
             panelBottom = gridWorldHeight,
         )
+        roomChoicesRenderer.render(
+            view = RoomChoicesView.from(buildState),
+            projection = camera.combined,
+            worldWidth = worldWidth,
+            panelBottom = gridWorldHeight,
+        )
     }
 
     override fun resize(width: Int, height: Int) {
@@ -103,6 +112,7 @@ class PrototypeScreen(
     }
 
     override fun dispose() {
+        roomChoicesRenderer.dispose()
         wavePanelRenderer.dispose()
         gridRenderer.dispose()
     }
