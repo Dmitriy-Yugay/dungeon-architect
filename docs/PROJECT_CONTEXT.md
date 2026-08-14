@@ -177,7 +177,7 @@ decision without adding new gameplay content.
 42. [x] Compare two or three persistent-dungeon topology rules against explicit
     criteria, run the smallest useful playable or test-fixture experiments, and
     record the selected rule in `game-design.md`.
-43. [ ] Add Kotest and one focused property-based test suite for room placement
+43. [x] Add Kotest and one focused property-based test suite for room placement
     and route invariants; record why the dependency is useful.
 44. [ ] Define small, immutable simulation events for the significant actions
     already present: hero spawn, movement or arrival, trap activation, damage,

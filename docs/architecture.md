@@ -100,6 +100,16 @@ This creates the intended future flow:
 Central asset management, saves, additional platforms, and richer content are
 deferred until the room-choice loop is proven.
 
+## Adopted development dependencies
+
+- **Kotest property testing:** adopted as a test-only dependency for generated
+  gameplay invariants. Its generators and shrinking cover many valid room-chain
+  dimensions while preserving useful minimal counterexamples, giving placement
+  and routing rules broader coverage than a growing table of hand-written
+  examples. The JUnit 5 runner keeps these focused property specs compatible
+  with the project's existing Gradle test task and does not enter production
+  gameplay code.
+
 ## Technology candidates and adoption triggers
 
 These technologies are recorded so they can be reconsidered when the project
@@ -107,9 +117,6 @@ has the corresponding problem. Listing one is not a commitment to adopt it.
 
 ### Near-term candidates
 
-- **Kotest property testing:** useful after room choice for generated placement,
-  routing, parsing, and determinism invariants. Prefer it when it produces
-  broader, clearer coverage than a table of example cases.
 - **Structured simulation events:** implement as small Kotlin types first. Add a
   logging or telemetry framework only when local reports and tests no longer
   satisfy the diagnostic need.
