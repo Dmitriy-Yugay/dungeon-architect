@@ -9,6 +9,7 @@ import com.dungeonarchitect.domain.RoomSocketType
 import com.dungeonarchitect.domain.TrapDefinition
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 
 class DeterministicTrapSystemTest {
     @Test
@@ -56,10 +57,65 @@ class DeterministicTrapSystemTest {
         assertEquals(0, system.applyStep(target, 0, FIXED_STEP_SECONDS))
     }
 
+    @Test
+    fun `trap emits activation before actual applied damage`() {
+        val events = mutableListOf<SimulationEvent>()
+        val trapPosition = GridPosition(column = 2, row = 3)
+        val system = trapSystem(
+            trapPosition = trapPosition,
+            damage = 12,
+            eventSink = events::add,
+        )
+
+        assertEquals(
+            0,
+            system.applyStep(
+                heroPosition = HeroGridPosition(column = 2f, row = 3f),
+                heroHealth = 10,
+                stepSeconds = FIXED_STEP_SECONDS,
+                heroNumber = 3,
+            ),
+        )
+        assertEquals(
+            listOf(
+                TrapActivated(
+                    heroNumber = 3,
+                    trapId = "spike_trap",
+                    trapPosition = trapPosition,
+                ),
+                HeroDamaged(
+                    heroNumber = 3,
+                    sourceTrapId = "spike_trap",
+                    damage = 10,
+                    remainingHealth = 0,
+                ),
+            ),
+            events,
+        )
+    }
+
+    @Test
+    fun `trap rejects an invalid hero number even without activation`() {
+        val system = trapSystem(
+            trapPosition = GridPosition(column = 2, row = 3),
+            damage = 4,
+        )
+
+        assertFailsWith<IllegalArgumentException> {
+            system.applyStep(
+                heroPosition = HeroGridPosition(column = 0f, row = 0f),
+                heroHealth = 10,
+                stepSeconds = FIXED_STEP_SECONDS,
+                heroNumber = 0,
+            )
+        }
+    }
+
     private fun trapSystem(
         trapPosition: GridPosition = GridPosition(column = 0, row = 0),
         damage: Int,
         cooldownSeconds: Float = 0.25f,
+        eventSink: (SimulationEvent) -> Unit = {},
     ) = DeterministicTrapSystem(
         placedTraps = listOf(
             placedTrap(
@@ -68,6 +124,7 @@ class DeterministicTrapSystemTest {
                 cooldownSeconds = cooldownSeconds,
             ),
         ),
+        eventSink = eventSink,
     )
 
     private fun placedTrap(

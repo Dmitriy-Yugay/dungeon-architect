@@ -8,6 +8,10 @@ import com.dungeonarchitect.domain.StartedHeroWave
 import com.dungeonarchitect.domain.UpcomingHeroWave
 import com.dungeonarchitect.simulation.DeterministicTrapSystem
 import com.dungeonarchitect.simulation.FixedStepHeroSimulation
+import com.dungeonarchitect.simulation.ObjectiveDamaged
+import com.dungeonarchitect.simulation.SimulationEvent
+import com.dungeonarchitect.simulation.WaveOutcome
+import com.dungeonarchitect.simulation.WaveResolved
 import kotlin.math.max
 
 class PrototypeRunController(
@@ -18,6 +22,7 @@ class PrototypeRunController(
     private val waveStartController = WaveStartController(grid, upcomingWave)
     private var heroSimulation: FixedStepHeroSimulation? = null
     private var trapSystem: DeterministicTrapSystem? = null
+    private val mutableEvents = mutableListOf<SimulationEvent>()
 
     val objectiveMaxHealth: Int = runDefinition.objectiveHealth
 
@@ -36,6 +41,9 @@ class PrototypeRunController(
     val heroState: PrototypeHeroState?
         get() = heroSimulation?.heroState
 
+    val events: List<SimulationEvent>
+        get() = mutableEvents.toList()
+
     val isStartEnabled: Boolean
         get() = phase == PrototypeRunPhase.BUILDING &&
             waveStartController.isStartEnabled
@@ -53,7 +61,7 @@ class PrototypeRunController(
         }
 
         val wave = requireNotNull(startedWave)
-        trapSystem = DeterministicTrapSystem(wave.traps)
+        trapSystem = DeterministicTrapSystem(wave.traps, ::recordEvent)
         heroSimulation = newHeroSimulation(wave)
         phase = PrototypeRunPhase.RUNNING
         return true
@@ -100,25 +108,47 @@ class PrototypeRunController(
         trapSystem = null
         objectiveHealth = objectiveMaxHealth
         resolvedHeroCount = 0
+        mutableEvents.clear()
         phase = PrototypeRunPhase.BUILDING
         return true
     }
 
     private fun resolve(heroState: PrototypeHeroState) {
+        val heroNumber = resolvedHeroCount + 1
         resolvedHeroCount++
         if (heroState.hasArrived) {
+            val healthBeforeDamage = objectiveHealth
             objectiveHealth = max(
                 0,
                 objectiveHealth - upcomingWave.objectiveDamage,
             )
+            recordEvent(
+                ObjectiveDamaged(
+                    heroNumber = heroNumber,
+                    damage = healthBeforeDamage - objectiveHealth,
+                    remainingHealth = objectiveHealth,
+                ),
+            )
             if (objectiveHealth == 0) {
                 phase = PrototypeRunPhase.DEFEAT
+                recordEvent(
+                    WaveResolved(
+                        outcome = WaveOutcome.DEFEAT,
+                        objectiveHealth = objectiveHealth,
+                    ),
+                )
                 return
             }
         }
 
         if (resolvedHeroCount == upcomingWave.count) {
             phase = PrototypeRunPhase.VICTORY
+            recordEvent(
+                WaveResolved(
+                    outcome = WaveOutcome.VICTORY,
+                    objectiveHealth = objectiveHealth,
+                ),
+            )
         }
     }
 
@@ -127,7 +157,13 @@ class PrototypeRunController(
     ) = FixedStepHeroSimulation(
         startedWave = wave,
         trapSystem = requireNotNull(trapSystem),
+        heroNumber = resolvedHeroCount + 1,
+        eventSink = ::recordEvent,
     )
+
+    private fun recordEvent(event: SimulationEvent) {
+        mutableEvents += event
+    }
 
     private companion object {
         const val TIME_TOLERANCE = 1e-12

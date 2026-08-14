@@ -91,6 +91,10 @@ This creates the intended future flow:
   than every fixed-step movement update so evaluation remains meaningful and
   compact. Event types do not contain rendering, analytics, or mutable runtime
   objects.
+- Emit simulation events through a caller-supplied function. The prototype run
+  controller records their deterministic order and exposes defensive snapshots;
+  restart clears that transient history. This keeps gameplay systems independent
+  of rendering, analytics infrastructure, and a global event bus.
 
 ## Near-term constraints
 

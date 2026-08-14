@@ -182,7 +182,7 @@ decision without adding new gameplay content.
 44. [x] Define small, immutable simulation events for the significant actions
     already present: hero spawn, movement or arrival, trap activation, damage,
     death, objective damage, and wave resolution.
-45. [ ] Emit those events from non-visual gameplay code without making domain or
+45. [x] Emit those events from non-visual gameplay code without making domain or
     simulation classes depend on rendering or analytics infrastructure.
 46. [ ] Add a structured wave evaluation report containing outcome, objective
     health, hero kills and arrivals, elapsed simulation time, trap activations,
