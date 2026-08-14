@@ -184,7 +184,7 @@ decision without adding new gameplay content.
     death, objective damage, and wave resolution.
 45. [x] Emit those events from non-visual gameplay code without making domain or
     simulation classes depend on rendering or analytics infrastructure.
-46. [ ] Add a structured wave evaluation report containing outcome, objective
+46. [x] Add a structured wave evaluation report containing outcome, objective
     health, hero kills and arrivals, elapsed simulation time, trap activations,
     and trap damage.
 47. [ ] Add a headless scenario evaluator that accepts an authored layout and

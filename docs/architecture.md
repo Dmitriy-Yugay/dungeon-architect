@@ -25,6 +25,8 @@ Additional platform modules should be added only when needed.
   state, and run phases.
 - **Simulation:** four-directional pathfinding, fixed-step hero movement, trap
   targeting, cooldown, and damage.
+- **Evaluation:** immutable, non-visual summaries of resolved simulation
+  outcomes and metrics.
 - **Presentation:** placeholder grid, placement preview, hero marker, wave
   information, objective health, and run controls.
 - **Application:** the prototype screen plus controllers for starting,
