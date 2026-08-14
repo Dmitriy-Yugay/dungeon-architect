@@ -47,9 +47,9 @@ tests.
 As the prototype grows, application commands should become recordable and
 simulation systems should emit small immutable events. Events are observations
 of completed gameplay facts, not a replacement for domain state and not a
-global event-bus requirement. A headless evaluator should compose the same
-commands and systems used by the playable application and summarize their
-events into evaluation reports.
+global event-bus requirement. The headless evaluator composes the same
+controller and simulation systems used by the playable application and
+summarizes their events into evaluation reports.
 
 This creates the intended future flow:
 
@@ -97,6 +97,10 @@ This creates the intended future flow:
   controller records their deterministic order and exposes defensive snapshots;
   restart clears that transient history. This keeps gameplay systems independent
   of rendering, analytics infrastructure, and a global event bus.
+- Evaluate authored layouts headlessly by driving the prototype run controller
+  at its fixed simulation step. Derive report totals from the resulting event
+  sequence and count exact completed steps for elapsed simulation time rather
+  than duplicating combat or wave-resolution rules.
 
 ## Near-term constraints
 

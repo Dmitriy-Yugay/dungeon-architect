@@ -187,7 +187,7 @@ decision without adding new gameplay content.
 46. [x] Add a structured wave evaluation report containing outcome, objective
     health, hero kills and arrivals, elapsed simulation time, trap activations,
     and trap damage.
-47. [ ] Add a headless scenario evaluator that accepts an authored layout and
+47. [x] Add a headless scenario evaluator that accepts an authored layout and
     wave, executes the same gameplay rules as the application, and returns the
     wave evaluation report.
 48. [ ] Add determinism regression tests proving that identical scenario inputs
