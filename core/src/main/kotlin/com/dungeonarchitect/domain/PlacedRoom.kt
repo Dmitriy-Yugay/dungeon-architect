@@ -1,13 +1,13 @@
 package com.dungeonarchitect.domain
 
-import kotlin.math.abs
-
 data class PlacedRoom(
     val blueprint: RoomBlueprint,
     val origin: GridPosition,
 ) {
     val gridPositions: Set<GridPosition> =
         blueprint.footprint.mapTo(mutableSetOf(), ::toGridPosition)
+    val doors: Set<PlacedRoomDoor> =
+        blueprint.doors.mapTo(mutableSetOf()) { door -> PlacedRoomDoor(this, door) }
 
     fun fitsInside(grid: DungeonGrid): Boolean =
         gridPositions.all(grid::contains)
@@ -17,12 +17,8 @@ data class PlacedRoom(
 
     fun connectsTo(other: PlacedRoom): Boolean =
         !overlaps(other) &&
-            blueprint.doorPositions.any { door ->
-                other.blueprint.doorPositions.any { otherDoor ->
-                    toGridPosition(door).isCardinallyAdjacentTo(
-                        other.toGridPosition(otherDoor),
-                    )
-                }
+            doors.any { door ->
+                other.doors.any(door::connectsTo)
             }
 
     fun toGridPosition(localPosition: GridPosition): GridPosition {
@@ -35,8 +31,4 @@ data class PlacedRoom(
             row = origin.row + localPosition.row,
         )
     }
-
-    private fun GridPosition.isCardinallyAdjacentTo(other: GridPosition): Boolean =
-        abs(column.toLong() - other.column) +
-            abs(row.toLong() - other.row) == 1L
 }

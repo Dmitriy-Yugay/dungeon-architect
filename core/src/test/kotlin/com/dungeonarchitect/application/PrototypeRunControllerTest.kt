@@ -1,11 +1,13 @@
 package com.dungeonarchitect.application
 
 import com.dungeonarchitect.domain.DungeonGrid
+import com.dungeonarchitect.domain.CardinalDirection
 import com.dungeonarchitect.domain.GridPosition
 import com.dungeonarchitect.domain.PlacedRoom
 import com.dungeonarchitect.domain.PrototypeRunDefinition
 import com.dungeonarchitect.domain.PrototypeRunPhase
 import com.dungeonarchitect.domain.RoomBlueprint
+import com.dungeonarchitect.domain.RoomDoor
 import com.dungeonarchitect.domain.RoomSocketType
 import com.dungeonarchitect.domain.TrapDefinition
 import com.dungeonarchitect.domain.UpcomingHeroWave
@@ -200,8 +202,19 @@ class PrototypeRunControllerTest {
         placedRooms = listOf(
             PlacedRoom(
                 blueprint = RoomBlueprint(
+                    id = "test-room",
+                    displayName = "Test Room",
                     footprint = setOf(GridPosition(column = 0, row = 0)),
-                    doorPositions = setOf(GridPosition(column = 0, row = 0)),
+                    doors = listOf(
+                        RoomDoor(
+                            position = GridPosition(column = 0, row = 0),
+                            facing = CardinalDirection.WEST,
+                        ),
+                        RoomDoor(
+                            position = GridPosition(column = 0, row = 0),
+                            facing = CardinalDirection.EAST,
+                        ),
+                    ),
                     sockets = if (hasSocket) {
                         mapOf(
                             GridPosition(column = 0, row = 0) to

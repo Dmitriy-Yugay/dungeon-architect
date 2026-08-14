@@ -11,7 +11,20 @@ object FourDirectionalPathfinder {
         if (start !in walkablePositions || end !in walkablePositions) {
             return null
         }
+        return findPath(
+            start = start,
+            end = end,
+            neighbors = { position ->
+                position.cardinalNeighbors().filter { it in walkablePositions }
+            },
+        )
+    }
 
+    fun findPath(
+        start: GridPosition,
+        end: GridPosition,
+        neighbors: (GridPosition) -> Iterable<GridPosition>,
+    ): List<GridPosition>? {
         val pending = ArrayDeque<GridPosition>()
         val previousPosition = mutableMapOf<GridPosition, GridPosition?>()
         pending.addLast(start)
@@ -23,8 +36,8 @@ object FourDirectionalPathfinder {
                 return buildPath(end, previousPosition)
             }
 
-            current.cardinalNeighbors()
-                .filter { it in walkablePositions && it !in previousPosition }
+            neighbors(current)
+                .filter { it !in previousPosition }
                 .forEach { neighbor ->
                     previousPosition[neighbor] = current
                     pending.addLast(neighbor)

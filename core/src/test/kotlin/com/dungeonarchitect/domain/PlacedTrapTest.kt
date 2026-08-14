@@ -40,6 +40,8 @@ class PlacedTrapTest {
 
     private fun roomWithSocket(socketType: RoomSocketType) = PlacedRoom(
         blueprint = RoomBlueprint(
+            id = "socket-room",
+            displayName = "Socket Room",
             footprint = setOf(
                 GridPosition(column = 0, row = 0),
                 GridPosition(column = 1, row = 0),

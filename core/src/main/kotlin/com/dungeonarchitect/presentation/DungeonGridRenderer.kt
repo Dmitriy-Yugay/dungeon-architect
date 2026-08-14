@@ -4,10 +4,12 @@ import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 import com.badlogic.gdx.math.Matrix4
 import com.badlogic.gdx.utils.Disposable
+import com.dungeonarchitect.domain.CardinalDirection
 import com.dungeonarchitect.domain.DungeonGrid
 import com.dungeonarchitect.domain.GridPosition
 import com.dungeonarchitect.domain.PrototypeHeroState
 import com.dungeonarchitect.domain.RoomPlacementPreview
+import com.dungeonarchitect.domain.RoomSocketType
 import com.dungeonarchitect.domain.TileType
 import kotlin.math.floor
 
@@ -33,6 +35,7 @@ class DungeonGridRenderer : Disposable {
         grid: DungeonGrid,
         projection: Matrix4,
         placementPreview: RoomPlacementPreview?,
+        trapPlacementPreview: TrapPlacementPreview?,
         heroState: PrototypeHeroState?,
         hoveredPosition: GridPosition?,
         selectedPosition: GridPosition?,
@@ -40,6 +43,10 @@ class DungeonGridRenderer : Disposable {
         shapes.projectionMatrix = projection
         renderTiles(grid)
         placementPreview?.let(::renderPlacementPreview)
+        renderDoorMarkers(roomDoorGridMarkers(grid))
+        renderSocketMarkers(roomSocketGridMarkers(grid.placedRooms))
+        renderTrapMarkers(placedTrapGridMarkers(grid))
+        trapPlacementPreview?.let(::renderTrapPlacementPreview)
         heroWorldMarker(heroState, TILE_SIZE)?.let(::renderHero)
         renderHighlights(hoveredPosition, selectedPosition)
     }
@@ -89,6 +96,102 @@ class DungeonGridRenderer : Disposable {
         shapes.end()
     }
 
+    private fun renderDoorMarkers(markers: Set<RoomDoorGridMarker>) {
+        shapes.begin(ShapeRenderer.ShapeType.Filled)
+
+        markers.forEach { marker ->
+            shapes.color = if (marker.isOpen) {
+                OPEN_DOOR_MARKER_COLOR
+            } else {
+                CONNECTED_DOOR_MARKER_COLOR
+            }
+            val (offsetX, offsetY) = doorMarkerOffset(marker.facing)
+            val isHorizontalEdge = marker.facing == CardinalDirection.NORTH ||
+                marker.facing == CardinalDirection.SOUTH
+            shapes.rect(
+                marker.position.column * TILE_SIZE + offsetX,
+                marker.position.row * TILE_SIZE + offsetY,
+                if (isHorizontalEdge) DOOR_MARKER_LENGTH else DOOR_MARKER_THICKNESS,
+                if (isHorizontalEdge) DOOR_MARKER_THICKNESS else DOOR_MARKER_LENGTH,
+            )
+        }
+
+        shapes.end()
+    }
+
+    private fun doorMarkerOffset(
+        facing: CardinalDirection,
+    ): Pair<Float, Float> = when (facing) {
+        CardinalDirection.WEST -> 0f to DOOR_MARKER_CROSS_INSET
+        CardinalDirection.EAST ->
+            TILE_SIZE - DOOR_MARKER_THICKNESS to DOOR_MARKER_CROSS_INSET
+        CardinalDirection.SOUTH -> DOOR_MARKER_CROSS_INSET to 0f
+        CardinalDirection.NORTH ->
+            DOOR_MARKER_CROSS_INSET to TILE_SIZE - DOOR_MARKER_THICKNESS
+    }
+
+    private fun renderSocketMarkers(markers: Set<RoomSocketGridMarker>) {
+        shapes.begin(ShapeRenderer.ShapeType.Filled)
+
+        markers.forEach { marker ->
+            shapes.color = when (marker.type) {
+                RoomSocketType.FLOOR -> FLOOR_SOCKET_MARKER_COLOR
+                RoomSocketType.WALL -> WALL_SOCKET_MARKER_COLOR
+            }
+            shapes.circle(
+                (marker.position.column + HALF_TILE) * TILE_SIZE,
+                (marker.position.row + HALF_TILE) * TILE_SIZE,
+                SOCKET_MARKER_RADIUS,
+            )
+        }
+
+        shapes.end()
+    }
+
+    private fun renderTrapMarkers(markers: List<PlacedTrapGridMarker>) {
+        shapes.begin(ShapeRenderer.ShapeType.Filled)
+        shapes.color = TRAP_MARKER_COLOR
+
+        markers.forEach { marker ->
+            val centerX = (marker.position.column + HALF_TILE) * TILE_SIZE
+            val centerY = (marker.position.row + HALF_TILE) * TILE_SIZE
+
+            shapes.triangle(
+                centerX,
+                centerY + TRAP_MARKER_RADIUS,
+                centerX + TRAP_MARKER_RADIUS,
+                centerY,
+                centerX,
+                centerY - TRAP_MARKER_RADIUS,
+            )
+            shapes.triangle(
+                centerX,
+                centerY + TRAP_MARKER_RADIUS,
+                centerX,
+                centerY - TRAP_MARKER_RADIUS,
+                centerX - TRAP_MARKER_RADIUS,
+                centerY,
+            )
+        }
+
+        shapes.end()
+    }
+
+    private fun renderTrapPlacementPreview(preview: TrapPlacementPreview) {
+        shapes.begin(ShapeRenderer.ShapeType.Line)
+        shapes.color = if (preview.isValid) {
+            VALID_PREVIEW_COLOR
+        } else {
+            INVALID_PREVIEW_COLOR
+        }
+        shapes.circle(
+            (preview.position.column + HALF_TILE) * TILE_SIZE,
+            (preview.position.row + HALF_TILE) * TILE_SIZE,
+            TRAP_PREVIEW_RADIUS,
+        )
+        shapes.end()
+    }
+
     private fun renderHighlights(
         hoveredPosition: GridPosition?,
         selectedPosition: GridPosition?,
@@ -130,6 +233,14 @@ class DungeonGridRenderer : Disposable {
         const val TILE_GAP = 2f
         const val HOVER_INSET = 4f
         const val SELECTION_INSET = 8f
+        const val DOOR_MARKER_LENGTH = 20f
+        const val DOOR_MARKER_THICKNESS = 6f
+        const val DOOR_MARKER_CROSS_INSET =
+            (TILE_SIZE - DOOR_MARKER_LENGTH) / 2f
+        const val HALF_TILE = 0.5f
+        const val SOCKET_MARKER_RADIUS = 8f
+        const val TRAP_MARKER_RADIUS = 12f
+        const val TRAP_PREVIEW_RADIUS = 18f
 
         val EMPTY_TILE_COLOR = Color.valueOf("252B33")
         val ROOM_COLOR = Color.valueOf("5D6D7E")
@@ -137,6 +248,11 @@ class DungeonGridRenderer : Disposable {
         val OBJECTIVE_COLOR = Color.valueOf("B84B4B")
         val VALID_PREVIEW_COLOR = Color.valueOf("4EA86B")
         val INVALID_PREVIEW_COLOR = Color.valueOf("D85C5C")
+        val OPEN_DOOR_MARKER_COLOR = Color.valueOf("F0A44B")
+        val CONNECTED_DOOR_MARKER_COLOR = Color.valueOf("8A6A45")
+        val FLOOR_SOCKET_MARKER_COLOR = Color.valueOf("47C6B5")
+        val WALL_SOCKET_MARKER_COLOR = Color.valueOf("B779D0")
+        val TRAP_MARKER_COLOR = Color.valueOf("E84A5F")
         val HERO_COLOR = Color.valueOf("4BA3D3")
         val HOVER_COLOR = Color.valueOf("E0B84B")
         val SELECTION_COLOR = Color.valueOf("F2F2F2")

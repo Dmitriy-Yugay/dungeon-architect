@@ -135,36 +135,36 @@ Treat every numbered item as a separate task.
 
 ### Room choice — next
 
-21. [ ] Add a stable ID and display name to a room blueprint; test blank-value
+21. [x] Add a stable ID and display name to a room blueprint; test blank-value
     validation.
-22. [ ] Parse one room blueprint from supplied JSON text; test required fields,
+22. [x] Parse one room blueprint from supplied JSON text; test required fields,
     positions, doors, and sockets.
-23. [ ] Add authored JSON for the existing room and load it instead of
+23. [x] Add authored JSON for the existing room and load it instead of
     constructing it in `PrototypeScreen`.
-24. [ ] Add a second authored room with different geometry or socket placement,
+24. [x] Add a second authored room with different geometry or socket placement,
     but no special effect.
-25. [ ] Add build state containing the available room blueprints and the
+25. [x] Add build state containing the available room blueprints and the
     currently selected blueprint.
-26. [ ] Select an available blueprint in that build state; test valid and
+26. [x] Select an available blueprint in that build state; test valid and
     unknown selections.
-27. [ ] Make placement previews use the selected blueprint.
-28. [ ] Make committed room placements use the selected blueprint.
-29. [ ] Add a presentation-only view model for the available room choices and
+27. [x] Make placement previews use the selected blueprint.
+28. [x] Make committed room placements use the selected blueprint.
+29. [x] Add a presentation-only view model for the available room choices and
     selected state.
-30. [ ] Render two room-choice controls with placeholder shapes and text.
-31. [ ] Handle a room-choice click without also placing a room.
-32. [ ] Reject room placement after the wave starts; test every non-building
+30. [x] Render two room-choice controls with placeholder shapes and text.
+31. [x] Handle a room-choice click without also placing a room.
+32. [x] Reject room placement after the wave starts; test every non-building
     run phase.
-33. [ ] Render door markers on placed rooms.
-34. [ ] Render socket markers on placed rooms.
-35. [ ] Render the currently placed trap.
-36. [ ] Add the selected trap definition to the build state.
-37. [ ] Resolve whether a hovered grid cell is a compatible empty socket; test
+33. [x] Render door markers on placed rooms.
+34. [x] Render socket markers on placed rooms.
+35. [x] Render the currently placed trap.
+36. [x] Add the selected trap definition to the build state.
+37. [x] Resolve whether a hovered grid cell is a compatible empty socket; test
     valid, occupied, incompatible, and non-socket cells.
-38. [ ] Render valid and invalid trap-placement previews.
-39. [ ] Place the selected trap through a click on a compatible socket.
-40. [ ] Remove automatic trap placement from prototype startup.
-41. [ ] Verify with an application test that the started wave snapshots the
+38. [x] Render valid and invalid trap-placement previews.
+39. [x] Place the selected trap through a click on a compatible socket.
+40. [x] Remove automatic trap placement from prototype startup.
+41. [x] Verify with an application test that the started wave snapshots the
     player-placed trap.
 
 After item 41, stop feature expansion and complete the persistent-dungeon
@@ -174,7 +174,7 @@ decision without adding new gameplay content.
 
 ### Persistent topology and evaluation foundation — after room choice
 
-42. [ ] Compare two or three persistent-dungeon topology rules against explicit
+42. [x] Compare two or three persistent-dungeon topology rules against explicit
     criteria, run the smallest useful playable or test-fixture experiments, and
     record the selected rule in `game-design.md`.
 43. [ ] Add Kotest and one focused property-based test suite for room placement
