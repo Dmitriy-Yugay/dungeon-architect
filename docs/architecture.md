@@ -86,6 +86,11 @@ This creates the intended future flow:
   defeat.
 - Restart resets transient wave progress, objective health, hero state, and
   trap cooldowns while preserving the player's room and trap layout.
+- Represent significant simulation facts as small immutable event values using
+  stable scalar identifiers and state snapshots. Record hero arrival rather
+  than every fixed-step movement update so evaluation remains meaningful and
+  compact. Event types do not contain rendering, analytics, or mutable runtime
+  objects.
 
 ## Near-term constraints
 

@@ -179,7 +179,7 @@ decision without adding new gameplay content.
     record the selected rule in `game-design.md`.
 43. [x] Add Kotest and one focused property-based test suite for room placement
     and route invariants; record why the dependency is useful.
-44. [ ] Define small, immutable simulation events for the significant actions
+44. [x] Define small, immutable simulation events for the significant actions
     already present: hero spawn, movement or arrival, trap activation, damage,
     death, objective damage, and wave resolution.
 45. [ ] Emit those events from non-visual gameplay code without making domain or
