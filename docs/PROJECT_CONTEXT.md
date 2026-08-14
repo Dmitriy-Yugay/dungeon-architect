@@ -192,7 +192,7 @@ decision without adding new gameplay content.
     wave evaluation report.
 48. [x] Add determinism regression tests proving that identical scenario inputs
     produce identical reports and event sequences.
-49. [ ] Compare the two authored room choices with the evaluator and document
+49. [x] Compare the two authored room choices with the evaluator and document
     whether their geometry and socket placement create meaningfully different
     results; adjust authored values only through a separate reviewed task.
 50. [ ] Add a presentation-only post-wave explanation model derived from the

@@ -131,6 +131,31 @@ This stage may allow several rooms to be placed during the initial build phase
 so the current fixed map can form a complete route. It is a temporary prototype
 rule, not the final run economy.
 
+#### Authored choice evaluation
+
+The two room blueprints were compared headlessly using their checked-in JSON,
+the authored hero wave, spike trap, and objective health. Each scenario used
+one room with its west and east doors attached directly to the entrance and
+objective. The same trap occupied the room's sole authored floor socket. This
+isolates the blueprint's route geometry and socket position while keeping all
+combat values and placement opportunities equivalent.
+
+| Room | Outcome | Objective health | Kills | Arrivals | Trap activations | Trap damage | Elapsed simulation time |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Prototype Room | Victory | 10 | 4 | 0 | 8 | 40 | 244 steps (4.0667 s) |
+| Long Gallery | Victory | 10 | 4 | 0 | 8 | 40 | 364 steps (6.0667 s) |
+
+The Long Gallery takes 120 fixed steps, or 2 seconds, longer because its route
+and trap socket are farther from the entrance. That timing difference does not
+currently change the outcome, objective health, kills, arrivals, activations,
+or damage, so the authored choices do not yet produce meaningfully different
+strategic results under the prototype content. The longer observation time is
+not itself valuable while the game has no time score or overlapping heroes.
+
+Do not tune the assets as part of this evaluation. A separate reviewed content
+task should make geometry or socket placement affect a consequential metric,
+then repeat this comparison and validate the result through human playtesting.
+
 ### Persistent drafting — topology selected
 
 Each new room extends the open-door frontier described above. Multiple waves,
