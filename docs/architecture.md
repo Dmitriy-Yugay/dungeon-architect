@@ -28,7 +28,8 @@ Additional platform modules should be added only when needed.
 - **Evaluation:** immutable, non-visual summaries of resolved simulation
   outcomes and metrics.
 - **Presentation:** placeholder grid, placement preview, hero marker, wave
-  information, objective health, and run controls.
+  information, objective health, run controls, and post-wave explanation values
+  derived from evaluation reports.
 - **Application:** the prototype screen plus controllers for starting,
   advancing, resolving, and restarting the wave.
 - **Content:** JSON definitions and parsers for the prototype run, hero wave,

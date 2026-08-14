@@ -195,7 +195,7 @@ decision without adding new gameplay content.
 49. [x] Compare the two authored room choices with the evaluator and document
     whether their geometry and socket placement create meaningfully different
     results; adjust authored values only through a separate reviewed task.
-50. [ ] Add a presentation-only post-wave explanation model derived from the
+50. [x] Add a presentation-only post-wave explanation model derived from the
     report, showing why the defense won or lost.
 
 ### Replayable runs and balance tooling — after multiple waves are designed
