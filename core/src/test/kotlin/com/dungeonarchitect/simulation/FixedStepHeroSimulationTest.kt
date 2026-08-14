@@ -89,6 +89,7 @@ class FixedStepHeroSimulationTest {
 
     @Test
     fun `hero clamps to final point and never moves after arrival`() {
+        val events = mutableListOf<SimulationEvent>()
         val simulation = simulation(
             route = listOf(
                 position(0, 0),
@@ -96,6 +97,8 @@ class FixedStepHeroSimulationTest {
                 position(1, 1),
             ),
             speed = 3f,
+            heroNumber = 2,
+            eventSink = events::add,
         )
 
         simulation.advance(elapsedSeconds = 10f)
@@ -106,6 +109,21 @@ class FixedStepHeroSimulationTest {
         val arrivedState = simulation.heroState
         simulation.advance(elapsedSeconds = 100f)
         assertEquals(arrivedState, simulation.heroState)
+        assertEquals(
+            listOf(
+                HeroSpawned(
+                    heroNumber = 2,
+                    heroType = "militia_recruit",
+                    position = HeroGridPosition(column = 0f, row = 0f),
+                    health = 10,
+                ),
+                HeroArrived(
+                    heroNumber = 2,
+                    position = HeroGridPosition(column = 1f, row = 1f),
+                ),
+            ),
+            events,
+        )
     }
 
     @Test
@@ -149,6 +167,8 @@ class FixedStepHeroSimulationTest {
         route: List<GridPosition>,
         speed: Float,
         traps: List<PlacedTrap> = emptyList(),
+        heroNumber: Int = 1,
+        eventSink: (SimulationEvent) -> Unit = {},
     ) = FixedStepHeroSimulation(
         StartedHeroWave(
             wave = UpcomingHeroWave(
@@ -163,6 +183,8 @@ class FixedStepHeroSimulationTest {
             route = route,
             traps = traps,
         ),
+        heroNumber = heroNumber,
+        eventSink = eventSink,
     )
 
     private fun placedTrap(

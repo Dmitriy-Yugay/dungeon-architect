@@ -12,6 +12,14 @@ import com.dungeonarchitect.domain.RoomSocketType
 import com.dungeonarchitect.domain.TrapDefinition
 import com.dungeonarchitect.domain.UpcomingHeroWave
 import com.dungeonarchitect.simulation.FixedStepHeroSimulation
+import com.dungeonarchitect.simulation.HeroArrived
+import com.dungeonarchitect.simulation.HeroDamaged
+import com.dungeonarchitect.simulation.HeroDied
+import com.dungeonarchitect.simulation.HeroSpawned
+import com.dungeonarchitect.simulation.ObjectiveDamaged
+import com.dungeonarchitect.simulation.TrapActivated
+import com.dungeonarchitect.simulation.WaveOutcome
+import com.dungeonarchitect.simulation.WaveResolved
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -109,6 +117,69 @@ class PrototypeRunControllerTest {
         assertEquals(singleChunk.objectiveHealth, fourChunks.objectiveHealth)
         assertEquals(singleChunk.resolvedHeroCount, fourChunks.resolvedHeroCount)
         assertEquals(singleChunk.heroState, fourChunks.heroState)
+        assertEquals(singleChunk.events, fourChunks.events)
+    }
+
+    @Test
+    fun `lethal traps emit ordered events with one-based hero numbers`() {
+        val controller = controller(
+            grid = gridWithLethalTrap(),
+            heroCount = 2,
+        )
+        assertTrue(controller.start())
+
+        controller.advance(elapsedSeconds = fixedSteps(4))
+
+        assertEquals(
+            listOf(
+                HeroSpawned(
+                    heroNumber = 1,
+                    heroType = "militia_recruit",
+                    position = heroPosition(0, 0),
+                    health = 5,
+                ),
+                TrapActivated(1, "spike_trap", GridPosition(1, 0)),
+                HeroDamaged(1, "spike_trap", damage = 5, remainingHealth = 0),
+                HeroDied(heroNumber = 1, position = heroPosition(1, 0)),
+                HeroSpawned(
+                    heroNumber = 2,
+                    heroType = "militia_recruit",
+                    position = heroPosition(0, 0),
+                    health = 5,
+                ),
+                TrapActivated(2, "spike_trap", GridPosition(1, 0)),
+                HeroDamaged(2, "spike_trap", damage = 5, remainingHealth = 0),
+                HeroDied(heroNumber = 2, position = heroPosition(1, 0)),
+                WaveResolved(WaveOutcome.VICTORY, objectiveHealth = 10),
+            ),
+            controller.events,
+        )
+    }
+
+    @Test
+    fun `arrivals emit actual objective damage before defeat`() {
+        val controller = controller(
+            grid = gridWithRoute(),
+            heroCount = 2,
+            objectiveHealth = 15,
+            objectiveDamage = 10,
+        )
+        assertTrue(controller.start())
+
+        controller.advance(elapsedSeconds = fixedSteps(4))
+
+        assertEquals(
+            listOf(
+                HeroSpawned(1, "militia_recruit", heroPosition(0, 0), 5),
+                HeroArrived(heroNumber = 1, position = heroPosition(2, 0)),
+                ObjectiveDamaged(1, damage = 10, remainingHealth = 5),
+                HeroSpawned(2, "militia_recruit", heroPosition(0, 0), 5),
+                HeroArrived(heroNumber = 2, position = heroPosition(2, 0)),
+                ObjectiveDamaged(2, damage = 5, remainingHealth = 0),
+                WaveResolved(WaveOutcome.DEFEAT, objectiveHealth = 0),
+            ),
+            controller.events,
+        )
     }
 
     @Test
@@ -123,6 +194,7 @@ class PrototypeRunControllerTest {
         assertTrue(controller.start())
         controller.advance(elapsedSeconds = fixedSteps(2))
         assertEquals(PrototypeRunPhase.VICTORY, controller.phase)
+        val completedRunEvents = controller.events
 
         assertTrue(controller.restart())
 
@@ -133,8 +205,17 @@ class PrototypeRunControllerTest {
         assertTrue(controller.isStartEnabled)
         assertEquals(rooms, grid.placedRooms)
         assertEquals(traps, grid.placedTraps)
+        assertEquals(emptyList(), controller.events)
+        assertTrue(completedRunEvents.isNotEmpty())
 
         assertTrue(controller.start())
+        assertEquals(
+            listOf(
+                HeroSpawned(1, "militia_recruit", heroPosition(0, 0), 5),
+            ),
+            controller.events,
+        )
+        assertTrue(completedRunEvents.size > controller.events.size)
         controller.advance(elapsedSeconds = fixedSteps(2))
         assertEquals(PrototypeRunPhase.VICTORY, controller.phase)
     }
@@ -231,4 +312,10 @@ class PrototypeRunControllerTest {
 
     private fun fixedSteps(count: Int): Float =
         (FixedStepHeroSimulation.FIXED_STEP_SECONDS * count).toFloat()
+
+    private fun heroPosition(column: Int, row: Int) =
+        com.dungeonarchitect.domain.HeroGridPosition(
+            column = column.toFloat(),
+            row = row.toFloat(),
+        )
 }

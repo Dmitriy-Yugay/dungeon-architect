@@ -6,6 +6,7 @@ import kotlin.math.max
 
 class DeterministicTrapSystem(
     placedTraps: List<PlacedTrap>,
+    private val eventSink: (SimulationEvent) -> Unit = {},
 ) {
     private val traps = placedTraps.map(::RuntimeTrap)
 
@@ -13,12 +14,16 @@ class DeterministicTrapSystem(
         heroPosition: HeroGridPosition,
         heroHealth: Int,
         stepSeconds: Double,
+        heroNumber: Int = 1,
     ): Int {
         require(heroHealth >= 0) {
             "Hero health must not be negative."
         }
         require(stepSeconds.isFinite() && stepSeconds > 0.0) {
             "Trap simulation step must be finite and positive."
+        }
+        require(heroNumber > 0) {
+            "Trap simulation hero number must be positive."
         }
         if (heroHealth == 0) {
             return 0
@@ -37,12 +42,28 @@ class DeterministicTrapSystem(
                 trap.cooldownRemaining == 0.0 &&
                 trap.targets(heroPosition)
             ) {
+                val healthBeforeDamage = remainingHealth
                 remainingHealth = max(
                     0,
                     remainingHealth - trap.placed.definition.damage,
                 )
                 trap.cooldownRemaining =
                     trap.placed.definition.cooldownSeconds.toDouble()
+                eventSink(
+                    TrapActivated(
+                        heroNumber = heroNumber,
+                        trapId = trap.placed.definition.id,
+                        trapPosition = trap.placed.gridPosition,
+                    ),
+                )
+                eventSink(
+                    HeroDamaged(
+                        heroNumber = heroNumber,
+                        sourceTrapId = trap.placed.definition.id,
+                        damage = healthBeforeDamage - remainingHealth,
+                        remainingHealth = remainingHealth,
+                    ),
+                )
             }
         }
 

@@ -11,10 +11,18 @@ import kotlin.math.min
 class FixedStepHeroSimulation internal constructor(
     startedWave: StartedHeroWave,
     private val trapSystem: DeterministicTrapSystem,
+    private val heroNumber: Int = 1,
+    private val eventSink: (SimulationEvent) -> Unit = {},
 ) {
-    constructor(startedWave: StartedHeroWave) : this(
+    constructor(
+        startedWave: StartedHeroWave,
+        heroNumber: Int = 1,
+        eventSink: (SimulationEvent) -> Unit = {},
+    ) : this(
         startedWave = startedWave,
-        trapSystem = DeterministicTrapSystem(startedWave.traps),
+        trapSystem = DeterministicTrapSystem(startedWave.traps, eventSink),
+        heroNumber = heroNumber,
+        eventSink = eventSink,
     )
 
     private val routeSegments = startedWave.route
@@ -36,6 +44,15 @@ class FixedStepHeroSimulation internal constructor(
         require(routeSegments.all(RouteSegment::isCardinal)) {
             "A hero route must contain only non-zero cardinal segments."
         }
+        eventSink(
+            HeroSpawned(
+                heroNumber = heroNumber,
+                heroType = startedWave.wave.heroType,
+                position = heroState.position,
+                health = heroState.health,
+            ),
+        )
+        recordTerminalEvent()
     }
 
     fun advance(elapsedSeconds: Float) {
@@ -73,6 +90,7 @@ class FixedStepHeroSimulation internal constructor(
                 heroPosition = positionAt(simulatedDistance),
                 heroHealth = health,
                 stepSeconds = FIXED_STEP_SECONDS,
+                heroNumber = heroNumber,
             )
             if (health > 0) {
                 simulatedDistance = min(
@@ -88,6 +106,7 @@ class FixedStepHeroSimulation internal constructor(
                 completedSteps * FIXED_STEP_SECONDS + accumulatedSeconds
             accumulatedSeconds = 0.0
             heroState = stateAt(simulatedDistance, health)
+            recordTerminalEvent()
             return unusedSeconds
         }
 
@@ -103,9 +122,27 @@ class FixedStepHeroSimulation internal constructor(
                 interpolatedDistance,
             )
             accumulatedSeconds = 0.0
+            recordTerminalEvent()
         }
 
         return 0.0
+    }
+
+    private fun recordTerminalEvent() {
+        when {
+            heroState.isDead -> eventSink(
+                HeroDied(
+                    heroNumber = heroNumber,
+                    position = heroState.position,
+                ),
+            )
+            heroState.hasArrived -> eventSink(
+                HeroArrived(
+                    heroNumber = heroNumber,
+                    position = heroState.position,
+                ),
+            )
+        }
     }
 
     private fun stateAt(

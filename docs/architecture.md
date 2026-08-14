@@ -25,8 +25,11 @@ Additional platform modules should be added only when needed.
   state, and run phases.
 - **Simulation:** four-directional pathfinding, fixed-step hero movement, trap
   targeting, cooldown, and damage.
+- **Evaluation:** immutable, non-visual summaries of resolved simulation
+  outcomes and metrics.
 - **Presentation:** placeholder grid, placement preview, hero marker, wave
-  information, objective health, and run controls.
+  information, objective health, run controls, and post-wave explanation values
+  derived from evaluation reports.
 - **Application:** the prototype screen plus controllers for starting,
   advancing, resolving, and restarting the wave.
 - **Content:** JSON definitions and parsers for the prototype run, hero wave,
@@ -45,9 +48,9 @@ tests.
 As the prototype grows, application commands should become recordable and
 simulation systems should emit small immutable events. Events are observations
 of completed gameplay facts, not a replacement for domain state and not a
-global event-bus requirement. A headless evaluator should compose the same
-commands and systems used by the playable application and summarize their
-events into evaluation reports.
+global event-bus requirement. The headless evaluator composes the same
+controller and simulation systems used by the playable application and
+summarizes their events into evaluation reports.
 
 This creates the intended future flow:
 
@@ -86,6 +89,19 @@ This creates the intended future flow:
   defeat.
 - Restart resets transient wave progress, objective health, hero state, and
   trap cooldowns while preserving the player's room and trap layout.
+- Represent significant simulation facts as small immutable event values using
+  stable scalar identifiers and state snapshots. Record hero arrival rather
+  than every fixed-step movement update so evaluation remains meaningful and
+  compact. Event types do not contain rendering, analytics, or mutable runtime
+  objects.
+- Emit simulation events through a caller-supplied function. The prototype run
+  controller records their deterministic order and exposes defensive snapshots;
+  restart clears that transient history. This keeps gameplay systems independent
+  of rendering, analytics infrastructure, and a global event bus.
+- Evaluate authored layouts headlessly by driving the prototype run controller
+  at its fixed simulation step. Derive report totals from the resulting event
+  sequence and count exact completed steps for elapsed simulation time rather
+  than duplicating combat or wave-resolution rules.
 
 ## Near-term constraints
 
@@ -100,6 +116,16 @@ This creates the intended future flow:
 Central asset management, saves, additional platforms, and richer content are
 deferred until the room-choice loop is proven.
 
+## Adopted development dependencies
+
+- **Kotest property testing:** adopted as a test-only dependency for generated
+  gameplay invariants. Its generators and shrinking cover many valid room-chain
+  dimensions while preserving useful minimal counterexamples, giving placement
+  and routing rules broader coverage than a growing table of hand-written
+  examples. The JUnit 5 runner keeps these focused property specs compatible
+  with the project's existing Gradle test task and does not enter production
+  gameplay code.
+
 ## Technology candidates and adoption triggers
 
 These technologies are recorded so they can be reconsidered when the project
@@ -107,9 +133,6 @@ has the corresponding problem. Listing one is not a commitment to adopt it.
 
 ### Near-term candidates
 
-- **Kotest property testing:** useful after room choice for generated placement,
-  routing, parsing, and determinism invariants. Prefer it when it produces
-  broader, clearer coverage than a table of example cases.
 - **Structured simulation events:** implement as small Kotlin types first. Add a
   logging or telemetry framework only when local reports and tests no longer
   satisfy the diagnostic need.

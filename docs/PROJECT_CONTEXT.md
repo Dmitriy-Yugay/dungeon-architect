@@ -177,25 +177,25 @@ decision without adding new gameplay content.
 42. [x] Compare two or three persistent-dungeon topology rules against explicit
     criteria, run the smallest useful playable or test-fixture experiments, and
     record the selected rule in `game-design.md`.
-43. [ ] Add Kotest and one focused property-based test suite for room placement
+43. [x] Add Kotest and one focused property-based test suite for room placement
     and route invariants; record why the dependency is useful.
-44. [ ] Define small, immutable simulation events for the significant actions
+44. [x] Define small, immutable simulation events for the significant actions
     already present: hero spawn, movement or arrival, trap activation, damage,
     death, objective damage, and wave resolution.
-45. [ ] Emit those events from non-visual gameplay code without making domain or
+45. [x] Emit those events from non-visual gameplay code without making domain or
     simulation classes depend on rendering or analytics infrastructure.
-46. [ ] Add a structured wave evaluation report containing outcome, objective
+46. [x] Add a structured wave evaluation report containing outcome, objective
     health, hero kills and arrivals, elapsed simulation time, trap activations,
     and trap damage.
-47. [ ] Add a headless scenario evaluator that accepts an authored layout and
+47. [x] Add a headless scenario evaluator that accepts an authored layout and
     wave, executes the same gameplay rules as the application, and returns the
     wave evaluation report.
-48. [ ] Add determinism regression tests proving that identical scenario inputs
+48. [x] Add determinism regression tests proving that identical scenario inputs
     produce identical reports and event sequences.
-49. [ ] Compare the two authored room choices with the evaluator and document
+49. [x] Compare the two authored room choices with the evaluator and document
     whether their geometry and socket placement create meaningfully different
     results; adjust authored values only through a separate reviewed task.
-50. [ ] Add a presentation-only post-wave explanation model derived from the
+50. [x] Add a presentation-only post-wave explanation model derived from the
     report, showing why the defense won or lost.
 
 ### Replayable runs and balance tooling — after multiple waves are designed
