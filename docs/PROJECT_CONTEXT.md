@@ -190,7 +190,7 @@ decision without adding new gameplay content.
 47. [x] Add a headless scenario evaluator that accepts an authored layout and
     wave, executes the same gameplay rules as the application, and returns the
     wave evaluation report.
-48. [ ] Add determinism regression tests proving that identical scenario inputs
+48. [x] Add determinism regression tests proving that identical scenario inputs
     produce identical reports and event sequences.
 49. [ ] Compare the two authored room choices with the evaluator and document
     whether their geometry and socket placement create meaningfully different
