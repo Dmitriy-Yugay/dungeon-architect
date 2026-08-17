@@ -20,7 +20,7 @@ increasingly dangerous parties of heroes.
 
 The first playable version should include:
 
-- a grid-based dungeon with an entrance and a protected objective;
+- a grid-based dungeon with an entrance and a protected dungeon heart;
 - placeable paths, rooms, and a small set of defenses;
 - heroes that navigate the dungeon and attack the objective;
 - waves, resources, win/loss states, and a basic build/combat cycle;
@@ -34,10 +34,12 @@ additional platforms are deferred until the core loop is proven.
 ## Current state
 
 The repository contains a runnable Kotlin and libGDX desktop project split into
-`core` and `lwjgl3` modules. The current prototype supports room placement,
-routing, an authored hero wave, a socketed trap, deterministic combat, objective
-damage, visible outcomes, and restart. Visuals remain placeholders, and audio
-has not been implemented.
+`core` and `lwjgl3` modules. The current prototype supports cancellable and
+rotatable room placement, straight and turned authored rooms, open-frontier
+topology, a player-selected dungeon heart, route-aware trap placement, an
+authored hero wave, deterministic combat and evaluation, visible outcomes, and
+layout-preserving restart. Visuals remain placeholders, and audio has not been
+implemented.
 
 ## Technology
 
@@ -68,7 +70,7 @@ easier to explain, enables rapid balance experiments, and leaves room for
 development-time AI tools without making core gameplay dependent on an online
 model.
 
-Near-term technical priorities are:
+Recent technical foundations now implemented are:
 
 - validated, data-driven room and defense content;
 - property-based tests for placement, routing, and simulation invariants;
@@ -79,25 +81,27 @@ Near-term technical priorities are:
   direction;
 - a player-selected dungeon heart that replaces the fixed objective endpoint.
 
-## Completed milestone
+## Foundation milestone — complete
 
 The first end-to-end desktop loop is complete. The player can:
 
-- build a valid route from the entrance to the objective;
+- build a valid route from the entrance to the dungeon heart;
 - start a wave containing one hero type;
 - use one socketed defense type that can damage the hero;
 - win, lose, and restart with clear visual feedback.
 
-## Current milestone
+## Flexible construction milestone — complete
 
-Prove meaningful room choice without introducing special room effects. The
-milestone is complete when the player can:
+The player can now build a non-linear-direction dungeon without introducing
+special room effects. The completed milestone allows the player to:
 
-- choose between two simple, authored room blueprints;
-- preview and place the selected room only during the build phase;
-- see doors, sockets, and placed traps;
-- place the basic trap into a compatible empty socket;
-- complete the existing wave with either room layout.
+- choose among three simple authored room blueprints, including a corner;
+- rotate, preview, place, and cancel rooms only during the build phase;
+- extend any compatible open frontier door and preserve explicit connections;
+- place or relocate the dungeon heart in a chosen room;
+- place the basic trap into a compatible empty socket outside the heart cell;
+- complete and evaluate the existing wave along the entrance-to-heart route;
+- restart while preserving the rooms, traps, and selected heart.
 
 ## Implementation plan
 
@@ -262,7 +266,7 @@ capacity rather than providing an immediate combat benefit in this milestone.
 62. [x] Update objective damage, restart, authored scenario fixtures, headless
     evaluation, reports, and determinism tests to use the selected heart without
     making simulation or domain code depend on rendering.
-63. [ ] Add an end-to-end application test for building a turned or branched
+63. [x] Add an end-to-end application test for building a turned or branched
     dungeon, canceling and replacing a mistaken room, selecting the heart room,
     placing a trap, and completing the wave; then update `game-design.md` and
     `architecture.md` with the verified behavior and remaining constraints.
