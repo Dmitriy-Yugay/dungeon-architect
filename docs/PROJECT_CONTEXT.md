@@ -228,7 +228,7 @@ capacity rather than providing an immediate combat benefit in this milestone.
     or disabled Cancel control that consumes its click without selecting or
     placing anything else; cover the control view, click handling, and repeated
     cancellation with presentation and application tests.
-53. [ ] Add an immutable quarter-turn room orientation and transform footprint
+53. [x] Add an immutable quarter-turn room orientation and transform footprint
     cells, door positions and facings, and socket positions consistently; test
     all four orientations and full-turn identity.
 54. [ ] Make placed rooms retain their orientation, and make snapping,

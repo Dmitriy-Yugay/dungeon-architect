@@ -69,6 +69,26 @@ class RoomBlueprint(
         }
     }
 
+    fun geometry(
+        orientation: RoomOrientation = RoomOrientation.UNROTATED,
+    ): RoomGeometry {
+        val width = footprint.maxOf(GridPosition::column) + 1
+        val height = footprint.maxOf(GridPosition::row) + 1
+        fun transform(position: GridPosition) =
+            orientation.transform(position, width, height)
+
+        return RoomGeometry(
+            footprint = footprint.mapTo(mutableSetOf(), ::transform),
+            doors = doors.mapTo(mutableSetOf()) { door ->
+                RoomDoor(
+                    position = transform(door.position),
+                    facing = orientation.transform(door.facing),
+                )
+            },
+            sockets = sockets.mapKeys { (position) -> transform(position) },
+        )
+    }
+
     private fun isFourDirectionallyConnected(positions: Set<GridPosition>): Boolean {
         val remaining = positions.toMutableSet()
         val pending = ArrayDeque<GridPosition>()
