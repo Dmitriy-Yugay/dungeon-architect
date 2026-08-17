@@ -220,7 +220,7 @@ therefore lets the player choose which branch contains the active hero route
 without adding destination-choice AI. Unused side branches remain future build
 capacity rather than providing an immediate combat benefit in this milestone.
 
-51. [ ] Add a build-phase operation that cancels the most recently placed room,
+51. [x] Add a build-phase operation that cancels the most recently placed room,
     removes traps belonging to it, and leaves the grid, open-door frontier, and
     route derived state consistent; test empty, single-room, multi-room, trapped,
     and non-building cases.

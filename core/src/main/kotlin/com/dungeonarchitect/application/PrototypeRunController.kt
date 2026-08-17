@@ -15,7 +15,7 @@ import com.dungeonarchitect.simulation.WaveResolved
 import kotlin.math.max
 
 class PrototypeRunController(
-    grid: DungeonGrid,
+    private val grid: DungeonGrid,
     private val upcomingWave: UpcomingHeroWave,
     runDefinition: PrototypeRunDefinition,
 ) {
@@ -65,6 +65,14 @@ class PrototypeRunController(
         heroSimulation = newHeroSimulation(wave)
         phase = PrototypeRunPhase.RUNNING
         return true
+    }
+
+    fun cancelLastPlacedRoom(): Boolean {
+        if (phase != PrototypeRunPhase.BUILDING) {
+            return false
+        }
+
+        return grid.cancelLastPlacedRoom()
     }
 
     fun advance(elapsedSeconds: Float) {

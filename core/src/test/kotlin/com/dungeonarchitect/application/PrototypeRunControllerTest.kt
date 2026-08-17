@@ -221,6 +221,53 @@ class PrototypeRunControllerTest {
     }
 
     @Test
+    fun `cancel delegates room removal while building`() {
+        val grid = gridWithRoute()
+        val controller = controller(grid = grid, heroCount = 1)
+
+        assertTrue(controller.cancelLastPlacedRoom())
+
+        assertEquals(emptyList(), grid.placedRooms)
+        assertFalse(controller.isStartEnabled)
+    }
+
+    @Test
+    fun `cancel leaves the layout unchanged outside the building phase`() {
+        val runningGrid = gridWithRoute()
+        val runningController = controller(
+            grid = runningGrid,
+            heroCount = 2,
+            objectiveHealth = 30,
+        )
+        assertTrue(runningController.start())
+
+        val victoryGrid = gridWithLethalTrap()
+        val victoryController = controller(grid = victoryGrid, heroCount = 1)
+        assertTrue(victoryController.start())
+        victoryController.advance(elapsedSeconds = fixedSteps(2))
+        assertEquals(PrototypeRunPhase.VICTORY, victoryController.phase)
+
+        val defeatGrid = gridWithRoute()
+        val defeatController = controller(grid = defeatGrid, heroCount = 1)
+        assertTrue(defeatController.start())
+        defeatController.advance(elapsedSeconds = fixedSteps(2))
+        assertEquals(PrototypeRunPhase.DEFEAT, defeatController.phase)
+
+        listOf(
+            runningController to runningGrid,
+            victoryController to victoryGrid,
+            defeatController to defeatGrid,
+        ).forEach { (controller, grid) ->
+            val roomsBeforeCancel = grid.placedRooms
+            val trapsBeforeCancel = grid.placedTraps
+
+            assertFalse(controller.cancelLastPlacedRoom(), controller.phase.name)
+            assertEquals(roomsBeforeCancel, grid.placedRooms, controller.phase.name)
+            assertEquals(trapsBeforeCancel, grid.placedTraps, controller.phase.name)
+        }
+    }
+
+    @Test
     fun `run rejects invalid elapsed time and restart before an outcome`() {
         val controller = controller(grid = gridWithRoute(), heroCount = 1)
 

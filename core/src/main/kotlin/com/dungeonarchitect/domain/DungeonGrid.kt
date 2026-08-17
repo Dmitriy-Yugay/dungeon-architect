@@ -111,6 +111,14 @@ class DungeonGrid(
         return true
     }
 
+    fun cancelLastPlacedRoom(): Boolean {
+        val room = mutablePlacedRooms.lastOrNull() ?: return false
+
+        mutablePlacedTraps.removeAll { trap -> trap.room == room }
+        mutablePlacedRooms.removeLast()
+        return true
+    }
+
     fun placeTrap(
         room: PlacedRoom,
         localSocketPosition: GridPosition,

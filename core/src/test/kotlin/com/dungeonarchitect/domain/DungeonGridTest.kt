@@ -490,6 +490,108 @@ class DungeonGridTest {
     }
 
     @Test
+    fun `cancel on an empty grid leaves derived state empty`() {
+        val grid = dungeonGrid()
+
+        assertFalse(grid.cancelLastPlacedRoom())
+
+        assertEquals(emptyList(), grid.placedRooms)
+        assertEquals(emptySet(), grid.walkablePositions)
+        assertEquals(emptySet(), grid.openRoomDoors)
+        assertNull(grid.entranceToObjectiveRoute)
+    }
+
+    @Test
+    fun `cancel removes the only placed room`() {
+        val room = directionalRoom(
+            origin = GridPosition(column = 1, row = 1),
+            doors = listOf(
+                RoomDoor(GridPosition(0, 0), CardinalDirection.WEST),
+                RoomDoor(GridPosition(0, 0), CardinalDirection.EAST),
+            ),
+        )
+        val grid = dungeonGrid(placedRooms = listOf(room))
+
+        assertTrue(grid.cancelLastPlacedRoom())
+
+        assertEquals(emptyList(), grid.placedRooms)
+        assertEquals(emptySet(), grid.walkablePositions)
+        assertEquals(TileType.EMPTY, grid.tileAt(room.origin))
+    }
+
+    @Test
+    fun `cancel removes only the newest room and restores its frontier`() {
+        val firstRoom = directionalRoom(
+            origin = GridPosition(column = 1, row = 1),
+            doors = listOf(
+                RoomDoor(GridPosition(0, 0), CardinalDirection.WEST),
+                RoomDoor(GridPosition(0, 0), CardinalDirection.EAST),
+            ),
+        )
+        val secondRoom = directionalRoom(
+            origin = GridPosition(column = 2, row = 1),
+            doors = listOf(
+                RoomDoor(GridPosition(0, 0), CardinalDirection.WEST),
+                RoomDoor(GridPosition(0, 0), CardinalDirection.EAST),
+            ),
+        )
+        val grid = dungeonGrid(
+            width = 4,
+            entrance = GridPosition(column = 0, row = 1),
+            objective = GridPosition(column = 3, row = 1),
+            placedRooms = listOf(firstRoom, secondRoom),
+        )
+        assertTrue(grid.entranceToObjectiveRoute != null)
+        assertEquals(emptySet(), grid.openRoomDoors)
+
+        assertTrue(grid.cancelLastPlacedRoom())
+
+        assertEquals(listOf(firstRoom), grid.placedRooms)
+        assertEquals(firstRoom.gridPositions, grid.walkablePositions)
+        assertEquals(
+            setOf(
+                firstRoom.doors.single {
+                    it.door.facing == CardinalDirection.EAST
+                },
+            ),
+            grid.openRoomDoors,
+        )
+        assertEquals(emptyList(), grid.roomDoorConnections)
+        assertNull(grid.entranceToObjectiveRoute)
+    }
+
+    @Test
+    fun `cancel removes traps in the newest room and preserves earlier traps`() {
+        val firstRoom = socketRoom(
+            origin = GridPosition(column = 1, row = 1),
+            doors = listOf(
+                RoomDoor(GridPosition(0, 0), CardinalDirection.WEST),
+                RoomDoor(GridPosition(0, 0), CardinalDirection.EAST),
+            ),
+        )
+        val secondRoom = socketRoom(
+            origin = GridPosition(column = 2, row = 1),
+            doors = listOf(
+                RoomDoor(GridPosition(0, 0), CardinalDirection.WEST),
+                RoomDoor(GridPosition(0, 0), CardinalDirection.EAST),
+            ),
+        )
+        val grid = dungeonGrid(
+            width = 4,
+            entrance = GridPosition(column = 0, row = 1),
+            objective = GridPosition(column = 3, row = 1),
+            placedRooms = listOf(firstRoom, secondRoom),
+        )
+        assertTrue(grid.placeTrap(firstRoom, GridPosition(0, 0), trapDefinition()))
+        assertTrue(grid.placeTrap(secondRoom, GridPosition(0, 0), trapDefinition()))
+
+        assertTrue(grid.cancelLastPlacedRoom())
+
+        assertEquals(listOf(firstRoom), grid.placedRooms)
+        assertEquals(listOf(firstRoom), grid.placedTraps.map(PlacedTrap::room))
+    }
+
+    @Test
     fun `grid places a compatible trap in a declared room socket`() {
         val room = socketRoom(origin = GridPosition(column = 1, row = 0))
         val grid = dungeonGrid(placedRooms = listOf(room))
@@ -604,12 +706,18 @@ class DungeonGridTest {
     private fun socketRoom(
         origin: GridPosition,
         socketType: RoomSocketType = RoomSocketType.FLOOR,
+        doors: List<RoomDoor>? = null,
     ) = PlacedRoom(
         blueprint = RoomBlueprint(
             id = "socket-room",
             displayName = "Socket Room",
             footprint = setOf(GridPosition(column = 0, row = 0)),
-            doorPositions = setOf(GridPosition(column = 0, row = 0)),
+            doors = doors ?: listOf(
+                RoomDoor(
+                    position = GridPosition(column = 0, row = 0),
+                    facing = CardinalDirection.WEST,
+                ),
+            ),
             sockets = mapOf(
                 GridPosition(column = 0, row = 0) to socketType,
             ),
