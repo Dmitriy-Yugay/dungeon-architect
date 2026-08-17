@@ -242,7 +242,7 @@ capacity rather than providing an immediate combat benefit in this milestone.
 56. [x] Add one simple authored corner-room blueprint with adjacent doors and no
     special effect, expose it as a room choice, and verify that its rotations
     can extend each compatible open frontier door without overlap.
-57. [ ] Add property-based topology tests that generate legal paths containing
+57. [x] Add property-based topology tests that generate legal paths containing
     horizontal and vertical segments, turns, and branches, proving that every
     recorded connection is cardinally adjacent and that entrance routes remain
     valid after placement and cancellation.
