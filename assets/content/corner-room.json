@@ -1,6 +1,7 @@
 {
   "id": "corner-room",
   "displayName": "Corner Room",
+  "heartAnchor": {"column": 0, "row": 1},
   "footprint": [
     {"column": 0, "row": 0},
     {"column": 1, "row": 0},

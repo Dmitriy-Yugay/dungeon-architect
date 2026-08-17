@@ -82,6 +82,7 @@ class WaveStartControllerTest {
                 blueprint = RoomBlueprint(
                     id = "socket-room",
                     displayName = "Socket Room",
+                    heartAnchor = GridPosition(column = 0, row = 0),
                     footprint = setOf(GridPosition(column = 0, row = 0)),
                     doors = listOf(
                         RoomDoor(

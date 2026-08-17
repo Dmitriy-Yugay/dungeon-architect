@@ -196,6 +196,7 @@ class RoomRotationApplicationTest {
         val blueprint = RoomBlueprint(
             id = "ready-room",
             displayName = "Ready Room",
+            heartAnchor = GridPosition(column = 0, row = 0),
             footprint = setOf(position(0, 0)),
             doors = listOf(
                 RoomDoor(position(0, 0), CardinalDirection.WEST),
@@ -215,6 +216,7 @@ class RoomRotationApplicationTest {
     private fun horizontalBlueprint() = RoomBlueprint(
         id = "horizontal-room",
         displayName = "Horizontal Room",
+        heartAnchor = GridPosition(column = 0, row = 0),
         footprint = setOf(position(0, 0), position(1, 0)),
         doors = listOf(
             RoomDoor(position(0, 0), CardinalDirection.WEST),

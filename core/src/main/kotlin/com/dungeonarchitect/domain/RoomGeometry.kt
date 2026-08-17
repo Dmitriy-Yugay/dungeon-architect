@@ -2,6 +2,7 @@ package com.dungeonarchitect.domain
 
 class RoomGeometry internal constructor(
     footprint: Set<GridPosition>,
+    val heartAnchor: GridPosition,
     doors: Set<RoomDoor>,
     sockets: Map<GridPosition, RoomSocketType>,
 ) {

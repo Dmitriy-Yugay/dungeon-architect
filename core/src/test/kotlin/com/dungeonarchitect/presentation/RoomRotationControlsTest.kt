@@ -119,6 +119,7 @@ class RoomRotationControlsTest {
     private fun blueprint(id: String) = RoomBlueprint(
         id = id,
         displayName = id,
+        heartAnchor = GridPosition(column = 0, row = 0),
         footprint = setOf(GridPosition(0, 0)),
         doorPositions = setOf(GridPosition(0, 0)),
     )

@@ -1,6 +1,7 @@
 {
   "id": "prototype-room",
   "displayName": "Prototype Room",
+  "heartAnchor": {"column": 1, "row": 2},
   "footprint": [
     {"column": 0, "row": 0},
     {"column": 1, "row": 0},

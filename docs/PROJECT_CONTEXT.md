@@ -246,7 +246,7 @@ capacity rather than providing an immediate combat benefit in this milestone.
     horizontal and vertical segments, turns, and branches, proving that every
     recorded connection is cardinally adjacent and that entrance routes remain
     valid after placement and cancellation.
-58. [ ] Add a required local heart anchor to room-blueprint content and validate
+58. [x] Add a required local heart anchor to room-blueprint content and validate
     that it occupies a footprint cell; update the JSON parser, authored rooms,
     rotation transformation, and parser/domain tests.
 59. [ ] Add immutable placed-heart state and build-phase operations to place or

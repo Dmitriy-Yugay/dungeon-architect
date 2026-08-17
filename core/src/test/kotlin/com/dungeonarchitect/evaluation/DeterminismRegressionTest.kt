@@ -100,6 +100,7 @@ class DeterminismRegressionTest {
                     blueprint = RoomBlueprint(
                         id = "cooldown-room",
                         displayName = "Cooldown Room",
+                        heartAnchor = GridPosition(column = 0, row = 0),
                         footprint = setOf(
                             GridPosition(0, 0),
                             GridPosition(1, 0),

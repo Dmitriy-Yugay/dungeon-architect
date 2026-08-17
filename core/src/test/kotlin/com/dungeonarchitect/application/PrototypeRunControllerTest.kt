@@ -335,6 +335,7 @@ class PrototypeRunControllerTest {
                 blueprint = RoomBlueprint(
                     id = "test-room",
                     displayName = "Test Room",
+                    heartAnchor = GridPosition(column = 0, row = 0),
                     footprint = setOf(GridPosition(column = 0, row = 0)),
                     doors = listOf(
                         RoomDoor(

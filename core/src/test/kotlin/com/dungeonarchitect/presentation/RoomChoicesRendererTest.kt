@@ -70,6 +70,7 @@ class RoomChoicesRendererTest {
     ) = RoomBlueprint(
         id = id,
         displayName = displayName,
+        heartAnchor = GridPosition(column = 0, row = 0),
         footprint = setOf(GridPosition(column = 0, row = 0)),
         doorPositions = setOf(GridPosition(column = 0, row = 0)),
     )

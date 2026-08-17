@@ -89,6 +89,7 @@ class CornerRoomPlacementTest {
         blueprint = RoomBlueprint(
             id = "frontier-${facing.name.lowercase()}",
             displayName = "Frontier ${facing.name}",
+            heartAnchor = GridPosition(column = 0, row = 0),
             footprint = setOf(position(0, 0)),
             doors = listOf(RoomDoor(position(0, 0), facing)),
         ),

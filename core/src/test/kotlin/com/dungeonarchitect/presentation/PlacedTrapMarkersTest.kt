@@ -106,6 +106,7 @@ class PlacedTrapMarkersTest {
         blueprint = RoomBlueprint(
             id = id,
             displayName = "Test Room",
+            heartAnchor = GridPosition(column = 0, row = 0),
             footprint = setOf(position(0, 0), LOCAL_SOCKET),
             doorPositions = setOf(position(0, 0)),
             sockets = mapOf(LOCAL_SOCKET to RoomSocketType.FLOOR),

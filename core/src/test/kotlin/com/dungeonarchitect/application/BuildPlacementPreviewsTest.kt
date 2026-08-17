@@ -95,6 +95,7 @@ class BuildPlacementPreviewsTest {
             blueprint = RoomBlueprint(
                 id = "socket-room",
                 displayName = "Socket Room",
+                heartAnchor = GridPosition(column = 0, row = 0),
                 footprint = setOf(
                     position(0, 0),
                     position(1, 0),

@@ -26,6 +26,7 @@ class TrapPlacementCommitTest {
             blueprint = RoomBlueprint(
                 id = "route-room",
                 displayName = "Route Room",
+                heartAnchor = GridPosition(column = 0, row = 0),
                 footprint = setOf(localSocketPosition),
                 doors = listOf(
                     RoomDoor(localSocketPosition, CardinalDirection.WEST),
@@ -299,6 +300,7 @@ class TrapPlacementCommitTest {
             blueprint = RoomBlueprint(
                 id = "socket-room",
                 displayName = "Socket Room",
+                heartAnchor = GridPosition(column = 0, row = 0),
                 footprint = setOf(
                     position(0, 0),
                     position(1, 0),
@@ -316,6 +318,7 @@ class TrapPlacementCommitTest {
         val selectedRoomBlueprint = RoomBlueprint(
             id = "one-cell-room",
             displayName = "Corner Room",
+            heartAnchor = SELECTED_ROOM_DOOR,
             footprint = setOf(
                 SELECTED_ROOM_DOOR,
                 position(1, 0),

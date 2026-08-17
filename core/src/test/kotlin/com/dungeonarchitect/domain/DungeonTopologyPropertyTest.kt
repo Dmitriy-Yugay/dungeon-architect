@@ -190,6 +190,7 @@ private fun oneCellRoom(
     blueprint = RoomBlueprint(
         id = id,
         displayName = "Generated ${fixtureName(facings)} $id",
+        heartAnchor = GridPosition(column = 0, row = 0),
         footprint = setOf(position(0, 0)),
         doors = facings.map { facing ->
             RoomDoor(position = position(0, 0), facing = facing)

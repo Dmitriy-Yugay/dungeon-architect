@@ -137,6 +137,7 @@ class DeterministicTrapSystemTest {
             blueprint = RoomBlueprint(
                 id = "socket-room",
                 displayName = "Socket Room",
+                heartAnchor = GridPosition(column = 0, row = 0),
                 footprint = setOf(localSocketPosition),
                 doorPositions = setOf(localSocketPosition),
                 sockets = mapOf(

@@ -542,6 +542,7 @@ class PrototypeScreenTest {
                 blueprint = RoomBlueprint(
                     id = "test-room",
                     displayName = "Test Room",
+                    heartAnchor = GridPosition(column = 0, row = 0),
                     footprint = setOf(GridPosition(column = 0, row = 0)),
                     doors = CardinalDirection.entries.map { facing ->
                         RoomDoor(
@@ -559,6 +560,7 @@ class PrototypeScreenTest {
         val blueprint = RoomBlueprint(
             id = "cancel-room",
             displayName = "Cancel Room",
+            heartAnchor = GridPosition(column = 0, row = 0),
             footprint = setOf(GridPosition(column = 0, row = 0)),
             doors = listOf(
                 RoomDoor(GridPosition(0, 0), CardinalDirection.WEST),

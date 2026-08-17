@@ -119,6 +119,7 @@ class HeadlessScenarioEvaluatorTest {
                 blueprint = RoomBlueprint(
                     id = "test-room",
                     displayName = "Test Room",
+                    heartAnchor = GridPosition(column = 0, row = 0),
                     footprint = setOf(GridPosition(0, 0)),
                     doors = listOf(
                         RoomDoor(GridPosition(0, 0), CardinalDirection.WEST),

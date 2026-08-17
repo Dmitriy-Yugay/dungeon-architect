@@ -96,6 +96,7 @@ class RoomDoorMarkersTest {
         blueprint = RoomBlueprint(
             id = "test-room",
             displayName = "Test Room",
+            heartAnchor = GridPosition(column = 0, row = 0),
             footprint = setOf(position(0, 0), position(1, 0)),
             doorPositions = setOf(position(0, 0), position(1, 0)),
             doorFacings = mapOf(

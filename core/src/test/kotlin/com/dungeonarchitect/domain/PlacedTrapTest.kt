@@ -42,6 +42,7 @@ class PlacedTrapTest {
         blueprint = RoomBlueprint(
             id = "socket-room",
             displayName = "Socket Room",
+            heartAnchor = GridPosition(column = 0, row = 0),
             footprint = setOf(
                 GridPosition(column = 0, row = 0),
                 GridPosition(column = 1, row = 0),

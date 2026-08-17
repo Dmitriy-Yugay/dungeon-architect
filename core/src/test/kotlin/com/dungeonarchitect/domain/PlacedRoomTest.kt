@@ -47,6 +47,7 @@ class PlacedRoomTest {
         val blueprint = RoomBlueprint(
             id = "test-room",
             displayName = "Test Room",
+            heartAnchor = GridPosition(column = 0, row = 0),
             footprint = setOf(
                 position(0, 0),
                 position(1, 0),
@@ -76,6 +77,7 @@ class PlacedRoomTest {
         val blueprint = RoomBlueprint(
             id = "test-room",
             displayName = "Test Room",
+            heartAnchor = GridPosition(column = 0, row = 0),
             footprint = setOf(position(0, 0)),
             doorPositions = setOf(position(0, 0)),
         )
@@ -205,6 +207,7 @@ class PlacedRoomTest {
         blueprint = RoomBlueprint(
             id = "test-room",
             displayName = "Test Room",
+            heartAnchor = GridPosition(column = 0, row = 0),
             footprint = setOf(
                 position(0, 0),
                 position(1, 0),
@@ -220,6 +223,7 @@ class PlacedRoomTest {
         blueprint = RoomBlueprint(
             id = "single-cell-room",
             displayName = "Single Cell Room",
+            heartAnchor = GridPosition(column = 0, row = 0),
             footprint = setOf(position(0, 0)),
             doorPositions = setOf(position(0, 0)),
         ),
@@ -229,6 +233,7 @@ class PlacedRoomTest {
     private fun asymmetricBlueprint() = RoomBlueprint(
         id = "asymmetric-room",
         displayName = "Asymmetric Room",
+        heartAnchor = GridPosition(column = 0, row = 0),
         footprint = setOf(
             position(0, 0),
             position(1, 0),

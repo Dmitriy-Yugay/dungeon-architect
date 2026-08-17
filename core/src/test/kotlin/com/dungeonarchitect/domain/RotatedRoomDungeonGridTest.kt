@@ -13,6 +13,7 @@ class RotatedRoomDungeonGridTest {
         val blueprint = RoomBlueprint(
             id = "socket-gallery",
             displayName = "Socket Gallery",
+            heartAnchor = GridPosition(column = 0, row = 0),
             footprint = setOf(position(0, 0), position(1, 0)),
             doors = listOf(
                 RoomDoor(position(0, 0), CardinalDirection.WEST),
@@ -150,6 +151,7 @@ class RotatedRoomDungeonGridTest {
         blueprint = RoomBlueprint(
             id = "north-facing-room",
             displayName = "North Facing Room",
+            heartAnchor = GridPosition(column = 0, row = 0),
             footprint = setOf(position(0, 0)),
             doors = listOf(
                 RoomDoor(position(0, 0), CardinalDirection.NORTH),
@@ -164,6 +166,7 @@ class RotatedRoomDungeonGridTest {
         return RoomBlueprint(
             id = "horizontal-$width",
             displayName = "Horizontal $width",
+            heartAnchor = GridPosition(column = 0, row = 0),
             footprint = footprint,
             doors = listOf(
                 RoomDoor(position(0, 0), CardinalDirection.WEST),

@@ -23,6 +23,7 @@ class RoomOrientationTest {
                     position(1, 0) to RoomSocketType.FLOOR,
                     position(0, 1) to RoomSocketType.WALL,
                 ),
+                heartAnchor = position(0, 1),
             ),
             RoomOrientation.CLOCKWISE_90 to ExpectedGeometry(
                 footprint = setOf(
@@ -39,6 +40,7 @@ class RoomOrientationTest {
                     position(0, 1) to RoomSocketType.FLOOR,
                     position(1, 2) to RoomSocketType.WALL,
                 ),
+                heartAnchor = position(1, 2),
             ),
             RoomOrientation.CLOCKWISE_180 to ExpectedGeometry(
                 footprint = setOf(
@@ -55,6 +57,7 @@ class RoomOrientationTest {
                     position(1, 1) to RoomSocketType.FLOOR,
                     position(2, 0) to RoomSocketType.WALL,
                 ),
+                heartAnchor = position(2, 0),
             ),
             RoomOrientation.CLOCKWISE_270 to ExpectedGeometry(
                 footprint = setOf(
@@ -71,6 +74,7 @@ class RoomOrientationTest {
                     position(1, 1) to RoomSocketType.FLOOR,
                     position(0, 0) to RoomSocketType.WALL,
                 ),
+                heartAnchor = position(0, 0),
             ),
         )
 
@@ -92,6 +96,11 @@ class RoomOrientationTest {
                 orientation.name,
             )
             assertEquals(expectedGeometry.sockets, geometry.sockets, orientation.name)
+            assertEquals(
+                expectedGeometry.heartAnchor,
+                geometry.heartAnchor,
+                orientation.name,
+            )
             assertEquals(
                 0,
                 geometry.footprint.minOf(GridPosition::column),
@@ -115,11 +124,13 @@ class RoomOrientationTest {
         assertEquals(original.footprint, transformed.footprint)
         assertEquals(original.doors, transformed.doors)
         assertEquals(original.sockets, transformed.sockets)
+        assertEquals(original.heartAnchor, transformed.heartAnchor)
     }
 
     private fun asymmetricBlueprint() = RoomBlueprint(
         id = "asymmetric-gallery",
         displayName = "Asymmetric Gallery",
+        heartAnchor = position(0, 1),
         footprint = setOf(
             position(0, 0),
             position(1, 0),
@@ -143,5 +154,6 @@ class RoomOrientationTest {
         val footprint: Set<GridPosition>,
         val doors: Set<RoomDoor>,
         val sockets: Map<GridPosition, RoomSocketType>,
+        val heartAnchor: GridPosition,
     )
 }

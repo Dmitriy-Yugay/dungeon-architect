@@ -191,6 +191,7 @@ class BuildStateTest {
     private fun blueprint(id: String) = RoomBlueprint(
         id = id,
         displayName = id,
+        heartAnchor = GridPosition(column = 0, row = 0),
         footprint = setOf(GridPosition(column = 0, row = 0)),
         doorPositions = setOf(GridPosition(column = 0, row = 0)),
     )

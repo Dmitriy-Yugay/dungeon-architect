@@ -411,6 +411,7 @@ class DungeonGridTest {
         val blueprint = RoomBlueprint(
             id = "candidate",
             displayName = "Candidate",
+            heartAnchor = GridPosition(column = 0, row = 0),
             footprint = setOf(GridPosition(0, 0), GridPosition(1, 0)),
             doors = listOf(RoomDoor(GridPosition(0, 0), CardinalDirection.WEST)),
         )
@@ -691,12 +692,14 @@ class DungeonGridTest {
             RoomBlueprint(
                 id = "test-room",
                 displayName = "Test Room",
+                heartAnchor = GridPosition(column = 0, row = 0),
                 footprint = footprint,
                 doors = it,
             )
         } ?: RoomBlueprint(
             id = "test-room",
             displayName = "Test Room",
+            heartAnchor = GridPosition(column = 0, row = 0),
             footprint = footprint,
             doorPositions = setOf(doorPosition),
         ),
@@ -711,6 +714,7 @@ class DungeonGridTest {
         blueprint = RoomBlueprint(
             id = "socket-room",
             displayName = "Socket Room",
+            heartAnchor = GridPosition(column = 0, row = 0),
             footprint = setOf(GridPosition(column = 0, row = 0)),
             doors = doors ?: listOf(
                 RoomDoor(
@@ -732,6 +736,7 @@ class DungeonGridTest {
         blueprint = RoomBlueprint(
             id = "directional-room",
             displayName = "Directional Room",
+            heartAnchor = GridPosition(column = 0, row = 0),
             footprint = setOf(GridPosition(column = 0, row = 0)),
             doors = doors,
         ),
