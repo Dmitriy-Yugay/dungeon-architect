@@ -69,7 +69,7 @@ data class HeroDied(
     }
 }
 
-data class ObjectiveDamaged(
+data class HeartDamaged(
     val heroNumber: Int,
     val damage: Int,
     val remainingHealth: Int,
@@ -77,27 +77,27 @@ data class ObjectiveDamaged(
     init {
         requireValidHeroNumber(heroNumber)
         require(damage > 0) {
-            "Objective damage must be positive."
+            "Heart damage must be positive."
         }
         require(remainingHealth >= 0) {
-            "Objective remaining health must not be negative."
+            "Heart remaining health must not be negative."
         }
     }
 }
 
 data class WaveResolved(
     val outcome: WaveOutcome,
-    val objectiveHealth: Int,
+    val heartHealth: Int,
 ) : SimulationEvent {
     init {
-        require(objectiveHealth >= 0) {
-            "Resolved wave objective health must not be negative."
+        require(heartHealth >= 0) {
+            "Resolved wave heart health must not be negative."
         }
         require(
-            (outcome == WaveOutcome.VICTORY && objectiveHealth > 0) ||
-                (outcome == WaveOutcome.DEFEAT && objectiveHealth == 0),
+            (outcome == WaveOutcome.VICTORY && heartHealth > 0) ||
+                (outcome == WaveOutcome.DEFEAT && heartHealth == 0),
         ) {
-            "Wave outcome must agree with the remaining objective health."
+            "Wave outcome must agree with the remaining heart health."
         }
     }
 }

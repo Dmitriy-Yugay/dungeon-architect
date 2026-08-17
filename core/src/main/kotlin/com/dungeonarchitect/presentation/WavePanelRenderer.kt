@@ -13,7 +13,7 @@ import com.dungeonarchitect.domain.UpcomingHeroWave
 data class WavePanelView(
     val summary: String,
     val traitDescription: String,
-    val objectiveStatus: String,
+    val heartStatus: String,
     val controlLabel: String,
     val isControlEnabled: Boolean,
     val cancelLabel: String,
@@ -23,8 +23,8 @@ data class WavePanelView(
         fun from(
             wave: UpcomingHeroWave,
             phase: PrototypeRunPhase,
-            objectiveHealth: Int,
-            objectiveMaxHealth: Int,
+            heartHealth: Int,
+            heartMaxHealth: Int,
             isStartEnabled: Boolean,
             isCancelEnabled: Boolean,
         ) = WavePanelView(
@@ -33,12 +33,12 @@ data class WavePanelView(
                     "Upcoming wave: ${wave.count} x ${wave.heroDisplayName}"
                 PrototypeRunPhase.RUNNING ->
                     "Wave in progress: ${wave.count} x ${wave.heroDisplayName}"
-                PrototypeRunPhase.VICTORY -> "VICTORY - Objective secured"
-                PrototypeRunPhase.DEFEAT -> "DEFEAT - Objective destroyed"
+                PrototypeRunPhase.VICTORY -> "VICTORY - Heart secured"
+                PrototypeRunPhase.DEFEAT -> "DEFEAT - Heart destroyed"
             },
             traitDescription = wave.traitDescription,
-            objectiveStatus =
-                "Objective health: $objectiveHealth / $objectiveMaxHealth",
+            heartStatus =
+                "Heart health: $heartHealth / $heartMaxHealth",
             controlLabel = when (phase) {
                 PrototypeRunPhase.BUILDING ->
                     if (isStartEnabled) {
@@ -162,9 +162,9 @@ class WavePanelRenderer : Disposable {
         )
         font.draw(
             batch,
-            view.objectiveStatus,
+            view.heartStatus,
             WavePanelLayout.HORIZONTAL_PADDING,
-            panelBottom + WavePanelLayout.HEIGHT - OBJECTIVE_STATUS_OFFSET,
+            panelBottom + WavePanelLayout.HEIGHT - HEART_STATUS_OFFSET,
         )
 
         font.color =
@@ -196,7 +196,7 @@ class WavePanelRenderer : Disposable {
 
     private companion object {
         const val DESCRIPTION_OFFSET = 48f
-        const val OBJECTIVE_STATUS_OFFSET = 80f
+        const val HEART_STATUS_OFFSET = 80f
 
         val PANEL_COLOR = Color.valueOf("171B20")
         val ENABLED_BUTTON_COLOR = Color.valueOf("3A9D5D")

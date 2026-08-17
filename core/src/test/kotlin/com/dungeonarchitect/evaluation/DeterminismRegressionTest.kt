@@ -18,7 +18,7 @@ import com.dungeonarchitect.simulation.HeroArrived
 import com.dungeonarchitect.simulation.HeroDamaged
 import com.dungeonarchitect.simulation.HeroDied
 import com.dungeonarchitect.simulation.HeroSpawned
-import com.dungeonarchitect.simulation.ObjectiveDamaged
+import com.dungeonarchitect.simulation.HeartDamaged
 import com.dungeonarchitect.simulation.TrapActivated
 import com.dungeonarchitect.simulation.WaveOutcome
 import com.dungeonarchitect.simulation.WaveResolved
@@ -46,7 +46,7 @@ class DeterminismRegressionTest {
         assertEquals(
             WaveEvaluationReport(
                 outcome = WaveOutcome.VICTORY,
-                objectiveHealth = 6,
+                heartHealth = 6,
                 heroKills = 1,
                 heroArrivals = 1,
                 elapsedSimulationSeconds = elapsedSteps(4),
@@ -81,8 +81,8 @@ class DeterminismRegressionTest {
                 HeroDied(1, heroPosition(1)),
                 HeroSpawned(2, HERO_TYPE, heroPosition(0), health = 5),
                 HeroArrived(2, heroPosition(2)),
-                ObjectiveDamaged(2, damage = 4, remainingHealth = 6),
-                WaveResolved(WaveOutcome.VICTORY, objectiveHealth = 6),
+                HeartDamaged(2, damage = 4, remainingHealth = 6),
+                WaveResolved(WaveOutcome.VICTORY, heartHealth = 6),
             ),
             first.events,
         )
@@ -135,11 +135,11 @@ class DeterminismRegressionTest {
                 heroDisplayName = "Militia Recruit",
                 count = 2,
                 heroHealth = 5,
-                objectiveDamage = 4,
+                heartDamage = 4,
                 movementSpeedTilesPerSecond = 60f,
                 traitDescription = "A straightforward melee fighter.",
             ),
-            runDefinition = PrototypeRunDefinition(objectiveHealth = 10),
+            runDefinition = PrototypeRunDefinition(heartHealth = 10),
         )
     }
 

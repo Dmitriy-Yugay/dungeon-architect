@@ -16,7 +16,7 @@ import com.dungeonarchitect.simulation.HeroArrived
 import com.dungeonarchitect.simulation.HeroDamaged
 import com.dungeonarchitect.simulation.HeroDied
 import com.dungeonarchitect.simulation.HeroSpawned
-import com.dungeonarchitect.simulation.ObjectiveDamaged
+import com.dungeonarchitect.simulation.HeartDamaged
 import com.dungeonarchitect.simulation.TrapActivated
 import com.dungeonarchitect.simulation.WaveOutcome
 import com.dungeonarchitect.simulation.WaveResolved
@@ -51,13 +51,13 @@ class PrototypeRunControllerTest {
                 )
             }
 
-            assertEquals(10, controller.objectiveHealth)
+            assertEquals(10, controller.heartHealth)
             assertTrue(controller.isControlEnabled)
         }
     }
 
     @Test
-    fun `hero arrival damages the objective and zero health causes defeat`() {
+    fun `hero arrival damages the heart and zero health causes defeat`() {
         listOf(1, 4).forEach { heroCount ->
             val controller = controller(
                 grid = gridWithRoute(),
@@ -68,31 +68,31 @@ class PrototypeRunControllerTest {
             controller.advance(elapsedSeconds = fixedSteps(2))
 
             assertEquals(PrototypeRunPhase.DEFEAT, controller.phase)
-            assertEquals(0, controller.objectiveHealth)
+            assertEquals(0, controller.heartHealth)
             assertEquals(1, controller.resolvedHeroCount)
         }
     }
 
     @Test
-    fun `surviving objective receives damage from successive heroes`() {
+    fun `surviving heart receives damage from successive heroes`() {
         val controller = controller(
             grid = gridWithRoute(),
             heroCount = 2,
-            objectiveHealth = 15,
-            objectiveDamage = 10,
+            heartHealth = 15,
+            heartDamage = 10,
         )
         assertTrue(controller.start())
 
         controller.advance(elapsedSeconds = fixedSteps(2))
 
         assertEquals(PrototypeRunPhase.RUNNING, controller.phase)
-        assertEquals(5, controller.objectiveHealth)
+        assertEquals(5, controller.heartHealth)
         assertEquals(1, controller.resolvedHeroCount)
 
         controller.advance(elapsedSeconds = fixedSteps(2))
 
         assertEquals(PrototypeRunPhase.DEFEAT, controller.phase)
-        assertEquals(0, controller.objectiveHealth)
+        assertEquals(0, controller.heartHealth)
         assertEquals(2, controller.resolvedHeroCount)
     }
 
@@ -115,7 +115,7 @@ class PrototypeRunControllerTest {
         }
 
         assertEquals(singleChunk.phase, fourChunks.phase)
-        assertEquals(singleChunk.objectiveHealth, fourChunks.objectiveHealth)
+        assertEquals(singleChunk.heartHealth, fourChunks.heartHealth)
         assertEquals(singleChunk.resolvedHeroCount, fourChunks.resolvedHeroCount)
         assertEquals(singleChunk.heroState, fourChunks.heroState)
         assertEquals(singleChunk.events, fourChunks.events)
@@ -151,19 +151,19 @@ class PrototypeRunControllerTest {
                 TrapActivated(2, "spike_trap", GridPosition(1, 0)),
                 HeroDamaged(2, "spike_trap", damage = 5, remainingHealth = 0),
                 HeroDied(heroNumber = 2, position = heroPosition(1, 0)),
-                WaveResolved(WaveOutcome.VICTORY, objectiveHealth = 10),
+                WaveResolved(WaveOutcome.VICTORY, heartHealth = 10),
             ),
             controller.events,
         )
     }
 
     @Test
-    fun `arrivals emit actual objective damage before defeat`() {
+    fun `arrivals emit actual heart damage before defeat`() {
         val controller = controller(
             grid = gridWithRoute(),
             heroCount = 2,
-            objectiveHealth = 15,
-            objectiveDamage = 10,
+            heartHealth = 15,
+            heartDamage = 10,
         )
         assertTrue(controller.start())
 
@@ -173,11 +173,11 @@ class PrototypeRunControllerTest {
             listOf(
                 HeroSpawned(1, "militia_recruit", heroPosition(0, 0), 5),
                 HeroArrived(heroNumber = 1, position = heroPosition(2, 0)),
-                ObjectiveDamaged(1, damage = 10, remainingHealth = 5),
+                HeartDamaged(1, damage = 10, remainingHealth = 5),
                 HeroSpawned(2, "militia_recruit", heroPosition(0, 0), 5),
                 HeroArrived(heroNumber = 2, position = heroPosition(2, 0)),
-                ObjectiveDamaged(2, damage = 5, remainingHealth = 0),
-                WaveResolved(WaveOutcome.DEFEAT, objectiveHealth = 0),
+                HeartDamaged(2, damage = 5, remainingHealth = 0),
+                WaveResolved(WaveOutcome.DEFEAT, heartHealth = 0),
             ),
             controller.events,
         )
@@ -200,7 +200,7 @@ class PrototypeRunControllerTest {
         assertTrue(controller.restart())
 
         assertEquals(PrototypeRunPhase.BUILDING, controller.phase)
-        assertEquals(10, controller.objectiveHealth)
+        assertEquals(10, controller.heartHealth)
         assertEquals(0, controller.resolvedHeroCount)
         assertNull(controller.heroState)
         assertTrue(controller.isStartEnabled)
@@ -235,7 +235,7 @@ class PrototypeRunControllerTest {
         val runningController = controller(
             grid = runningGrid,
             heroCount = 2,
-            objectiveHealth = 30,
+            heartHealth = 30,
         )
         assertTrue(
             runningController.placeOrRelocateHeart(
@@ -318,7 +318,7 @@ class PrototypeRunControllerTest {
         val runningController = controller(
             grid = runningGrid,
             heroCount = 2,
-            objectiveHealth = 30,
+            heartHealth = 30,
         )
         assertTrue(runningController.start())
 
@@ -366,8 +366,8 @@ class PrototypeRunControllerTest {
     private fun controller(
         grid: DungeonGrid,
         heroCount: Int,
-        objectiveHealth: Int = 10,
-        objectiveDamage: Int = 10,
+        heartHealth: Int = 10,
+        heartDamage: Int = 10,
     ) = PrototypeRunController(
         grid = grid,
         upcomingWave = UpcomingHeroWave(
@@ -375,12 +375,12 @@ class PrototypeRunControllerTest {
             heroDisplayName = "Militia Recruit",
             count = heroCount,
             heroHealth = 5,
-            objectiveDamage = objectiveDamage,
+            heartDamage = heartDamage,
             movementSpeedTilesPerSecond = 60f,
             traitDescription = "A straightforward melee fighter.",
         ),
         runDefinition = PrototypeRunDefinition(
-            objectiveHealth = objectiveHealth,
+            heartHealth = heartHealth,
         ),
     )
 

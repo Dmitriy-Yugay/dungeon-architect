@@ -41,7 +41,7 @@ object HeadlessScenarioEvaluator {
         val resolution = events.filterIsInstance<WaveResolved>().single()
         return WaveEvaluationReport(
             outcome = resolution.outcome,
-            objectiveHealth = resolution.objectiveHealth,
+            heartHealth = resolution.heartHealth,
             heroKills = events.count { it is HeroDied },
             heroArrivals = events.count { it is HeroArrived },
             elapsedSimulationSeconds =

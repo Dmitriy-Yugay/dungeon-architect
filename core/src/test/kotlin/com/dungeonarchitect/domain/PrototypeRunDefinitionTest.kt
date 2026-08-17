@@ -6,18 +6,18 @@ import kotlin.test.assertFailsWith
 
 class PrototypeRunDefinitionTest {
     @Test
-    fun `run definition stores objective health`() {
+    fun `run definition stores heart health`() {
         assertEquals(
             10,
-            PrototypeRunDefinition(objectiveHealth = 10).objectiveHealth,
+            PrototypeRunDefinition(heartHealth = 10).heartHealth,
         )
     }
 
     @Test
-    fun `run definition rejects non-positive objective health`() {
+    fun `run definition rejects non-positive heart health`() {
         listOf(0, -1).forEach { health ->
             assertFailsWith<IllegalArgumentException> {
-                PrototypeRunDefinition(objectiveHealth = health)
+                PrototypeRunDefinition(heartHealth = health)
             }
         }
     }

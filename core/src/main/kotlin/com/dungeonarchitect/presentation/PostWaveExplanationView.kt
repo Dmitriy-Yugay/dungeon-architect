@@ -8,21 +8,21 @@ data class PostWaveExplanationView(
     val headline: String,
     val explanation: String,
     val heroResultLabel: String,
-    val objectiveLabel: String,
+    val heartLabel: String,
     val trapResultLabel: String,
     val elapsedTimeLabel: String,
 ) {
     companion object {
         fun from(report: WaveEvaluationReport) = PostWaveExplanationView(
             headline = when (report.outcome) {
-                WaveOutcome.VICTORY -> "VICTORY - Objective secured"
-                WaveOutcome.DEFEAT -> "DEFEAT - Objective destroyed"
+                WaveOutcome.VICTORY -> "VICTORY - Heart secured"
+                WaveOutcome.DEFEAT -> "DEFEAT - Heart destroyed"
             },
             explanation = report.explanation(),
             heroResultLabel =
                 "Heroes: ${report.heroKills} defeated, " +
                     "${report.heroArrivals} arrived",
-            objectiveLabel = "Objective health: ${report.objectiveHealth}",
+            heartLabel = "Heart health: ${report.heartHealth}",
             trapResultLabel =
                 "Traps: ${report.trapActivations} activations, " +
                     "${report.trapDamage} damage",
@@ -36,14 +36,14 @@ data class PostWaveExplanationView(
         private fun WaveEvaluationReport.explanation(): String = when (outcome) {
             WaveOutcome.VICTORY -> if (heroArrivals == 0) {
                 "All $heroKills ${heroLabel(heroKills)} were defeated before " +
-                    "reaching the objective."
+                    "reaching the heart."
             } else {
-                "The objective survived with $objectiveHealth health after " +
+                "The heart survived with $heartHealth health after " +
                     "$heroArrivals ${heroLabel(heroArrivals)} arrived; " +
                     "$heroKills ${heroLabel(heroKills)} were defeated."
             }
             WaveOutcome.DEFEAT ->
-                "$heroArrivals ${heroLabel(heroArrivals)} reached the objective " +
+                "$heroArrivals ${heroLabel(heroArrivals)} reached the heart " +
                     "and reduced its health to 0; $heroKills " +
                     "${heroLabel(heroKills)} were defeated."
         }

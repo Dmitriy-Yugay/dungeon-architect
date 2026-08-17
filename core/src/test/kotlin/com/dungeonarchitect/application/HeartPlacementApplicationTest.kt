@@ -252,11 +252,11 @@ class HeartPlacementApplicationTest {
                     heroDisplayName = "Hero",
                     count = 1,
                     heroHealth = 1,
-                    objectiveDamage = 10,
+                    heartDamage = 10,
                     movementSpeedTilesPerSecond = 60f,
                     traitDescription = "Test hero.",
                 ),
-                runDefinition = PrototypeRunDefinition(objectiveHealth = 10),
+                runDefinition = PrototypeRunDefinition(heartHealth = 10),
             ),
         )
     }

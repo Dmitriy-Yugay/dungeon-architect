@@ -11,17 +11,17 @@ class PrototypeRunDefinitionParserTest {
     @Test
     fun `authored prototype run config parses without libGDX global state`() {
         assertEquals(
-            PrototypeRunDefinition(objectiveHealth = 10),
+            PrototypeRunDefinition(heartHealth = 10),
             PrototypeRunDefinitionParser.parse(authoredRunJson()),
         )
     }
 
     @Test
-    fun `parser rejects invalid objective health`() {
+    fun `parser rejects invalid heart health`() {
         listOf("0", "-1", "2.5", "\"healthy\"").forEach { health ->
             assertFailsWith<IllegalArgumentException> {
                 PrototypeRunDefinitionParser.parse(
-                    """{ "objectiveHealth": $health }""",
+                    """{ "heartHealth": $health }""",
                 )
             }
         }

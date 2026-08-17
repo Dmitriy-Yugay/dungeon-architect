@@ -213,7 +213,7 @@ class PrototypeScreenTest {
                   "heroDisplayName": "Militia Recruit",
                   "count": 4,
                   "heroHealth": 10,
-                  "objectiveDamage": 10,
+                  "heartDamage": 10,
                   "movementSpeedTilesPerSecond": 2.0,
                   "traitDescription": "A straightforward melee fighter."
                 }
@@ -293,11 +293,11 @@ class PrototypeScreenTest {
 
         val runDefinition = PrototypeScreen.loadRunDefinition { path ->
             requestedPath = path
-            """{ "objectiveHealth": 10 }"""
+            """{ "heartHealth": 10 }"""
         }
 
         assertEquals("content/prototype-run.json", requestedPath)
-        assertEquals(10, runDefinition.objectiveHealth)
+        assertEquals(10, runDefinition.heartHealth)
     }
 
     @Test
@@ -620,7 +620,7 @@ class PrototypeScreenTest {
         heroDisplayName = "Militia Recruit",
         count = 4,
         heroHealth = 10,
-        objectiveDamage = 10,
+        heartDamage = 10,
         movementSpeedTilesPerSecond = 2f,
         traitDescription = "A straightforward melee fighter.",
     )
@@ -628,7 +628,7 @@ class PrototypeScreenTest {
     private fun runController(grid: DungeonGrid) = PrototypeRunController(
         grid = grid,
         upcomingWave = upcomingWave(),
-        runDefinition = PrototypeRunDefinition(objectiveHealth = 10),
+        runDefinition = PrototypeRunDefinition(heartHealth = 10),
     )
 
     private fun trapDefinition() = TrapDefinition(

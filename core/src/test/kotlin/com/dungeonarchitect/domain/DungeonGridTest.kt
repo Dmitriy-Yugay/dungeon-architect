@@ -264,18 +264,18 @@ class DungeonGridTest {
             origin = GridPosition(column = 1, row = 1),
             doors = listOf(RoomDoor(GridPosition(0, 0), CardinalDirection.WEST)),
         )
-        val objectiveRoom = directionalRoom(
+        val heartRoom = directionalRoom(
             origin = GridPosition(column = 2, row = 1),
             doors = listOf(RoomDoor(GridPosition(0, 0), CardinalDirection.EAST)),
         )
         val grid = dungeonGrid(
             width = 4,
             entrance = GridPosition(column = 0, row = 1),
-            placedRooms = listOf(entranceRoom, objectiveRoom),
+            placedRooms = listOf(entranceRoom, heartRoom),
         )
 
         assertEquals(emptyList(), grid.roomDoorConnections)
-        assertTrue(grid.placeOrRelocateHeart(objectiveRoom))
+        assertTrue(grid.placeOrRelocateHeart(heartRoom))
         assertNull(grid.entranceToHeartRoute)
     }
 

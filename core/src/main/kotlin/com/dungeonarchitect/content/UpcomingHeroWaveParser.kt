@@ -20,7 +20,7 @@ object UpcomingHeroWaveParser {
             heroDisplayName = root.requiredString("heroDisplayName"),
             count = root.requiredInt("count"),
             heroHealth = root.requiredInt("heroHealth"),
-            objectiveDamage = root.requiredInt("objectiveDamage"),
+            heartDamage = root.requiredInt("heartDamage"),
             movementSpeedTilesPerSecond =
                 root.requiredFloat("movementSpeedTilesPerSecond"),
             traitDescription = root.requiredString("traitDescription"),

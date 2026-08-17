@@ -1,11 +1,11 @@
 package com.dungeonarchitect.domain
 
 data class PrototypeRunDefinition(
-    val objectiveHealth: Int,
+    val heartHealth: Int,
 ) {
     init {
-        require(objectiveHealth > 0) {
-            "The prototype objective's health must be positive."
+        require(heartHealth > 0) {
+            "The prototype heart's health must be positive."
         }
     }
 }

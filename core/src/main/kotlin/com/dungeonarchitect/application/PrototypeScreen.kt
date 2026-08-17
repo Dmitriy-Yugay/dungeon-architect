@@ -99,8 +99,8 @@ class PrototypeScreen(
             view = WavePanelView.from(
                 wave = upcomingWave,
                 phase = runController.phase,
-                objectiveHealth = runController.objectiveHealth,
-                objectiveMaxHealth = runController.objectiveMaxHealth,
+                heartHealth = runController.heartHealth,
+                heartMaxHealth = runController.heartMaxHealth,
                 isStartEnabled = runController.isStartEnabled,
                 isCancelEnabled = runController.isCancelEnabled,
             ),

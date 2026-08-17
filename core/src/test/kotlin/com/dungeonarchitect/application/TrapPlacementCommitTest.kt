@@ -377,11 +377,11 @@ class TrapPlacementCommitTest {
             heroDisplayName = "Militia Recruit",
             count = 1,
             heroHealth = 10,
-            objectiveDamage = 10,
+            heartDamage = 10,
             movementSpeedTilesPerSecond = 2f,
             traitDescription = "A straightforward melee fighter.",
         ),
-        runDefinition = PrototypeRunDefinition(objectiveHealth = 10),
+        runDefinition = PrototypeRunDefinition(heartHealth = 10),
     )
 
     private fun position(column: Int, row: Int) =

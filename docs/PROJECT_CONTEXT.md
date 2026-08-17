@@ -259,7 +259,7 @@ capacity rather than providing an immediate combat benefit in this milestone.
 61. [x] Add a heart-placement control, valid and invalid room hover feedback,
     and a distinct heart marker; ensure heart placement takes precedence over
     room and trap placement clicks, with presentation and application tests.
-62. [ ] Update objective damage, restart, authored scenario fixtures, headless
+62. [x] Update objective damage, restart, authored scenario fixtures, headless
     evaluation, reports, and determinism tests to use the selected heart without
     making simulation or domain code depend on rendering.
 63. [ ] Add an end-to-end application test for building a turned or branched

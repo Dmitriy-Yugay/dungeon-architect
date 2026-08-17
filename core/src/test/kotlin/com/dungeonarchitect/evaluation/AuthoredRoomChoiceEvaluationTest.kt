@@ -26,7 +26,7 @@ class AuthoredRoomChoiceEvaluationTest {
         assertEquals(
             WaveEvaluationReport(
                 outcome = WaveOutcome.VICTORY,
-                objectiveHealth = 10,
+                heartHealth = 10,
                 heroKills = 4,
                 heroArrivals = 0,
                 elapsedSimulationSeconds = fixedSteps(244),

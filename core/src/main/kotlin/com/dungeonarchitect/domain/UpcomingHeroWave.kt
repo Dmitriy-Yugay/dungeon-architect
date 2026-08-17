@@ -5,7 +5,7 @@ data class UpcomingHeroWave(
     val heroDisplayName: String,
     val count: Int,
     val heroHealth: Int,
-    val objectiveDamage: Int,
+    val heartDamage: Int,
     val movementSpeedTilesPerSecond: Float,
     val traitDescription: String,
 ) {
@@ -22,8 +22,8 @@ data class UpcomingHeroWave(
         require(heroHealth > 0) {
             "A hero wave's hero health must be positive."
         }
-        require(objectiveDamage > 0) {
-            "A hero wave's objective damage must be positive."
+        require(heartDamage > 0) {
+            "A hero wave's heart damage must be positive."
         }
         require(movementSpeedTilesPerSecond.isFinite() &&
             movementSpeedTilesPerSecond > 0f
