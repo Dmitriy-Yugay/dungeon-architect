@@ -24,6 +24,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNull
+import kotlin.test.assertSame
 import kotlin.test.assertTrue
 
 class PrototypeRunControllerTest {
@@ -221,6 +222,84 @@ class PrototypeRunControllerTest {
     }
 
     @Test
+    fun `heart placement and relocation are enabled only while building`() {
+        val buildingGrid = gridWithRoute()
+        val buildingController = controller(buildingGrid, heroCount = 1)
+        assertTrue(
+            buildingController.placeOrRelocateHeart(
+                buildingGrid.placedRooms.single(),
+            ),
+        )
+
+        val runningGrid = gridWithRoute()
+        val runningController = controller(
+            grid = runningGrid,
+            heroCount = 2,
+            objectiveHealth = 30,
+        )
+        assertTrue(
+            runningController.placeOrRelocateHeart(
+                runningGrid.placedRooms.single(),
+            ),
+        )
+        val runningHeart = requireNotNull(runningGrid.placedHeart)
+        assertTrue(runningController.start())
+
+        val victoryGrid = gridWithSeparateHeartAndLethalTrap()
+        val victoryController = controller(victoryGrid, heroCount = 1)
+        assertTrue(
+            victoryController.placeOrRelocateHeart(
+                victoryGrid.placedRooms.single(),
+            ),
+        )
+        val victoryHeart = requireNotNull(victoryGrid.placedHeart)
+        assertTrue(victoryController.start())
+        victoryController.advance(elapsedSeconds = fixedSteps(4))
+        assertEquals(PrototypeRunPhase.VICTORY, victoryController.phase)
+
+        val defeatGrid = gridWithRoute()
+        val defeatController = controller(defeatGrid, heroCount = 1)
+        assertTrue(
+            defeatController.placeOrRelocateHeart(
+                defeatGrid.placedRooms.single(),
+            ),
+        )
+        val defeatHeart = requireNotNull(defeatGrid.placedHeart)
+        assertTrue(defeatController.start())
+        defeatController.advance(elapsedSeconds = fixedSteps(2))
+        assertEquals(PrototypeRunPhase.DEFEAT, defeatController.phase)
+
+        listOf(
+            Triple(runningController, runningGrid, runningHeart),
+            Triple(victoryController, victoryGrid, victoryHeart),
+            Triple(defeatController, defeatGrid, defeatHeart),
+        ).forEach { (controller, grid, originalHeart) ->
+            assertFalse(
+                controller.placeOrRelocateHeart(grid.placedRooms.single()),
+                controller.phase.name,
+            )
+            assertSame(originalHeart, grid.placedHeart, controller.phase.name)
+        }
+    }
+
+    @Test
+    fun `restart preserves the placed heart with the persistent layout`() {
+        val grid = gridWithRoute()
+        val controller = controller(grid, heroCount = 1)
+        assertTrue(controller.placeOrRelocateHeart(grid.placedRooms.single()))
+        val placedHeart = requireNotNull(grid.placedHeart)
+        assertTrue(controller.start())
+        controller.advance(elapsedSeconds = fixedSteps(2))
+        assertEquals(PrototypeRunPhase.DEFEAT, controller.phase)
+
+        assertTrue(controller.restart())
+
+        assertEquals(PrototypeRunPhase.BUILDING, controller.phase)
+        assertSame(placedHeart, grid.placedHeart)
+        assertSame(grid.placedRooms.single(), grid.placedHeart?.room)
+    }
+
+    @Test
     fun `cancel delegates room removal while building`() {
         val grid = gridWithRoute()
         val controller = controller(grid = grid, heroCount = 1)
@@ -311,6 +390,51 @@ class PrototypeRunControllerTest {
             grid.placeTrap(
                 room = grid.placedRooms.single(),
                 localSocketPosition = GridPosition(column = 0, row = 0),
+                definition = TrapDefinition(
+                    id = "spike_trap",
+                    displayName = "Spike Trap",
+                    damage = 5,
+                    cooldownSeconds = 0.001f,
+                    compatibleSocketTypes = setOf(RoomSocketType.FLOOR),
+                ),
+            ),
+        )
+        return grid
+    }
+
+    private fun gridWithSeparateHeartAndLethalTrap(): DungeonGrid {
+        val trapSocket = GridPosition(column = 1, row = 0)
+        val room = PlacedRoom(
+            blueprint = RoomBlueprint(
+                id = "heart-and-trap-room",
+                displayName = "Heart and Trap Room",
+                heartAnchor = GridPosition(column = 0, row = 0),
+                footprint = setOf(
+                    GridPosition(column = 0, row = 0),
+                    trapSocket,
+                ),
+                doors = listOf(
+                    RoomDoor(
+                        GridPosition(column = 0, row = 0),
+                        CardinalDirection.WEST,
+                    ),
+                    RoomDoor(trapSocket, CardinalDirection.EAST),
+                ),
+                sockets = mapOf(trapSocket to RoomSocketType.FLOOR),
+            ),
+            origin = GridPosition(column = 1, row = 0),
+        )
+        val grid = DungeonGrid(
+            width = 4,
+            height = 1,
+            entrance = GridPosition(column = 0, row = 0),
+            objective = GridPosition(column = 3, row = 0),
+            placedRooms = listOf(room),
+        )
+        assertTrue(
+            grid.placeTrap(
+                room = room,
+                localSocketPosition = trapSocket,
                 definition = TrapDefinition(
                     id = "spike_trap",
                     displayName = "Spike Trap",

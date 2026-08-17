@@ -17,6 +17,7 @@ internal fun trapPlacementPreviewFor(
         isValid = true,
     )
     is TrapSocketHoverResult.Occupied,
+    is TrapSocketHoverResult.HeartOccupied,
     is TrapSocketHoverResult.Incompatible,
     -> TrapPlacementPreview(
         position = hoveredPosition,

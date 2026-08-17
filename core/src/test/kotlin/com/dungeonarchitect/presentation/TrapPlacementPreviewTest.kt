@@ -1,6 +1,7 @@
 package com.dungeonarchitect.presentation
 
 import com.dungeonarchitect.domain.GridPosition
+import com.dungeonarchitect.domain.PlacedDungeonHeart
 import com.dungeonarchitect.domain.PlacedRoom
 import com.dungeonarchitect.domain.PlacedTrap
 import com.dungeonarchitect.domain.RoomBlueprint
@@ -49,6 +50,23 @@ class TrapPlacementPreviewTest {
             trapPlacementPreviewFor(
                 hoverResult = TrapSocketHoverResult.Occupied(placedTrap),
                 hoveredPosition = placedTrap.gridPosition,
+            ),
+        )
+    }
+
+    @Test
+    fun `heart occupied socket maps to invalid preview`() {
+        val room = socketRoom(origin = position(4, 2))
+        val placedHeart = PlacedDungeonHeart(room)
+
+        assertEquals(
+            TrapPlacementPreview(
+                position = placedHeart.gridPosition,
+                isValid = false,
+            ),
+            trapPlacementPreviewFor(
+                hoverResult = TrapSocketHoverResult.HeartOccupied(placedHeart),
+                hoveredPosition = placedHeart.gridPosition,
             ),
         )
     }

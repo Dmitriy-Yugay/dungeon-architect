@@ -173,6 +173,26 @@ class TrapPlacementCommitTest {
     }
 
     @Test
+    fun `commit rejects a socket occupied by the dungeon heart`() {
+        val fixture = fixture()
+        assertTrue(fixture.grid.placeOrRelocateHeart(fixture.room))
+        val placedHeart = requireNotNull(fixture.grid.placedHeart)
+
+        assertEquals(
+            TrapPlacementCommitResult.REJECTED,
+            PrototypeScreen.commitTrapPlacement(
+                grid = fixture.grid,
+                buildState = fixture.buildState,
+                clickedPosition = position(4, 3),
+                runPhase = PrototypeRunPhase.BUILDING,
+            ),
+        )
+
+        assertEquals(emptyList(), fixture.grid.placedTraps)
+        assertSame(placedHeart, fixture.grid.placedHeart)
+    }
+
+    @Test
     fun `commit rejects a valid socket outside building phase`() {
         listOf(
             PrototypeRunPhase.RUNNING,
@@ -300,7 +320,7 @@ class TrapPlacementCommitTest {
             blueprint = RoomBlueprint(
                 id = "socket-room",
                 displayName = "Socket Room",
-                heartAnchor = GridPosition(column = 0, row = 0),
+                heartAnchor = FLOOR_SOCKET,
                 footprint = setOf(
                     position(0, 0),
                     position(1, 0),

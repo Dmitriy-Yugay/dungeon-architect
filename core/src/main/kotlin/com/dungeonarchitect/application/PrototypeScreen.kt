@@ -260,6 +260,7 @@ class PrototypeScreen(
                         TrapPlacementCommitResult.REJECTED
                     }
                 is TrapSocketHoverResult.Occupied,
+                is TrapSocketHoverResult.HeartOccupied,
                 is TrapSocketHoverResult.Incompatible,
                 -> TrapPlacementCommitResult.REJECTED
                 TrapSocketHoverResult.NonSocket ->

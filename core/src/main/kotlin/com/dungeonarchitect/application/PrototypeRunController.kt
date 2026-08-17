@@ -1,6 +1,7 @@
 package com.dungeonarchitect.application
 
 import com.dungeonarchitect.domain.DungeonGrid
+import com.dungeonarchitect.domain.PlacedRoom
 import com.dungeonarchitect.domain.PrototypeHeroState
 import com.dungeonarchitect.domain.PrototypeRunDefinition
 import com.dungeonarchitect.domain.PrototypeRunPhase
@@ -77,6 +78,14 @@ class PrototypeRunController(
         }
 
         return grid.cancelLastPlacedRoom()
+    }
+
+    fun placeOrRelocateHeart(room: PlacedRoom): Boolean {
+        if (phase != PrototypeRunPhase.BUILDING) {
+            return false
+        }
+
+        return grid.placeOrRelocateHeart(room)
     }
 
     fun advance(elapsedSeconds: Float) {

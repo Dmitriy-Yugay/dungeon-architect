@@ -13,11 +13,14 @@ class DungeonGrid(
 ) {
     private val mutablePlacedRooms = placedRooms.toMutableList()
     private val mutablePlacedTraps = mutableListOf<PlacedTrap>()
+    private var mutablePlacedHeart: PlacedDungeonHeart? = null
 
     val placedRooms: List<PlacedRoom>
         get() = mutablePlacedRooms.toList()
     val placedTraps: List<PlacedTrap>
         get() = mutablePlacedTraps.toList()
+    val placedHeart: PlacedDungeonHeart?
+        get() = mutablePlacedHeart
     val walkablePositions: Set<GridPosition>
         get() = buildSet {
             mutablePlacedRooms.forEach { addAll(it.gridPositions) }
@@ -115,7 +118,25 @@ class DungeonGrid(
         val room = mutablePlacedRooms.lastOrNull() ?: return false
 
         mutablePlacedTraps.removeAll { trap -> trap.room == room }
+        if (mutablePlacedHeart?.room === room) {
+            mutablePlacedHeart = null
+        }
         mutablePlacedRooms.removeLast()
+        return true
+    }
+
+    fun placeOrRelocateHeart(room: PlacedRoom): Boolean {
+        val placedRoom = mutablePlacedRooms.firstOrNull { it === room }
+            ?: return false
+        val candidate = PlacedDungeonHeart(placedRoom)
+        if (mutablePlacedTraps.any { it.gridPosition == candidate.gridPosition }) {
+            return false
+        }
+        if (mutablePlacedHeart?.room === placedRoom) {
+            return true
+        }
+
+        mutablePlacedHeart = candidate
         return true
     }
 
@@ -134,7 +155,9 @@ class DungeonGrid(
         }
 
         val gridPosition = room.toGridPosition(localSocketPosition)
-        if (mutablePlacedTraps.any { it.gridPosition == gridPosition }) {
+        if (mutablePlacedTraps.any { it.gridPosition == gridPosition } ||
+            mutablePlacedHeart?.gridPosition == gridPosition
+        ) {
             return false
         }
 
@@ -172,6 +195,10 @@ class DungeonGrid(
         }
         if (placedTrap != null) {
             return TrapSocketHoverResult.Occupied(placedTrap)
+        }
+        val placedHeart = mutablePlacedHeart
+        if (placedHeart?.gridPosition == hoveredPosition) {
+            return TrapSocketHoverResult.HeartOccupied(placedHeart)
         }
 
         return TrapSocketHoverResult.Valid(

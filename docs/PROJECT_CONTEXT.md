@@ -249,7 +249,7 @@ capacity rather than providing an immediate combat benefit in this milestone.
 58. [x] Add a required local heart anchor to room-blueprint content and validate
     that it occupies a footprint cell; update the JSON parser, authored rooms,
     rotation transformation, and parser/domain tests.
-59. [ ] Add immutable placed-heart state and build-phase operations to place or
+59. [x] Add immutable placed-heart state and build-phase operations to place or
     relocate it to any placed room, reject invalid targets, and unplace it when
     its room is canceled; test occupancy and phase rules without rendering.
 60. [ ] Replace the fixed objective port in routing and wave-start validation

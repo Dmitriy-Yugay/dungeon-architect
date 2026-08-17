@@ -10,6 +10,10 @@ sealed interface TrapSocketHoverResult {
         val placedTrap: PlacedTrap,
     ) : TrapSocketHoverResult
 
+    data class HeartOccupied(
+        val placedHeart: PlacedDungeonHeart,
+    ) : TrapSocketHoverResult
+
     data class Incompatible(
         val socketType: RoomSocketType,
     ) : TrapSocketHoverResult
