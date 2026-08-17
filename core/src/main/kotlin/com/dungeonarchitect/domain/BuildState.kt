@@ -15,6 +15,9 @@ class BuildState(
     var selectedRoomOrientation: RoomOrientation = selectedRoomOrientation
         private set
 
+    var isHeartPlacementModeActive: Boolean = false
+        private set
+
     init {
         require(this.availableRoomBlueprints.isNotEmpty()) {
             "Build state must contain at least one available room blueprint."
@@ -47,5 +50,13 @@ class BuildState(
 
     fun rotateSelectedRoomCounterClockwise() {
         selectedRoomOrientation = selectedRoomOrientation.rotateCounterClockwise()
+    }
+
+    fun toggleHeartPlacementMode() {
+        isHeartPlacementModeActive = !isHeartPlacementModeActive
+    }
+
+    fun deactivateHeartPlacementMode() {
+        isHeartPlacementModeActive = false
     }
 }

@@ -36,9 +36,9 @@ class RoomChoicesRendererTest {
                         isSelected = true,
                     ),
                     bounds = ControlBounds(
-                        x = 312f,
+                        x = 248f,
                         y = 592f,
-                        width = 144f,
+                        width = 112f,
                         height = 48f,
                     ),
                 ),
@@ -49,9 +49,9 @@ class RoomChoicesRendererTest {
                         isSelected = false,
                     ),
                     bounds = ControlBounds(
-                        x = 464f,
+                        x = 368f,
                         y = 592f,
-                        width = 144f,
+                        width = 112f,
                         height = 48f,
                     ),
                 ),

@@ -76,15 +76,17 @@ class RoomRotationControlsTest {
         val cancel = WavePanelLayout.cancelButtonBounds(WORLD_WIDTH, PANEL_BOTTOM)
         val start = WavePanelLayout.startButtonBounds(WORLD_WIDTH, PANEL_BOTTOM)
 
-        assertEquals(listOf(40f, 96f), rotationControls.map { it.bounds.x })
+        assertEquals(listOf(8f, 64f), rotationControls.map { it.bounds.x })
         assertTrue(
             rotationControls.last().bounds.right < roomControls.first().bounds.x,
         )
-        assertTrue(roomControls.last().bounds.right < cancel.x)
+        val heart = HeartPlacementLayout.bounds(WORLD_WIDTH, PANEL_BOTTOM)
+        assertTrue(roomControls.last().bounds.right < heart.x)
+        assertTrue(heart.right < cancel.x)
         assertTrue(cancel.right < start.x)
         assertFalse(rotationControls[0].bounds.overlaps(rotationControls[1].bounds))
         val allBounds = rotationControls.map { it.bounds } +
-            roomControls.map { it.bounds } + listOf(cancel, start)
+            roomControls.map { it.bounds } + listOf(heart, cancel, start)
         assertTrue(allBounds.all { bounds ->
             bounds.x >= 0f && bounds.right <= WORLD_WIDTH
         })

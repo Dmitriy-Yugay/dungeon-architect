@@ -114,18 +114,38 @@ class DungeonGrid(
     }
 
     fun placeOrRelocateHeart(room: PlacedRoom): Boolean {
-        val placedRoom = mutablePlacedRooms.firstOrNull { it === room }
-            ?: return false
-        val candidate = PlacedDungeonHeart(placedRoom)
-        if (mutablePlacedTraps.any { it.gridPosition == candidate.gridPosition }) {
+        if (!canPlaceOrRelocateHeart(room)) {
             return false
         }
-        if (mutablePlacedHeart?.room === placedRoom) {
+        if (mutablePlacedHeart?.room === room) {
             return true
         }
 
-        mutablePlacedHeart = candidate
+        mutablePlacedHeart = PlacedDungeonHeart(room)
         return true
+    }
+
+    fun canPlaceOrRelocateHeart(room: PlacedRoom): Boolean =
+        mutablePlacedRooms.any { it === room } &&
+            mutablePlacedTraps.none { trap ->
+                trap.gridPosition == room.toGridPosition(room.geometry.heartAnchor)
+            }
+
+    fun heartPlacementPreview(
+        hoveredPosition: GridPosition,
+    ): HeartPlacementPreview {
+        val room = mutablePlacedRooms.firstOrNull { placedRoom ->
+            hoveredPosition in placedRoom.gridPositions
+        } ?: return HeartPlacementPreview(
+            room = null,
+            position = hoveredPosition,
+            isValid = false,
+        )
+        return HeartPlacementPreview(
+            room = room,
+            position = room.toGridPosition(room.geometry.heartAnchor),
+            isValid = canPlaceOrRelocateHeart(room),
+        )
     }
 
     fun placeTrap(

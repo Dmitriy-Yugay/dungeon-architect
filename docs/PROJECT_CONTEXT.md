@@ -256,7 +256,7 @@ capacity rather than providing an immediate combat benefit in this milestone.
     with the placed heart, while keeping the entrance fixed; test missing-heart,
     disconnected-heart, connected-heart, relocated-heart, and branched-layout
     routes.
-61. [ ] Add a heart-placement control, valid and invalid room hover feedback,
+61. [x] Add a heart-placement control, valid and invalid room hover feedback,
     and a distinct heart marker; ensure heart placement takes precedence over
     room and trap placement clicks, with presentation and application tests.
 62. [ ] Update objective damage, restart, authored scenario fixtures, headless
