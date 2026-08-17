@@ -10,11 +10,10 @@ import kotlin.test.assertTrue
 
 class DungeonGridTest {
     @Test
-    fun `grid exposes its entrance and objective`() {
+    fun `grid exposes its entrance`() {
         val grid = dungeonGrid()
 
         assertEquals(TileType.ENTRANCE, grid.tileAt(grid.entrance))
-        assertEquals(TileType.OBJECTIVE, grid.tileAt(grid.objective))
         assertEquals(TileType.EMPTY, grid.tileAt(column = 1, row = 1))
     }
 
@@ -32,11 +31,10 @@ class DungeonGridTest {
     }
 
     @Test
-    fun `grid rejects a room covering an endpoint`() {
+    fun `grid rejects a room covering the entrance`() {
         assertFailsWith<IllegalArgumentException> {
             dungeonGrid(
                 entrance = GridPosition(column = 1, row = 0),
-                objective = GridPosition(column = 2, row = 0),
                 placedRooms = listOf(
                     placedRoom(origin = GridPosition(column = 1, row = 0)),
                 ),
@@ -66,18 +64,9 @@ class DungeonGridTest {
     }
 
     @Test
-    fun `grid rejects invalid special tile positions`() {
+    fun `grid rejects an invalid entrance position`() {
         assertFailsWith<IllegalArgumentException> {
             dungeonGrid(entrance = GridPosition(column = -1, row = 0))
-        }
-        assertFailsWith<IllegalArgumentException> {
-            dungeonGrid(objective = GridPosition(column = 4, row = 2))
-        }
-        assertFailsWith<IllegalArgumentException> {
-            dungeonGrid(
-                entrance = GridPosition(column = 0, row = 1),
-                objective = GridPosition(column = 0, row = 1),
-            )
         }
     }
 
@@ -126,32 +115,32 @@ class DungeonGridTest {
     }
 
     @Test
-    fun `route connects entrance to objective through room positions including endpoints`() {
-        val grid = dungeonGrid(
-            width = 5,
-            entrance = GridPosition(column = 0, row = 1),
-            objective = GridPosition(column = 4, row = 1),
-            placedRooms = listOf(
-                placedRoom(
-                    origin = GridPosition(column = 1, row = 1),
-                    footprint = setOf(
-                        GridPosition(column = 0, row = 0),
-                        GridPosition(column = 1, row = 0),
-                        GridPosition(column = 2, row = 0),
-                    ),
-                    doors = listOf(
-                        RoomDoor(
-                            position = GridPosition(column = 0, row = 0),
-                            facing = CardinalDirection.WEST,
-                        ),
-                        RoomDoor(
-                            position = GridPosition(column = 2, row = 0),
-                            facing = CardinalDirection.EAST,
-                        ),
-                    ),
+    fun `route connects entrance to the placed heart through room positions`() {
+        val room = placedRoom(
+            origin = GridPosition(column = 1, row = 1),
+            footprint = setOf(
+                GridPosition(column = 0, row = 0),
+                GridPosition(column = 1, row = 0),
+                GridPosition(column = 2, row = 0),
+            ),
+            heartAnchor = GridPosition(column = 2, row = 0),
+            doors = listOf(
+                RoomDoor(
+                    position = GridPosition(column = 0, row = 0),
+                    facing = CardinalDirection.WEST,
+                ),
+                RoomDoor(
+                    position = GridPosition(column = 2, row = 0),
+                    facing = CardinalDirection.EAST,
                 ),
             ),
         )
+        val grid = dungeonGrid(
+            width = 5,
+            entrance = GridPosition(column = 0, row = 1),
+            placedRooms = listOf(room),
+        )
+        assertTrue(grid.placeOrRelocateHeart(room))
 
         assertEquals(
             listOf(
@@ -159,29 +148,33 @@ class DungeonGridTest {
                 GridPosition(column = 1, row = 1),
                 GridPosition(column = 2, row = 1),
                 GridPosition(column = 3, row = 1),
-                grid.objective,
             ),
-            grid.entranceToObjectiveRoute,
+            grid.entranceToHeartRoute,
         )
     }
 
     @Test
-    fun `route is absent when room positions leave a gap`() {
+    fun `route is absent when room connections leave a gap to the heart`() {
+        val entranceRoom = placedRoom(origin = GridPosition(column = 1, row = 1))
+        val heartRoom = directionalRoom(
+            origin = GridPosition(column = 4, row = 1),
+            doors = listOf(
+                RoomDoor(GridPosition(column = 0, row = 0), CardinalDirection.WEST),
+            ),
+        )
         val grid = dungeonGrid(
-            width = 5,
+            width = 6,
             entrance = GridPosition(column = 0, row = 1),
-            objective = GridPosition(column = 4, row = 1),
-            placedRooms = listOf(
-                placedRoom(origin = GridPosition(column = 1, row = 1)),
-            ),
+            placedRooms = listOf(entranceRoom, heartRoom),
         )
+        assertTrue(grid.placeOrRelocateHeart(heartRoom))
 
-        assertNull(grid.entranceToObjectiveRoute)
+        assertNull(grid.entranceToHeartRoute)
     }
 
     @Test
-    fun `route is absent before rooms connect its endpoints`() {
-        assertNull(dungeonGrid().entranceToObjectiveRoute)
+    fun `route is absent before a heart is placed`() {
+        assertNull(dungeonGrid().entranceToHeartRoute)
     }
 
     @Test
@@ -278,12 +271,12 @@ class DungeonGridTest {
         val grid = dungeonGrid(
             width = 4,
             entrance = GridPosition(column = 0, row = 1),
-            objective = GridPosition(column = 3, row = 1),
             placedRooms = listOf(entranceRoom, objectiveRoom),
         )
 
         assertEquals(emptyList(), grid.roomDoorConnections)
-        assertNull(grid.entranceToObjectiveRoute)
+        assertTrue(grid.placeOrRelocateHeart(objectiveRoom))
+        assertNull(grid.entranceToHeartRoute)
     }
 
     @Test
@@ -305,18 +298,17 @@ class DungeonGridTest {
         val grid = dungeonGrid(
             width = 4,
             entrance = GridPosition(column = 0, row = 1),
-            objective = GridPosition(column = 3, row = 1),
             placedRooms = listOf(firstRoom, secondRoom),
         )
+        assertTrue(grid.placeOrRelocateHeart(secondRoom))
 
         assertEquals(
             listOf(
                 GridPosition(column = 0, row = 1),
                 GridPosition(column = 1, row = 1),
                 GridPosition(column = 2, row = 1),
-                GridPosition(column = 3, row = 1),
             ),
-            grid.entranceToObjectiveRoute,
+            grid.entranceToHeartRoute,
         )
     }
 
@@ -332,7 +324,6 @@ class DungeonGridTest {
         val grid = dungeonGrid(
             width = 5,
             entrance = GridPosition(column = 0, row = 1),
-            objective = GridPosition(column = 4, row = 1),
             placedRooms = listOf(firstRoom),
         )
         val secondRoom = directionalRoom(
@@ -363,7 +354,6 @@ class DungeonGridTest {
             doors = listOf(RoomDoor(GridPosition(0, 0), CardinalDirection.EAST)),
         )
         val grid = dungeonGrid(
-            objective = GridPosition(column = 3, row = 2),
             placedRooms = listOf(firstRoom, secondRoom),
         )
 
@@ -384,7 +374,6 @@ class DungeonGridTest {
         val grid = dungeonGrid(
             width = 6,
             entrance = GridPosition(column = 0, row = 0),
-            objective = GridPosition(column = 5, row = 2),
             placedRooms = listOf(leftRoom, rightRoom),
         )
         val bridge = directionalRoom(
@@ -499,7 +488,7 @@ class DungeonGridTest {
         assertEquals(emptyList(), grid.placedRooms)
         assertEquals(emptySet(), grid.walkablePositions)
         assertEquals(emptySet(), grid.openRoomDoors)
-        assertNull(grid.entranceToObjectiveRoute)
+        assertNull(grid.entranceToHeartRoute)
     }
 
     @Test
@@ -539,11 +528,18 @@ class DungeonGridTest {
         val grid = dungeonGrid(
             width = 4,
             entrance = GridPosition(column = 0, row = 1),
-            objective = GridPosition(column = 3, row = 1),
             placedRooms = listOf(firstRoom, secondRoom),
         )
-        assertTrue(grid.entranceToObjectiveRoute != null)
-        assertEquals(emptySet(), grid.openRoomDoors)
+        assertTrue(grid.placeOrRelocateHeart(secondRoom))
+        assertTrue(grid.entranceToHeartRoute != null)
+        assertEquals(
+            setOf(
+                secondRoom.doors.single {
+                    it.door.facing == CardinalDirection.EAST
+                },
+            ),
+            grid.openRoomDoors,
+        )
 
         assertTrue(grid.cancelLastPlacedRoom())
 
@@ -558,7 +554,7 @@ class DungeonGridTest {
             grid.openRoomDoors,
         )
         assertEquals(emptyList(), grid.roomDoorConnections)
-        assertNull(grid.entranceToObjectiveRoute)
+        assertNull(grid.entranceToHeartRoute)
     }
 
     @Test
@@ -580,7 +576,6 @@ class DungeonGridTest {
         val grid = dungeonGrid(
             width = 4,
             entrance = GridPosition(column = 0, row = 1),
-            objective = GridPosition(column = 3, row = 1),
             placedRooms = listOf(firstRoom, secondRoom),
         )
         assertTrue(grid.placeTrap(firstRoom, GridPosition(0, 0), trapDefinition()))
@@ -669,19 +664,18 @@ class DungeonGridTest {
         width: Int = 4,
         height: Int = 3,
         entrance: GridPosition = GridPosition(column = 0, row = 1),
-        objective: GridPosition = GridPosition(column = width - 1, row = 1),
         placedRooms: List<PlacedRoom> = emptyList(),
     ) = DungeonGrid(
         width = width,
         height = height,
         entrance = entrance,
-        objective = objective,
         placedRooms = placedRooms,
     )
 
     private fun placedRoom(
         origin: GridPosition,
         doorPosition: GridPosition = GridPosition(column = 0, row = 0),
+        heartAnchor: GridPosition = GridPosition(column = 0, row = 0),
         footprint: Set<GridPosition> = setOf(
             GridPosition(column = 0, row = 0),
             GridPosition(column = 1, row = 0),
@@ -692,14 +686,14 @@ class DungeonGridTest {
             RoomBlueprint(
                 id = "test-room",
                 displayName = "Test Room",
-                heartAnchor = GridPosition(column = 0, row = 0),
+                heartAnchor = heartAnchor,
                 footprint = footprint,
                 doors = it,
             )
         } ?: RoomBlueprint(
             id = "test-room",
             displayName = "Test Room",
-            heartAnchor = GridPosition(column = 0, row = 0),
+            heartAnchor = heartAnchor,
             footprint = footprint,
             doorPositions = setOf(doorPosition),
         ),

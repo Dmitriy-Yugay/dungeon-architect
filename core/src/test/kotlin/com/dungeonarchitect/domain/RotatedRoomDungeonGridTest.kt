@@ -30,7 +30,6 @@ class RotatedRoomDungeonGridTest {
             width = 5,
             height = 5,
             entrance = position(0, 0),
-            objective = position(4, 4),
             placedRooms = listOf(room),
         )
         val trap = floorTrap()
@@ -53,7 +52,6 @@ class RotatedRoomDungeonGridTest {
             width = 5,
             height = 5,
             entrance = position(0, 0),
-            objective = position(4, 4),
             placedRooms = listOf(existingRoom),
         )
 
@@ -85,7 +83,6 @@ class RotatedRoomDungeonGridTest {
             width = 5,
             height = 4,
             entrance = position(0, 0),
-            objective = position(4, 0),
             placedRooms = listOf(existingRoom),
         )
 
@@ -129,11 +126,10 @@ class RotatedRoomDungeonGridTest {
             width = 5,
             height = 5,
             entrance = position(2, 0),
-            objective = position(2, 4),
             entranceFacing = CardinalDirection.NORTH,
-            objectiveFacing = CardinalDirection.SOUTH,
             placedRooms = listOf(room),
         )
+        assertTrue(grid.placeOrRelocateHeart(room))
 
         assertEquals(
             listOf(
@@ -141,9 +137,8 @@ class RotatedRoomDungeonGridTest {
                 position(2, 1),
                 position(2, 2),
                 position(2, 3),
-                position(2, 4),
             ),
-            grid.entranceToObjectiveRoute,
+            grid.entranceToHeartRoute,
         )
     }
 

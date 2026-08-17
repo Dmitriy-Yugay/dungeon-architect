@@ -24,7 +24,7 @@ object HeadlessScenarioEvaluator {
             runDefinition = runDefinition,
         )
         require(controller.start()) {
-            "A headless scenario requires a route from entrance to objective."
+            "A headless scenario requires a route from entrance to the heart."
         }
 
         var completedSteps = 0L

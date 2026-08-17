@@ -188,29 +188,32 @@ class RoomRotationApplicationTest {
         width = 5,
         height = 5,
         entrance = position(2, 0),
-        objective = position(4, 4),
         entranceFacing = CardinalDirection.NORTH,
     )
 
     private fun readySocketGrid(): DungeonGrid {
+        val trapSocket = position(0, 0)
+        val heartAnchor = position(1, 0)
         val blueprint = RoomBlueprint(
             id = "ready-room",
             displayName = "Ready Room",
-            heartAnchor = GridPosition(column = 0, row = 0),
-            footprint = setOf(position(0, 0)),
+            heartAnchor = heartAnchor,
+            footprint = setOf(trapSocket, heartAnchor),
             doors = listOf(
-                RoomDoor(position(0, 0), CardinalDirection.WEST),
-                RoomDoor(position(0, 0), CardinalDirection.EAST),
+                RoomDoor(trapSocket, CardinalDirection.WEST),
+                RoomDoor(heartAnchor, CardinalDirection.EAST),
             ),
-            sockets = mapOf(position(0, 0) to RoomSocketType.FLOOR),
+            sockets = mapOf(trapSocket to RoomSocketType.FLOOR),
         )
+        val room = PlacedRoom(blueprint, position(1, 0))
         return DungeonGrid(
             width = 3,
             height = 1,
             entrance = position(0, 0),
-            objective = position(2, 0),
-            placedRooms = listOf(PlacedRoom(blueprint, position(1, 0))),
-        )
+            placedRooms = listOf(room),
+        ).also { grid ->
+            assertTrue(grid.placeOrRelocateHeart(room))
+        }
     }
 
     private fun horizontalBlueprint() = RoomBlueprint(

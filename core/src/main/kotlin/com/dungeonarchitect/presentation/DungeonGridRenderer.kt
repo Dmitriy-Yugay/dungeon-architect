@@ -225,7 +225,6 @@ class DungeonGridRenderer : Disposable {
             TileType.EMPTY -> EMPTY_TILE_COLOR
             TileType.ROOM -> ROOM_COLOR
             TileType.ENTRANCE -> ENTRANCE_COLOR
-            TileType.OBJECTIVE -> OBJECTIVE_COLOR
         }
 
     private companion object {
@@ -245,7 +244,6 @@ class DungeonGridRenderer : Disposable {
         val EMPTY_TILE_COLOR = Color.valueOf("252B33")
         val ROOM_COLOR = Color.valueOf("5D6D7E")
         val ENTRANCE_COLOR = Color.valueOf("3A9D5D")
-        val OBJECTIVE_COLOR = Color.valueOf("B84B4B")
         val VALID_PREVIEW_COLOR = Color.valueOf("4EA86B")
         val INVALID_PREVIEW_COLOR = Color.valueOf("D85C5C")
         val OPEN_DOOR_MARKER_COLOR = Color.valueOf("F0A44B")

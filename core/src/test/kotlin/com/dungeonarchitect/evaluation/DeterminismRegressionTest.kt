@@ -49,7 +49,7 @@ class DeterminismRegressionTest {
                 objectiveHealth = 6,
                 heroKills = 1,
                 heroArrivals = 1,
-                elapsedSimulationSeconds = elapsedSteps(5),
+                elapsedSimulationSeconds = elapsedSteps(4),
                 trapActivations = 1,
                 trapDamage = 5,
             ),
@@ -80,7 +80,7 @@ class DeterminismRegressionTest {
                 HeroDamaged(1, TRAP_ID, damage = 5, remainingHealth = 0),
                 HeroDied(1, heroPosition(1)),
                 HeroSpawned(2, HERO_TYPE, heroPosition(0), health = 5),
-                HeroArrived(2, heroPosition(3)),
+                HeroArrived(2, heroPosition(2)),
                 ObjectiveDamaged(2, damage = 4, remainingHealth = 6),
                 WaveResolved(WaveOutcome.VICTORY, objectiveHealth = 6),
             ),
@@ -94,13 +94,12 @@ class DeterminismRegressionTest {
             width = 4,
             height = 1,
             entrance = GridPosition(0, 0),
-            objective = GridPosition(3, 0),
             placedRooms = listOf(
                 PlacedRoom(
                     blueprint = RoomBlueprint(
                         id = "cooldown-room",
                         displayName = "Cooldown Room",
-                        heartAnchor = GridPosition(column = 0, row = 0),
+                        heartAnchor = GridPosition(column = 1, row = 0),
                         footprint = setOf(
                             GridPosition(0, 0),
                             GridPosition(1, 0),
@@ -115,6 +114,7 @@ class DeterminismRegressionTest {
                 ),
             ),
         )
+        assertTrue(grid.placeOrRelocateHeart(grid.placedRooms.single()))
         assertTrue(
             grid.placeTrap(
                 room = grid.placedRooms.single(),

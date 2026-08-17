@@ -81,7 +81,6 @@ class CornerRoomPlacementTest {
         width = 12,
         height = 12,
         entrance = position(0, 0),
-        objective = position(11, 11),
         placedRooms = listOf(room),
     )
 

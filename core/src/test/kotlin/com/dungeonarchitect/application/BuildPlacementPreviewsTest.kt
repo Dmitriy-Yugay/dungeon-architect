@@ -126,7 +126,6 @@ class BuildPlacementPreviewsTest {
                 width = 10,
                 height = 8,
                 entrance = position(0, 0),
-                objective = position(9, 7),
                 placedRooms = listOf(room),
             ),
             buildState = BuildState(

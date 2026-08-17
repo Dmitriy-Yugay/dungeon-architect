@@ -116,7 +116,6 @@ class DungeonHeartPlacementTest {
         width = 12,
         height = 8,
         entrance = position(0, 0),
-        objective = position(11, 7),
         placedRooms = rooms.toList(),
     )
 

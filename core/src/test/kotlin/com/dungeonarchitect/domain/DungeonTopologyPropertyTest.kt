@@ -53,8 +53,8 @@ class DungeonTopologyPropertyTest : FunSpec({
 
             assertFalse(routeRoom in layout.grid.placedRooms)
             assertTrue(routeParentDoor in layout.grid.openRoomDoors)
-            assertNull(layout.grid.objectiveDoor)
-            assertNull(layout.grid.entranceToObjectiveRoute)
+            assertNull(layout.grid.placedHeart)
+            assertNull(layout.grid.entranceToHeartRoute)
             assertTrue(routeRoom.gridPositions.any { it in layout.mainRoute })
             assertConnectionInvariants(layout.grid)
         }
@@ -86,11 +86,6 @@ private fun buildLayout(scenario: TopologyScenario): GeneratedLayout {
         width = scenario.horizontalLength + 2,
         height = MAIN_ROW + scenario.verticalLength + 2,
         entrance = position(0, MAIN_ROW),
-        objective = position(
-            scenario.horizontalLength,
-            MAIN_ROW + scenario.verticalLength + 1,
-        ),
-        objectiveFacing = CardinalDirection.SOUTH,
     )
     val mainRooms = buildList {
         (1..scenario.horizontalLength).forEach { column ->
@@ -128,7 +123,8 @@ private fun buildLayout(scenario: TopologyScenario): GeneratedLayout {
             )
         }
     }
-    val mainRoute = requireNotNull(grid.entranceToObjectiveRoute)
+    assertTrue(grid.placeOrRelocateHeart(mainRooms.last()))
+    val mainRoute = requireNotNull(grid.entranceToHeartRoute)
     val branchPlacements = buildList {
         scenario.branchLengths.forEachIndexed { branchIndex, branchLength ->
             val branchColumn = branchIndex + 1
@@ -229,11 +225,11 @@ private fun assertRouteInvariants(
     grid: DungeonGrid,
     expectedRoute: List<GridPosition>,
 ) {
-    val route = requireNotNull(grid.entranceToObjectiveRoute)
+    val route = requireNotNull(grid.entranceToHeartRoute)
     assertEquals(expectedRoute, route)
     assertEquals(grid.entrance, route.first())
-    assertEquals(grid.objective, route.last())
-    assertTrue(route.drop(1).dropLast(1).all { it in grid.walkablePositions })
+    assertEquals(grid.placedHeart?.gridPosition, route.last())
+    assertTrue(route.drop(1).all { it in grid.walkablePositions })
     assertTrue(
         route.zipWithNext().all { (first, second) ->
             manhattanDistance(first, second) == 1

@@ -12,14 +12,14 @@ class WaveStartController(
         private set
 
     val isStartEnabled: Boolean
-        get() = startedWave == null && grid.entranceToObjectiveRoute != null
+        get() = startedWave == null && grid.entranceToHeartRoute != null
 
     fun start(): Boolean {
         if (startedWave != null) {
             return false
         }
 
-        val route = grid.entranceToObjectiveRoute ?: return false
+        val route = grid.entranceToHeartRoute ?: return false
         startedWave = StartedHeroWave(
             wave = upcomingWave,
             route = route,

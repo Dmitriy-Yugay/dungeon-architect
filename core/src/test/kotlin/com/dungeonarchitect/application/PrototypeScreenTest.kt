@@ -32,7 +32,7 @@ class PrototypeScreenTest {
 
         assertEquals(emptyList(), grid.placedRooms)
         assertEquals(emptySet(), grid.walkablePositions)
-        assertNull(grid.entranceToObjectiveRoute)
+        assertNull(grid.entranceToHeartRoute)
     }
 
     @Test
@@ -532,29 +532,31 @@ class PrototypeScreenTest {
         assertEquals(PrototypeRunPhase.BUILDING, controller.phase)
     }
 
-    private fun readyGrid() = DungeonGrid(
-        width = 3,
-        height = 2,
-        entrance = GridPosition(column = 0, row = 0),
-        objective = GridPosition(column = 2, row = 0),
-        placedRooms = listOf(
-            PlacedRoom(
-                blueprint = RoomBlueprint(
-                    id = "test-room",
-                    displayName = "Test Room",
-                    heartAnchor = GridPosition(column = 0, row = 0),
-                    footprint = setOf(GridPosition(column = 0, row = 0)),
-                    doors = CardinalDirection.entries.map { facing ->
-                        RoomDoor(
-                            position = GridPosition(column = 0, row = 0),
-                            facing = facing,
-                        )
-                    },
-                ),
-                origin = GridPosition(column = 1, row = 0),
+    private fun readyGrid(): DungeonGrid {
+        val room = PlacedRoom(
+            blueprint = RoomBlueprint(
+                id = "test-room",
+                displayName = "Test Room",
+                heartAnchor = GridPosition(column = 0, row = 0),
+                footprint = setOf(GridPosition(column = 0, row = 0)),
+                doors = CardinalDirection.entries.map { facing ->
+                    RoomDoor(
+                        position = GridPosition(column = 0, row = 0),
+                        facing = facing,
+                    )
+                },
             ),
-        ),
-    )
+            origin = GridPosition(column = 1, row = 0),
+        )
+        return DungeonGrid(
+            width = 3,
+            height = 2,
+            entrance = GridPosition(column = 0, row = 0),
+            placedRooms = listOf(room),
+        ).also { grid ->
+            assertTrue(grid.placeOrRelocateHeart(room))
+        }
+    }
 
     private fun cancellableGrid(): DungeonGrid {
         val blueprint = RoomBlueprint(
@@ -571,7 +573,6 @@ class PrototypeScreenTest {
             width = 4,
             height = 1,
             entrance = GridPosition(column = 0, row = 0),
-            objective = GridPosition(column = 3, row = 0),
             placedRooms = listOf(
                 PlacedRoom(blueprint, GridPosition(column = 1, row = 0)),
                 PlacedRoom(blueprint, GridPosition(column = 2, row = 0)),

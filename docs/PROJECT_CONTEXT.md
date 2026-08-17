@@ -252,7 +252,7 @@ capacity rather than providing an immediate combat benefit in this milestone.
 59. [x] Add immutable placed-heart state and build-phase operations to place or
     relocate it to any placed room, reject invalid targets, and unplace it when
     its room is canceled; test occupancy and phase rules without rendering.
-60. [ ] Replace the fixed objective port in routing and wave-start validation
+60. [x] Replace the fixed objective port in routing and wave-start validation
     with the placed heart, while keeping the entrance fixed; test missing-heart,
     disconnected-heart, connected-heart, relocated-heart, and branched-layout
     routes.

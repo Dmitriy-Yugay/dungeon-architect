@@ -200,9 +200,7 @@ class PrototypeScreen(
             width = 16,
             height = 9,
             entrance = GridPosition(column = 0, row = 4),
-            objective = GridPosition(column = 15, row = 4),
             entranceFacing = CardinalDirection.EAST,
-            objectiveFacing = CardinalDirection.WEST,
         )
 
         internal fun placementPreview(

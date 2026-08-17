@@ -6,9 +6,7 @@ class DungeonGrid(
     val width: Int,
     val height: Int,
     val entrance: GridPosition,
-    val objective: GridPosition,
     val entranceFacing: CardinalDirection = CardinalDirection.EAST,
-    val objectiveFacing: CardinalDirection = CardinalDirection.WEST,
     placedRooms: List<PlacedRoom> = emptyList(),
 ) {
     private val mutablePlacedRooms = placedRooms.toMutableList()
@@ -41,36 +39,31 @@ class DungeonGrid(
         }
     val entranceDoor: PlacedRoomDoor?
         get() = doorsConnectedToPort(entrance, entranceFacing).singleOrNull()
-    val objectiveDoor: PlacedRoomDoor?
-        get() = doorsConnectedToPort(objective, objectiveFacing).singleOrNull()
     val openRoomDoors: Set<PlacedRoomDoor>
         get() {
             val connectedDoors = roomDoorConnections.flatMapTo(mutableSetOf()) {
                 listOf(it.first, it.second)
             }
             entranceDoor?.let(connectedDoors::add)
-            objectiveDoor?.let(connectedDoors::add)
             return mutablePlacedRooms
                 .flatMapTo(mutableSetOf(), PlacedRoom::doors) - connectedDoors
         }
-    val entranceToObjectiveRoute: List<GridPosition>?
-        get() = FourDirectionalPathfinder.findPath(
-            start = entrance,
-            end = objective,
-            neighbors = ::traversalNeighbors,
-        )
+    val entranceToHeartRoute: List<GridPosition>?
+        get() {
+            val heart = placedHeart ?: return null
+            return FourDirectionalPathfinder.findPath(
+                start = entrance,
+                end = heart.gridPosition,
+                neighbors = ::traversalNeighbors,
+            )
+        }
 
     init {
         require(width > 0) { "Grid width must be positive." }
         require(height > 0) { "Grid height must be positive." }
         require(contains(entrance)) { "Entrance must be inside the grid." }
-        require(contains(objective)) { "Objective must be inside the grid." }
-        require(entrance != objective) { "Entrance and objective must occupy different tiles." }
         require(mutablePlacedRooms.none { entrance in it.gridPositions }) {
             "Placed rooms must not cover the entrance."
-        }
-        require(mutablePlacedRooms.none { objective in it.gridPositions }) {
-            "Placed rooms must not cover the objective."
         }
         require(mutablePlacedRooms.all { it.fitsInside(this) }) {
             "Every placed room must fit inside the grid."
@@ -85,9 +78,6 @@ class DungeonGrid(
         require(doorsConnectedToPort(entrance, entranceFacing).size <= 1) {
             "At most one room door may connect to the entrance port."
         }
-        require(doorsConnectedToPort(objective, objectiveFacing).size <= 1) {
-            "At most one room door may connect to the objective port."
-        }
     }
 
     fun contains(position: GridPosition): Boolean =
@@ -99,11 +89,9 @@ class DungeonGrid(
     fun canPlace(room: PlacedRoom): Boolean =
         room.fitsInside(this) &&
             entrance !in room.gridPositions &&
-            objective !in room.gridPositions &&
             mutablePlacedRooms.none(room::overlaps) &&
             hasOneFrontierConnection(room) &&
-            portRemainsAvailable(room, entrance, entranceFacing) &&
-            portRemainsAvailable(room, objective, objectiveFacing)
+            portRemainsAvailable(room, entrance, entranceFacing)
 
     fun place(room: PlacedRoom): Boolean {
         if (!canPlace(room)) {
@@ -240,7 +228,6 @@ class DungeonGrid(
 
         return when {
             entrance.column == column && entrance.row == row -> TileType.ENTRANCE
-            objective.column == column && objective.row == row -> TileType.OBJECTIVE
             mutablePlacedRooms.any { GridPosition(column, row) in it.gridPositions } -> TileType.ROOM
             else -> TileType.EMPTY
         }
@@ -320,7 +307,6 @@ class DungeonGrid(
         if (room == null) {
             return when (position) {
                 entrance -> listOfNotNull(entranceDoor?.gridPosition)
-                objective -> listOfNotNull(objectiveDoor?.gridPosition)
                 else -> emptyList()
             }
         }
@@ -342,9 +328,6 @@ class DungeonGrid(
                 .forEach { door ->
                     if (door == entranceDoor) {
                         add(entrance)
-                    }
-                    if (door == objectiveDoor) {
-                        add(objective)
                     }
                 }
         }

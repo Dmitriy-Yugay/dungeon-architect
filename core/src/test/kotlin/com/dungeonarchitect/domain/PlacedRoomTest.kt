@@ -197,7 +197,6 @@ class PlacedRoomTest {
         width = 4,
         height = 3,
         entrance = position(0, 1),
-        objective = position(3, 1),
     )
 
     private fun placedRoom(

@@ -96,7 +96,6 @@ class HeadlessScenarioEvaluatorTest {
                     width = 3,
                     height = 1,
                     entrance = GridPosition(0, 0),
-                    objective = GridPosition(2, 0),
                 ),
                 wave = wave(heroCount = 1, heroHealth = 5),
                 runDefinition = PrototypeRunDefinition(objectiveHealth = 10),
@@ -104,37 +103,41 @@ class HeadlessScenarioEvaluatorTest {
         }
 
         assertEquals(
-            "A headless scenario requires a route from entrance to objective.",
+            "A headless scenario requires a route from entrance to the heart.",
             error.message,
         )
     }
 
-    private fun routedGrid(hasSocket: Boolean = false) = DungeonGrid(
-        width = 3,
-        height = 1,
-        entrance = GridPosition(0, 0),
-        objective = GridPosition(2, 0),
-        placedRooms = listOf(
-            PlacedRoom(
-                blueprint = RoomBlueprint(
-                    id = "test-room",
-                    displayName = "Test Room",
-                    heartAnchor = GridPosition(column = 0, row = 0),
-                    footprint = setOf(GridPosition(0, 0)),
-                    doors = listOf(
-                        RoomDoor(GridPosition(0, 0), CardinalDirection.WEST),
-                        RoomDoor(GridPosition(0, 0), CardinalDirection.EAST),
-                    ),
-                    sockets = if (hasSocket) {
-                        mapOf(GridPosition(0, 0) to RoomSocketType.FLOOR)
-                    } else {
-                        emptyMap()
-                    },
+    private fun routedGrid(hasSocket: Boolean = false): DungeonGrid {
+        val trapSocket = GridPosition(0, 0)
+        val heartAnchor = GridPosition(1, 0)
+        val room = PlacedRoom(
+            blueprint = RoomBlueprint(
+                id = "test-room",
+                displayName = "Test Room",
+                heartAnchor = heartAnchor,
+                footprint = setOf(trapSocket, heartAnchor),
+                doors = listOf(
+                    RoomDoor(trapSocket, CardinalDirection.WEST),
+                    RoomDoor(heartAnchor, CardinalDirection.EAST),
                 ),
-                origin = GridPosition(1, 0),
+                sockets = if (hasSocket) {
+                    mapOf(trapSocket to RoomSocketType.FLOOR)
+                } else {
+                    emptyMap()
+                },
             ),
-        ),
-    )
+            origin = GridPosition(1, 0),
+        )
+        return DungeonGrid(
+            width = 3,
+            height = 1,
+            entrance = GridPosition(0, 0),
+            placedRooms = listOf(room),
+        ).also { grid ->
+            assertTrue(grid.placeOrRelocateHeart(room))
+        }
+    }
 
     private fun wave(
         heroCount: Int,

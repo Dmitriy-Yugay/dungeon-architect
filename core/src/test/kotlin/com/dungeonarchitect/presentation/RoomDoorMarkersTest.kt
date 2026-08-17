@@ -85,7 +85,6 @@ class RoomDoorMarkersTest {
         width = 8,
         height = 4,
         entrance = position(0, 2),
-        objective = position(7, 2),
         placedRooms = rooms.toList(),
     )
 

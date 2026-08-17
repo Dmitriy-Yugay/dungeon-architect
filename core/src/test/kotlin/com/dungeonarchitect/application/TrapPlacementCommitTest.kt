@@ -22,15 +22,16 @@ class TrapPlacementCommitTest {
     @Test
     fun `started wave snapshots the exact player-placed trap`() {
         val localSocketPosition = position(0, 0)
+        val localHeartAnchor = position(1, 0)
         val room = PlacedRoom(
             blueprint = RoomBlueprint(
                 id = "route-room",
                 displayName = "Route Room",
-                heartAnchor = GridPosition(column = 0, row = 0),
-                footprint = setOf(localSocketPosition),
+                heartAnchor = localHeartAnchor,
+                footprint = setOf(localSocketPosition, localHeartAnchor),
                 doors = listOf(
                     RoomDoor(localSocketPosition, CardinalDirection.WEST),
-                    RoomDoor(localSocketPosition, CardinalDirection.EAST),
+                    RoomDoor(localHeartAnchor, CardinalDirection.EAST),
                 ),
                 sockets = mapOf(
                     localSocketPosition to RoomSocketType.FLOOR,
@@ -54,9 +55,9 @@ class TrapPlacementCommitTest {
             width = 3,
             height = 1,
             entrance = position(0, 0),
-            objective = position(2, 0),
             placedRooms = listOf(room),
         )
+        assertTrue(grid.placeOrRelocateHeart(room))
         val controller = runController(grid)
         val startButtonBounds = ControlBounds(
             x = 10f,
@@ -363,7 +364,6 @@ class TrapPlacementCommitTest {
                 width = 10,
                 height = 8,
                 entrance = position(0, 0),
-                objective = position(9, 7),
                 placedRooms = listOf(room),
             ),
             buildState = buildState,

@@ -403,22 +403,23 @@ class PrototypeRunControllerTest {
     }
 
     private fun gridWithSeparateHeartAndLethalTrap(): DungeonGrid {
-        val trapSocket = GridPosition(column = 1, row = 0)
+        val trapSocket = GridPosition(column = 0, row = 0)
+        val heartAnchor = GridPosition(column = 1, row = 0)
         val room = PlacedRoom(
             blueprint = RoomBlueprint(
                 id = "heart-and-trap-room",
                 displayName = "Heart and Trap Room",
-                heartAnchor = GridPosition(column = 0, row = 0),
+                heartAnchor = heartAnchor,
                 footprint = setOf(
-                    GridPosition(column = 0, row = 0),
                     trapSocket,
+                    heartAnchor,
                 ),
                 doors = listOf(
                     RoomDoor(
-                        GridPosition(column = 0, row = 0),
+                        trapSocket,
                         CardinalDirection.WEST,
                     ),
-                    RoomDoor(trapSocket, CardinalDirection.EAST),
+                    RoomDoor(heartAnchor, CardinalDirection.EAST),
                 ),
                 sockets = mapOf(trapSocket to RoomSocketType.FLOOR),
             ),
@@ -428,7 +429,6 @@ class PrototypeRunControllerTest {
             width = 4,
             height = 1,
             entrance = GridPosition(column = 0, row = 0),
-            objective = GridPosition(column = 3, row = 0),
             placedRooms = listOf(room),
         )
         assertTrue(
@@ -444,46 +444,42 @@ class PrototypeRunControllerTest {
                 ),
             ),
         )
+        assertTrue(grid.placeOrRelocateHeart(room))
         return grid
     }
 
     private fun gridWithRoute(
         hasSocket: Boolean = false,
-    ) = DungeonGrid(
-        width = 3,
-        height = 1,
-        entrance = GridPosition(column = 0, row = 0),
-        objective = GridPosition(column = 2, row = 0),
-        placedRooms = listOf(
-            PlacedRoom(
-                blueprint = RoomBlueprint(
-                    id = "test-room",
-                    displayName = "Test Room",
-                    heartAnchor = GridPosition(column = 0, row = 0),
-                    footprint = setOf(GridPosition(column = 0, row = 0)),
-                    doors = listOf(
-                        RoomDoor(
-                            position = GridPosition(column = 0, row = 0),
-                            facing = CardinalDirection.WEST,
-                        ),
-                        RoomDoor(
-                            position = GridPosition(column = 0, row = 0),
-                            facing = CardinalDirection.EAST,
-                        ),
-                    ),
-                    sockets = if (hasSocket) {
-                        mapOf(
-                            GridPosition(column = 0, row = 0) to
-                                RoomSocketType.FLOOR,
-                        )
-                    } else {
-                        emptyMap()
-                    },
+    ): DungeonGrid {
+        val trapSocket = GridPosition(column = 0, row = 0)
+        val heartAnchor = GridPosition(column = 1, row = 0)
+        val room = PlacedRoom(
+            blueprint = RoomBlueprint(
+                id = "test-room",
+                displayName = "Test Room",
+                heartAnchor = heartAnchor,
+                footprint = setOf(trapSocket, heartAnchor),
+                doors = listOf(
+                    RoomDoor(trapSocket, CardinalDirection.WEST),
+                    RoomDoor(heartAnchor, CardinalDirection.EAST),
                 ),
-                origin = GridPosition(column = 1, row = 0),
+                sockets = if (hasSocket) {
+                    mapOf(trapSocket to RoomSocketType.FLOOR)
+                } else {
+                    emptyMap()
+                },
             ),
-        ),
-    )
+            origin = GridPosition(column = 1, row = 0),
+        )
+        return DungeonGrid(
+            width = 3,
+            height = 1,
+            entrance = GridPosition(column = 0, row = 0),
+            placedRooms = listOf(room),
+        ).also { grid ->
+            assertTrue(grid.placeOrRelocateHeart(room))
+        }
+    }
 
     private fun fixedSteps(count: Int): Float =
         (FixedStepHeroSimulation.FIXED_STEP_SECONDS * count).toFloat()

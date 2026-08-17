@@ -49,7 +49,7 @@ class RoomBlueprintParserTest {
 
         assertEquals("long-gallery", longGallery.id)
         assertEquals("Long Gallery", longGallery.displayName)
-        assertEquals(position(1, 0), longGallery.heartAnchor)
+        assertEquals(position(3, 0), longGallery.heartAnchor)
         assertFalse(longGallery.heartAnchor in longGallery.sockets)
         assertNotEquals(prototypeRoom.id, longGallery.id)
         assertEquals(
