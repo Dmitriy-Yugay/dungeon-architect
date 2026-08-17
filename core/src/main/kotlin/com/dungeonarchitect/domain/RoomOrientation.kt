@@ -16,6 +16,13 @@ enum class RoomOrientation(
         CLOCKWISE_270 -> UNROTATED
     }
 
+    fun rotateCounterClockwise(): RoomOrientation = when (this) {
+        UNROTATED -> CLOCKWISE_270
+        CLOCKWISE_90 -> UNROTATED
+        CLOCKWISE_180 -> CLOCKWISE_90
+        CLOCKWISE_270 -> CLOCKWISE_180
+    }
+
     internal fun transform(
         position: GridPosition,
         width: Int,

@@ -4,11 +4,15 @@ class BuildState(
     availableRoomBlueprints: List<RoomBlueprint>,
     selectedRoomBlueprint: RoomBlueprint,
     val selectedTrapDefinition: TrapDefinition,
+    selectedRoomOrientation: RoomOrientation = RoomOrientation.UNROTATED,
 ) {
     val availableRoomBlueprints: List<RoomBlueprint> =
         availableRoomBlueprints.toList()
 
     var selectedRoomBlueprint: RoomBlueprint = selectedRoomBlueprint
+        private set
+
+    var selectedRoomOrientation: RoomOrientation = selectedRoomOrientation
         private set
 
     init {
@@ -35,5 +39,13 @@ class BuildState(
 
         selectedRoomBlueprint = blueprint
         return true
+    }
+
+    fun rotateSelectedRoomClockwise() {
+        selectedRoomOrientation = selectedRoomOrientation.rotateClockwise()
+    }
+
+    fun rotateSelectedRoomCounterClockwise() {
+        selectedRoomOrientation = selectedRoomOrientation.rotateCounterClockwise()
     }
 }

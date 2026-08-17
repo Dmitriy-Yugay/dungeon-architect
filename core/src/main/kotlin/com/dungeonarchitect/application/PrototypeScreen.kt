@@ -27,6 +27,11 @@ import com.dungeonarchitect.presentation.RoomChoiceControl
 import com.dungeonarchitect.presentation.RoomChoicesLayout
 import com.dungeonarchitect.presentation.RoomChoicesRenderer
 import com.dungeonarchitect.presentation.RoomChoicesView
+import com.dungeonarchitect.presentation.RoomRotationControl
+import com.dungeonarchitect.presentation.RoomRotationDirection
+import com.dungeonarchitect.presentation.RoomRotationLayout
+import com.dungeonarchitect.presentation.RoomRotationRenderer
+import com.dungeonarchitect.presentation.RoomRotationView
 import com.dungeonarchitect.presentation.WavePanelLayout
 import com.dungeonarchitect.presentation.WavePanelRenderer
 import com.dungeonarchitect.presentation.WavePanelView
@@ -46,6 +51,7 @@ class PrototypeScreen(
     private val camera = OrthographicCamera()
     private val gridRenderer = DungeonGridRenderer()
     private val roomChoicesRenderer = RoomChoicesRenderer()
+    private val roomRotationRenderer = RoomRotationRenderer()
     private val wavePanelRenderer = WavePanelRenderer()
     private val worldWidth = gridRenderer.worldWidth(grid)
     private val gridWorldHeight = gridRenderer.worldHeight(grid)
@@ -95,8 +101,16 @@ class PrototypeScreen(
             worldWidth = worldWidth,
             panelBottom = gridWorldHeight,
         )
+        val roomChoicesView = RoomChoicesView.from(buildState)
         roomChoicesRenderer.render(
-            view = RoomChoicesView.from(buildState),
+            view = roomChoicesView,
+            projection = camera.combined,
+            worldWidth = worldWidth,
+            panelBottom = gridWorldHeight,
+        )
+        roomRotationRenderer.render(
+            rotationView = RoomRotationView.from(buildState, runController.phase),
+            roomChoicesView = roomChoicesView,
             projection = camera.combined,
             worldWidth = worldWidth,
             panelBottom = gridWorldHeight,
@@ -108,6 +122,7 @@ class PrototypeScreen(
     }
 
     override fun dispose() {
+        roomRotationRenderer.dispose()
         roomChoicesRenderer.dispose()
         wavePanelRenderer.dispose()
         gridRenderer.dispose()
@@ -124,6 +139,7 @@ class PrototypeScreen(
         )
 
         if (Gdx.input.justTouched()) {
+            val roomChoicesView = RoomChoicesView.from(buildState)
             val result = handleClick(
                 grid = grid,
                 buildState = buildState,
@@ -139,7 +155,16 @@ class PrototypeScreen(
                     panelBottom = gridWorldHeight,
                 ),
                 roomChoiceControls = RoomChoicesLayout.controls(
-                    view = RoomChoicesView.from(buildState),
+                    view = roomChoicesView,
+                    worldWidth = worldWidth,
+                    panelBottom = gridWorldHeight,
+                ),
+                roomRotationControls = RoomRotationLayout.controls(
+                    rotationView = RoomRotationView.from(
+                        buildState,
+                        runController.phase,
+                    ),
+                    roomChoicesView = roomChoicesView,
                     worldWidth = worldWidth,
                     panelBottom = gridWorldHeight,
                 ),
@@ -187,6 +212,7 @@ class PrototypeScreen(
                 grid.snappedPlacementPreview(
                     blueprint = buildState.selectedRoomBlueprint,
                     hoveredPosition = position,
+                    orientation = buildState.selectedRoomOrientation,
                 )
             }
 
@@ -239,6 +265,24 @@ class PrototypeScreen(
             }
         }
 
+        internal fun rotateSelectedRoom(
+            buildState: BuildState,
+            direction: RoomRotationDirection,
+            runPhase: PrototypeRunPhase,
+        ): Boolean {
+            if (runPhase != PrototypeRunPhase.BUILDING) {
+                return false
+            }
+
+            when (direction) {
+                RoomRotationDirection.COUNTER_CLOCKWISE ->
+                    buildState.rotateSelectedRoomCounterClockwise()
+                RoomRotationDirection.CLOCKWISE ->
+                    buildState.rotateSelectedRoomClockwise()
+            }
+            return true
+        }
+
         internal fun loadUpcomingWave(
             readInternalText: (String) -> String,
         ): UpcomingHeroWave =
@@ -287,6 +331,7 @@ class PrototypeScreen(
             startButtonBounds: ControlBounds,
             cancelButtonBounds: ControlBounds,
             roomChoiceControls: List<RoomChoiceControl>,
+            roomRotationControls: List<RoomRotationControl> = emptyList(),
             runController: PrototypeRunController,
         ): PrototypeClickResult {
             if (cancelButtonBounds.contains(worldX, worldY)) {
@@ -305,6 +350,23 @@ class PrototypeScreen(
                         PrototypeClickResult.WAVE_STARTED
                     else ->
                         PrototypeClickResult.WAVE_START_REJECTED
+                }
+            }
+
+            val clickedRotation = roomRotationControls.firstOrNull { control ->
+                control.bounds.contains(worldX, worldY)
+            }
+            if (clickedRotation != null) {
+                return if (
+                    rotateSelectedRoom(
+                        buildState = buildState,
+                        direction = clickedRotation.view.direction,
+                        runPhase = runController.phase,
+                    )
+                ) {
+                    PrototypeClickResult.ROOM_ROTATED
+                } else {
+                    PrototypeClickResult.ROOM_ROTATION_REJECTED
                 }
             }
 
@@ -360,6 +422,8 @@ internal enum class PrototypeClickResult {
     ROOM_PLACED,
     ROOM_CANCELED,
     CANCEL_REJECTED,
+    ROOM_ROTATED,
+    ROOM_ROTATION_REJECTED,
     TRAP_PLACED,
     IGNORED,
 }

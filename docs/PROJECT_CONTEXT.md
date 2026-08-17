@@ -235,7 +235,7 @@ capacity rather than providing an immediate combat benefit in this milestone.
     placement validation, door connections, trap sockets, rendering markers,
     and route traversal use the transformed room geometry; add focused domain
     regression tests.
-55. [ ] Add clockwise and counter-clockwise rotation controls to build state and
+55. [x] Add clockwise and counter-clockwise rotation controls to build state and
     the build UI, update the live preview immediately, and prevent either
     control from also committing a placement; test input behavior in every run
     phase.

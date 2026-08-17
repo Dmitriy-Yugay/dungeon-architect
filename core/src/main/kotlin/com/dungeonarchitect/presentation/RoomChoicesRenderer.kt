@@ -14,6 +14,16 @@ internal data class RoomChoiceControl(
 )
 
 internal object RoomChoicesLayout {
+    fun leftEdge(
+        view: RoomChoicesView,
+        worldWidth: Float,
+        panelBottom: Float,
+    ): Float = controls(view, worldWidth, panelBottom)
+        .firstOrNull()
+        ?.bounds
+        ?.x
+        ?: WavePanelLayout.cancelButtonBounds(worldWidth, panelBottom).x
+
     fun controls(
         view: RoomChoicesView,
         worldWidth: Float,

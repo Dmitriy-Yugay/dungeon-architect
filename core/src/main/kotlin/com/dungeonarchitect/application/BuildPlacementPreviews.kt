@@ -41,6 +41,7 @@ internal fun buildPlacementPreviews(
             room = grid.snappedPlacementPreview(
                 blueprint = buildState.selectedRoomBlueprint,
                 hoveredPosition = hoveredPosition,
+                orientation = buildState.selectedRoomOrientation,
             ),
             trap = null,
         )
