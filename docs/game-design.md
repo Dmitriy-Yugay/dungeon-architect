@@ -19,12 +19,18 @@ create a useful synergy or an awkward layout later.
 1. Receive information about the next hero party.
 2. Choose one of several room blueprints.
 3. Attach the room to the dungeon.
-4. Equip compatible traps or guardians.
-5. Start the wave and observe the result.
-6. Gain resources or upgrades and prepare for the next wave.
+4. Place or relocate the dungeon heart in a chosen room.
+5. Equip compatible traps or guardians.
+6. Start the wave and observe the result.
+7. Gain resources or upgrades and prepare for the next wave.
 
 Rooms persist during a run. Replacing an old room is unavailable early and may
 become possible later at a significant cost.
+
+During the build phase, Cancel undoes the most recently placed room so an
+accidental placement can be corrected before it becomes part of the persistent
+run. Repeated cancellation may be used to reach an earlier mistake. This is an
+undo rule, not free replacement of an arbitrary established room.
 
 ## Room design
 
@@ -37,9 +43,9 @@ A room may eventually define:
 - adjacency synergies and a meaningful disadvantage.
 
 Early rooms must remain simple. For the first prototype, rooms should differ
-mainly by shape, door placement, and socket layout. Strong passive effects,
-complex restrictions, room upgrades, rotation, and adjacency bonuses come
-later.
+mainly by shape, door placement, and socket layout. Quarter-turn rotation and a
+simple corner room are the next geometric additions. Strong passive effects,
+complex restrictions, room upgrades, and adjacency bonuses come later.
 
 Possible late-game room directions include a guardian-focused barracks, a
 trap-heavy gallery, an alchemy room that changes damage effects, and a treasury
@@ -57,11 +63,14 @@ content.
   become possible attachment points for later choices.
 - Merely touching another room does not connect floor space. Heroes cross room
   boundaries only through recorded door connections.
-- The entrance faces east and the objective faces west in the prototype. A room
-  must meet each endpoint through a correspondingly facing door; rooms cannot
-  cover endpoint cells.
+- The entrance remains a fixed external port. The current prototype has a fixed
+  external objective port; the next milestone replaces it with a dungeon heart
+  that the player may place in any authored room at that room's heart anchor.
 - A layout is ready for a wave only when it has a route from the entrance to
-  the objective.
+  the selected dungeon heart.
+- In a branched layout, heroes use the entrance-to-heart branch. Unused side
+  branches are future build capacity and have no automatic combat value in the
+  early prototype.
 - Individual room placements may leave that route incomplete while the player
   is still constructing the layout.
 - Layout creates tactical value through distance, choke points, and defense
@@ -91,8 +100,9 @@ point visible and persistent, supports branching without permitting a single
 placement to create a surprising loop, and gives routing an explicit graph of
 door connections. Flexible attachment offered more topology but made accidental
 joins hard to preview; the single active tail was clear but discarded too much
-spatial choice. Rotation remains deferred, so authored room orientation is part
-of the choice for now.
+spatial choice. The comparison used fixed authored orientations; the next
+milestone adds explicit quarter-turn rotation without changing the single-
+frontier connection rule.
 
 ## Wave intelligence
 

@@ -74,10 +74,10 @@ Near-term technical priorities are:
 - property-based tests for placement, routing, and simulation invariants;
 - structured simulation events and post-wave metrics;
 - a headless evaluator that uses the same rules as the playable game;
-- deterministic seeds and command records before meaningful randomness is
-  introduced;
-- batch balance experiments after the game contains enough strategic choices
-  to produce useful comparisons.
+- reversible room placement during the build phase;
+- room rotation and authored turns so the dungeon can grow in every cardinal
+  direction;
+- a player-selected dungeon heart that replaces the fixed objective endpoint.
 
 ## Completed milestone
 
@@ -198,21 +198,74 @@ decision without adding new gameplay content.
 50. [x] Add a presentation-only post-wave explanation model derived from the
     report, showing why the defense won or lost.
 
-### Replayable runs and balance tooling — after multiple waves are designed
+### Flexible construction and selectable dungeon heart — next
 
-51. [ ] Introduce an injected, seeded randomness source before adding the first
-    random gameplay rule; preserve deterministic behavior for a known seed.
-52. [ ] Represent player decisions as recordable application commands and add a
-    replay test that reconstructs the same final state from commands and seed.
-53. [ ] Add a batch balance runner that evaluates authored combinations of room
-    layouts, trap placements, and waves without rendering.
-54. [ ] Report dominant choices, unwinnable scenarios, near-identical choices,
-    and large difficulty discontinuities using explicit, documented metrics.
-55. [ ] Export balance results in a stable machine-readable format for offline
-    analysis and optional visualization.
-56. [ ] Decide whether a separate Python analysis tool provides enough benefit
-    for statistical analysis, charts, or AI-assisted balance investigation;
-    document the decision before adding it.
+For this milestone, **Cancel** means undoing the most recently placed room while
+the run is still in the build phase. Repeated cancellation can walk back to an
+earlier mistake without introducing arbitrary mid-layout demolition rules. The
+operation also removes traps attached to that room. Once heart placement is
+available, canceling its room also returns the heart to the unplaced state.
+
+Room placement will support explicit quarter-turn rotation. Rotation alone is
+not enough to bend the route because both current blueprints have two opposite
+doors, so the milestone also adds a simple authored corner room. Together with
+the existing open-door frontier, this permits construction in every cardinal
+direction while keeping every connection visible and deterministic.
+
+The dungeon heart will replace the fixed objective endpoint. Each room
+blueprint will declare a valid local heart anchor, and the player may place or
+relocate the heart in any placed room during the build phase. A wave may start
+only when the entrance has a valid door-connected route to the heart. The heart
+therefore lets the player choose which branch contains the active hero route
+without adding destination-choice AI. Unused side branches remain future build
+capacity rather than providing an immediate combat benefit in this milestone.
+
+51. [ ] Add a build-phase operation that cancels the most recently placed room,
+    removes traps belonging to it, and leaves the grid, open-door frontier, and
+    route derived state consistent; test empty, single-room, multi-room, trapped,
+    and non-building cases.
+52. [ ] Start the prototype with an empty player-built layout and add an enabled
+    or disabled Cancel control that consumes its click without selecting or
+    placing anything else; cover the control view, click handling, and repeated
+    cancellation with presentation and application tests.
+53. [ ] Add an immutable quarter-turn room orientation and transform footprint
+    cells, door positions and facings, and socket positions consistently; test
+    all four orientations and full-turn identity.
+54. [ ] Make placed rooms retain their orientation, and make snapping,
+    placement validation, door connections, trap sockets, rendering markers,
+    and route traversal use the transformed room geometry; add focused domain
+    regression tests.
+55. [ ] Add clockwise and counter-clockwise rotation controls to build state and
+    the build UI, update the live preview immediately, and prevent either
+    control from also committing a placement; test input behavior in every run
+    phase.
+56. [ ] Add one simple authored corner-room blueprint with adjacent doors and no
+    special effect, expose it as a room choice, and verify that its rotations
+    can extend each compatible open frontier door without overlap.
+57. [ ] Add property-based topology tests that generate legal paths containing
+    horizontal and vertical segments, turns, and branches, proving that every
+    recorded connection is cardinally adjacent and that entrance routes remain
+    valid after placement and cancellation.
+58. [ ] Add a required local heart anchor to room-blueprint content and validate
+    that it occupies a footprint cell; update the JSON parser, authored rooms,
+    rotation transformation, and parser/domain tests.
+59. [ ] Add immutable placed-heart state and build-phase operations to place or
+    relocate it to any placed room, reject invalid targets, and unplace it when
+    its room is canceled; test occupancy and phase rules without rendering.
+60. [ ] Replace the fixed objective port in routing and wave-start validation
+    with the placed heart, while keeping the entrance fixed; test missing-heart,
+    disconnected-heart, connected-heart, relocated-heart, and branched-layout
+    routes.
+61. [ ] Add a heart-placement control, valid and invalid room hover feedback,
+    and a distinct heart marker; ensure heart placement takes precedence over
+    room and trap placement clicks, with presentation and application tests.
+62. [ ] Update objective damage, restart, authored scenario fixtures, headless
+    evaluation, reports, and determinism tests to use the selected heart without
+    making simulation or domain code depend on rendering.
+63. [ ] Add an end-to-end application test for building a turned or branched
+    dungeon, canceling and replacing a mistaken room, selecting the heart room,
+    placing a trap, and completing the wave; then update `game-design.md` and
+    `architecture.md` with the verified behavior and remaining constraints.
 
 For every task:
 
