@@ -24,6 +24,7 @@ class WavePanelRendererTest {
             objectiveHealth = 10,
             objectiveMaxHealth = 10,
             isStartEnabled = true,
+            isCancelEnabled = true,
         )
 
         assertEquals("Upcoming wave: 4 x Militia Recruit", view.summary)
@@ -31,6 +32,8 @@ class WavePanelRendererTest {
         assertEquals("Objective health: 10 / 10", view.objectiveStatus)
         assertEquals("START WAVE", view.controlLabel)
         assertTrue(view.isControlEnabled)
+        assertEquals("CANCEL", view.cancelLabel)
+        assertTrue(view.isCancelEnabled)
     }
 
     @Test
@@ -49,10 +52,13 @@ class WavePanelRendererTest {
             objectiveHealth = 10,
             objectiveMaxHealth = 10,
             isStartEnabled = false,
+            isCancelEnabled = false,
         )
 
         assertEquals("START WAVE - ROUTE REQUIRED", view.controlLabel)
         assertFalse(view.isControlEnabled)
+        assertEquals("CANCEL", view.cancelLabel)
+        assertFalse(view.isCancelEnabled)
     }
 
     @Test
@@ -64,11 +70,13 @@ class WavePanelRendererTest {
         assertEquals("Objective health: 10 / 10", victory.objectiveStatus)
         assertEquals("RESTART", victory.controlLabel)
         assertTrue(victory.isControlEnabled)
+        assertFalse(victory.isCancelEnabled)
 
         assertEquals("DEFEAT - Objective destroyed", defeat.summary)
         assertEquals("Objective health: 0 / 10", defeat.objectiveStatus)
         assertEquals("RESTART", defeat.controlLabel)
         assertTrue(defeat.isControlEnabled)
+        assertFalse(defeat.isCancelEnabled)
     }
 
     @Test
@@ -89,6 +97,24 @@ class WavePanelRendererTest {
         assertFalse(bounds.contains(bounds.x, bounds.y + bounds.height))
     }
 
+    @Test
+    fun `cancel button sits left of start without overlap`() {
+        val cancel = WavePanelLayout.cancelButtonBounds(
+            worldWidth = 1_024f,
+            panelBottom = 576f,
+        )
+        val start = WavePanelLayout.startButtonBounds(
+            worldWidth = 1_024f,
+            panelBottom = 576f,
+        )
+
+        assertEquals(624f, cancel.x)
+        assertEquals(592f, cancel.y)
+        assertEquals(112f, cancel.width)
+        assertEquals(48f, cancel.height)
+        assertTrue(cancel.x + cancel.width < start.x)
+    }
+
     private fun view(
         phase: PrototypeRunPhase,
         objectiveHealth: Int,
@@ -106,5 +132,6 @@ class WavePanelRendererTest {
         objectiveHealth = objectiveHealth,
         objectiveMaxHealth = 10,
         isStartEnabled = false,
+        isCancelEnabled = false,
     )
 }

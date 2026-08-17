@@ -21,11 +21,11 @@ internal object RoomChoicesLayout {
     ): List<RoomChoiceControl> {
         val groupWidth = view.choices.size * CONTROL_WIDTH +
             (view.choices.size - 1).coerceAtLeast(0) * CONTROL_GAP
-        val startButton = WavePanelLayout.startButtonBounds(
+        val cancelButton = WavePanelLayout.cancelButtonBounds(
             worldWidth = worldWidth,
             panelBottom = panelBottom,
         )
-        val groupLeft = startButton.x - START_BUTTON_GAP - groupWidth
+        val groupLeft = cancelButton.x - WAVE_CONTROL_GAP - groupWidth
 
         return view.choices.mapIndexed { index, choice ->
             RoomChoiceControl(
@@ -43,7 +43,7 @@ internal object RoomChoicesLayout {
     private const val CONTROL_WIDTH = 144f
     private const val CONTROL_HEIGHT = 48f
     private const val CONTROL_GAP = 8f
-    private const val START_BUTTON_GAP = 16f
+    private const val WAVE_CONTROL_GAP = 16f
 }
 
 class RoomChoicesRenderer : Disposable {

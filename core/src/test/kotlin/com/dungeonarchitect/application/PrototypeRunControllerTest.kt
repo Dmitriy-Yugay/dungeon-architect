@@ -225,10 +225,12 @@ class PrototypeRunControllerTest {
         val grid = gridWithRoute()
         val controller = controller(grid = grid, heroCount = 1)
 
+        assertTrue(controller.isCancelEnabled)
         assertTrue(controller.cancelLastPlacedRoom())
 
         assertEquals(emptyList(), grid.placedRooms)
         assertFalse(controller.isStartEnabled)
+        assertFalse(controller.isCancelEnabled)
     }
 
     @Test
@@ -261,6 +263,7 @@ class PrototypeRunControllerTest {
             val roomsBeforeCancel = grid.placedRooms
             val trapsBeforeCancel = grid.placedTraps
 
+            assertFalse(controller.isCancelEnabled, controller.phase.name)
             assertFalse(controller.cancelLastPlacedRoom(), controller.phase.name)
             assertEquals(roomsBeforeCancel, grid.placedRooms, controller.phase.name)
             assertEquals(trapsBeforeCancel, grid.placedTraps, controller.phase.name)

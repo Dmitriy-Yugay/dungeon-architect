@@ -14,7 +14,6 @@ import com.dungeonarchitect.domain.BuildState
 import com.dungeonarchitect.domain.CardinalDirection
 import com.dungeonarchitect.domain.DungeonGrid
 import com.dungeonarchitect.domain.GridPosition
-import com.dungeonarchitect.domain.PlacedRoom
 import com.dungeonarchitect.domain.PrototypeRunDefinition
 import com.dungeonarchitect.domain.PrototypeRunPhase
 import com.dungeonarchitect.domain.RoomBlueprint
@@ -36,9 +35,7 @@ class PrototypeScreen(
     private val buildState: BuildState = loadBuildState { path ->
         Gdx.files.internal(path).readString("UTF-8")
     },
-    private val grid: DungeonGrid = prototypeGrid(
-        buildState.selectedRoomBlueprint,
-    ),
+    private val grid: DungeonGrid = prototypeGrid(),
     private val upcomingWave: UpcomingHeroWave = loadUpcomingWave { path ->
         Gdx.files.internal(path).readString("UTF-8")
     },
@@ -92,6 +89,7 @@ class PrototypeScreen(
                 objectiveHealth = runController.objectiveHealth,
                 objectiveMaxHealth = runController.objectiveMaxHealth,
                 isStartEnabled = runController.isStartEnabled,
+                isCancelEnabled = runController.isCancelEnabled,
             ),
             projection = camera.combined,
             worldWidth = worldWidth,
@@ -136,6 +134,10 @@ class PrototypeScreen(
                     worldWidth = worldWidth,
                     panelBottom = gridWorldHeight,
                 ),
+                cancelButtonBounds = WavePanelLayout.cancelButtonBounds(
+                    worldWidth = worldWidth,
+                    panelBottom = gridWorldHeight,
+                ),
                 roomChoiceControls = RoomChoicesLayout.controls(
                     view = RoomChoicesView.from(buildState),
                     worldWidth = worldWidth,
@@ -167,19 +169,13 @@ class PrototypeScreen(
         private const val BACKGROUND_BLUE = 0.07f
         private const val BACKGROUND_ALPHA = 1f
 
-        internal fun prototypeGrid(blueprint: RoomBlueprint) = DungeonGrid(
+        internal fun prototypeGrid() = DungeonGrid(
             width = 16,
             height = 9,
             entrance = GridPosition(column = 0, row = 4),
             objective = GridPosition(column = 15, row = 4),
             entranceFacing = CardinalDirection.EAST,
             objectiveFacing = CardinalDirection.WEST,
-            placedRooms = listOf(
-                PlacedRoom(
-                    blueprint = blueprint,
-                    origin = GridPosition(column = 1, row = 3),
-                ),
-            ),
         )
 
         internal fun placementPreview(
@@ -289,9 +285,18 @@ class PrototypeScreen(
             worldX: Float,
             worldY: Float,
             startButtonBounds: ControlBounds,
+            cancelButtonBounds: ControlBounds,
             roomChoiceControls: List<RoomChoiceControl>,
             runController: PrototypeRunController,
         ): PrototypeClickResult {
+            if (cancelButtonBounds.contains(worldX, worldY)) {
+                return if (runController.cancelLastPlacedRoom()) {
+                    PrototypeClickResult.ROOM_CANCELED
+                } else {
+                    PrototypeClickResult.CANCEL_REJECTED
+                }
+            }
+
             if (startButtonBounds.contains(worldX, worldY)) {
                 return when {
                     runController.restart() ->
@@ -353,6 +358,8 @@ internal enum class PrototypeClickResult {
     RUN_RESTARTED,
     ROOM_CHOICE_SELECTED,
     ROOM_PLACED,
+    ROOM_CANCELED,
+    CANCEL_REJECTED,
     TRAP_PLACED,
     IGNORED,
 }

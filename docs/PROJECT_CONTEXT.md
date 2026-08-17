@@ -224,7 +224,7 @@ capacity rather than providing an immediate combat benefit in this milestone.
     removes traps belonging to it, and leaves the grid, open-door frontier, and
     route derived state consistent; test empty, single-room, multi-room, trapped,
     and non-building cases.
-52. [ ] Start the prototype with an empty player-built layout and add an enabled
+52. [x] Start the prototype with an empty player-built layout and add an enabled
     or disabled Cancel control that consumes its click without selecting or
     placing anything else; cover the control view, click handling, and repeated
     cancellation with presentation and application tests.

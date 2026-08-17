@@ -73,6 +73,12 @@ class TrapPlacementCommitTest {
                 worldX = 0f,
                 worldY = 0f,
                 startButtonBounds = startButtonBounds,
+                cancelButtonBounds = ControlBounds(
+                    x = 200f,
+                    y = 20f,
+                    width = 100f,
+                    height = 40f,
+                ),
                 roomChoiceControls = emptyList(),
                 runController = controller,
             ),
@@ -88,6 +94,12 @@ class TrapPlacementCommitTest {
                 worldX = 60f,
                 worldY = 40f,
                 startButtonBounds = startButtonBounds,
+                cancelButtonBounds = ControlBounds(
+                    x = 200f,
+                    y = 20f,
+                    width = 100f,
+                    height = 40f,
+                ),
                 roomChoiceControls = emptyList(),
                 runController = controller,
             ),
@@ -268,6 +280,12 @@ class TrapPlacementCommitTest {
         worldY = 0f,
         startButtonBounds = ControlBounds(
             x = 100f,
+            y = 100f,
+            width = 10f,
+            height = 10f,
+        ),
+        cancelButtonBounds = ControlBounds(
+            x = 120f,
             y = 100f,
             width = 10f,
             height = 10f,

@@ -48,6 +48,10 @@ class PrototypeRunController(
         get() = phase == PrototypeRunPhase.BUILDING &&
             waveStartController.isStartEnabled
 
+    val isCancelEnabled: Boolean
+        get() = phase == PrototypeRunPhase.BUILDING &&
+            grid.placedRooms.isNotEmpty()
+
     val isControlEnabled: Boolean
         get() = isStartEnabled ||
             phase == PrototypeRunPhase.VICTORY ||
