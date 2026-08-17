@@ -128,8 +128,7 @@ class DungeonGrid(
             return false
         }
 
-        val socketType =
-            room.blueprint.sockets[localSocketPosition] ?: return false
+        val socketType = room.geometry.sockets[localSocketPosition] ?: return false
         if (!definition.isCompatibleWith(socketType)) {
             return false
         }
@@ -153,7 +152,7 @@ class DungeonGrid(
     ): TrapSocketHoverResult {
         val (room, localSocketPosition) = mutablePlacedRooms
             .firstNotNullOfOrNull { placedRoom ->
-                placedRoom.blueprint.sockets.keys
+                placedRoom.geometry.sockets.keys
                     .firstOrNull { localPosition ->
                         placedRoom.toGridPosition(localPosition) == hoveredPosition
                     }
@@ -162,7 +161,7 @@ class DungeonGrid(
             ?: return TrapSocketHoverResult.NonSocket
 
         val socketType = requireNotNull(
-            room.blueprint.sockets[localSocketPosition],
+            room.geometry.sockets[localSocketPosition],
         )
         if (!definition.isCompatibleWith(socketType)) {
             return TrapSocketHoverResult.Incompatible(socketType)
@@ -184,15 +183,17 @@ class DungeonGrid(
     fun placementPreview(
         blueprint: RoomBlueprint,
         origin: GridPosition,
+        orientation: RoomOrientation = RoomOrientation.UNROTATED,
     ): RoomPlacementPreview {
-        val room = PlacedRoom(blueprint, origin)
+        val room = PlacedRoom(blueprint, origin, orientation)
         return RoomPlacementPreview(room, canPlace(room))
     }
 
     fun snappedPlacementPreview(
         blueprint: RoomBlueprint,
         hoveredPosition: GridPosition,
-    ): RoomPlacementPreview? = snapCandidates(blueprint)
+        orientation: RoomOrientation = RoomOrientation.UNROTATED,
+    ): RoomPlacementPreview? = snapCandidates(blueprint, orientation)
         .filter { hoveredPosition in it.gridPositions }
         .sortedWith(
             compareByDescending<PlacedRoom>(::canPlace)
@@ -247,9 +248,13 @@ class DungeonGrid(
         return existingConnections + candidateConnections <= 1
     }
 
-    private fun snapCandidates(blueprint: RoomBlueprint): List<PlacedRoom> {
+    private fun snapCandidates(
+        blueprint: RoomBlueprint,
+        orientation: RoomOrientation,
+    ): List<PlacedRoom> {
+        val orientedDoors = blueprint.geometry(orientation).doors
         val origins = if (mutablePlacedRooms.isEmpty()) {
-            blueprint.doors
+            orientedDoors
                 .filter { it.facing == entranceFacing.opposite }
                 .map { door ->
                     originForDoor(
@@ -259,7 +264,7 @@ class DungeonGrid(
                 }
         } else {
             openRoomDoors.flatMap { openDoor ->
-                blueprint.doors
+                orientedDoors
                     .filter { it.facing == openDoor.door.facing.opposite }
                     .map { door ->
                         originForDoor(
@@ -270,7 +275,9 @@ class DungeonGrid(
             }
         }
 
-        return origins.distinct().map { origin -> PlacedRoom(blueprint, origin) }
+        return origins.distinct().map { origin ->
+            PlacedRoom(blueprint, origin, orientation)
+        }
     }
 
     private fun originForDoor(

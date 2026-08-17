@@ -5,10 +5,36 @@ import com.dungeonarchitect.domain.DungeonGrid
 import com.dungeonarchitect.domain.GridPosition
 import com.dungeonarchitect.domain.PlacedRoom
 import com.dungeonarchitect.domain.RoomBlueprint
+import com.dungeonarchitect.domain.RoomOrientation
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class RoomDoorMarkersTest {
+    @Test
+    fun `rotated door markers use oriented positions and facings`() {
+        val room = placedRoom(
+            origin = position(2, 1),
+            orientation = RoomOrientation.CLOCKWISE_90,
+        )
+        val grid = gridWith(room)
+
+        assertEquals(
+            setOf(
+                RoomDoorGridMarker(
+                    position = position(2, 2),
+                    facing = CardinalDirection.NORTH,
+                    isOpen = true,
+                ),
+                RoomDoorGridMarker(
+                    position = position(2, 1),
+                    facing = CardinalDirection.SOUTH,
+                    isOpen = true,
+                ),
+            ),
+            roomDoorGridMarkers(grid),
+        )
+    }
+
     @Test
     fun `door markers preserve translated position facing and open state`() {
         val room = placedRoom(origin = position(2, 1))
@@ -63,7 +89,10 @@ class RoomDoorMarkersTest {
         placedRooms = rooms.toList(),
     )
 
-    private fun placedRoom(origin: GridPosition) = PlacedRoom(
+    private fun placedRoom(
+        origin: GridPosition,
+        orientation: RoomOrientation = RoomOrientation.UNROTATED,
+    ) = PlacedRoom(
         blueprint = RoomBlueprint(
             id = "test-room",
             displayName = "Test Room",
@@ -75,6 +104,7 @@ class RoomDoorMarkersTest {
             ),
         ),
         origin = origin,
+        orientation = orientation,
     )
 
     private fun position(column: Int, row: Int) =

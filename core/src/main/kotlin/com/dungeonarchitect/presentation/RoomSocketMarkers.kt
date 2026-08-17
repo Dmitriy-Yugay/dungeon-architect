@@ -13,7 +13,7 @@ internal fun roomSocketGridMarkers(
     placedRooms: Iterable<PlacedRoom>,
 ): Set<RoomSocketGridMarker> = buildSet {
     placedRooms.forEach { room ->
-        room.blueprint.sockets.forEach { (localPosition, type) ->
+        room.geometry.sockets.forEach { (localPosition, type) ->
             add(
                 RoomSocketGridMarker(
                     position = room.toGridPosition(localPosition),

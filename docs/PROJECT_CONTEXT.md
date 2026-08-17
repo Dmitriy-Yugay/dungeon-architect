@@ -231,7 +231,7 @@ capacity rather than providing an immediate combat benefit in this milestone.
 53. [x] Add an immutable quarter-turn room orientation and transform footprint
     cells, door positions and facings, and socket positions consistently; test
     all four orientations and full-turn identity.
-54. [ ] Make placed rooms retain their orientation, and make snapping,
+54. [x] Make placed rooms retain their orientation, and make snapping,
     placement validation, door connections, trap sockets, rendering markers,
     and route traversal use the transformed room geometry; add focused domain
     regression tests.

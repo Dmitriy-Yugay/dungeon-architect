@@ -9,9 +9,9 @@ data class PlacedTrap(
 
     init {
         val socketType = requireNotNull(
-            room.blueprint.sockets[localSocketPosition],
+            room.geometry.sockets[localSocketPosition],
         ) {
-            "A placed trap must occupy a declared room socket."
+            "A placed trap must occupy a declared oriented room socket."
         }
         require(definition.isCompatibleWith(socketType)) {
             "A placed trap must be compatible with its room socket."
