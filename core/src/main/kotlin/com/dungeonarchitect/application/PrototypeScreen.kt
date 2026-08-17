@@ -184,9 +184,11 @@ class PrototypeScreen(
         private const val RUN_DEFINITION_PATH = "content/prototype-run.json"
         private const val ROOM_BLUEPRINT_PATH = "content/prototype-room.json"
         private const val LONG_GALLERY_PATH = "content/long-gallery.json"
+        private const val CORNER_ROOM_PATH = "content/corner-room.json"
         private val ROOM_BLUEPRINT_PATHS = listOf(
             ROOM_BLUEPRINT_PATH,
             LONG_GALLERY_PATH,
+            CORNER_ROOM_PATH,
         )
 
         private const val BACKGROUND_RED = 0.04f

@@ -251,12 +251,13 @@ class PrototypeScreenTest {
             listOf(
                 "content/prototype-room.json",
                 "content/long-gallery.json",
+                "content/corner-room.json",
                 "content/spike-trap.json",
             ),
             requestedPaths,
         )
         assertEquals(
-            listOf("prototype-room", "long-gallery"),
+            listOf("prototype-room", "long-gallery", "corner-room"),
             buildState.availableRoomBlueprints.map(RoomBlueprint::id),
         )
         assertEquals("prototype-room", buildState.selectedRoomBlueprint.id)

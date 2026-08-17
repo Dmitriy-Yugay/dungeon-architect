@@ -1,0 +1,26 @@
+{
+  "id": "corner-room",
+  "displayName": "Corner Room",
+  "footprint": [
+    {"column": 0, "row": 0},
+    {"column": 1, "row": 0},
+    {"column": 0, "row": 1},
+    {"column": 1, "row": 1}
+  ],
+  "doors": [
+    {
+      "position": {"column": 0, "row": 0},
+      "facing": "west"
+    },
+    {
+      "position": {"column": 1, "row": 1},
+      "facing": "north"
+    }
+  ],
+  "sockets": [
+    {
+      "position": {"column": 1, "row": 0},
+      "type": "floor"
+    }
+  ]
+}

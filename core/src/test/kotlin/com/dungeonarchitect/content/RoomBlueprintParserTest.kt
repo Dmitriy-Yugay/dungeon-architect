@@ -80,6 +80,36 @@ class RoomBlueprintParserTest {
     }
 
     @Test
+    fun `authored corner room has adjacent doors and one ordinary socket`() {
+        val cornerRoom = RoomBlueprintParser.parse(
+            authoredRoomJson("corner-room.json"),
+        )
+
+        assertEquals("corner-room", cornerRoom.id)
+        assertEquals("Corner Room", cornerRoom.displayName)
+        assertEquals(
+            setOf(
+                position(0, 0),
+                position(1, 0),
+                position(0, 1),
+                position(1, 1),
+            ),
+            cornerRoom.footprint,
+        )
+        assertEquals(
+            setOf(
+                RoomDoor(position(0, 0), CardinalDirection.WEST),
+                RoomDoor(position(1, 1), CardinalDirection.NORTH),
+            ),
+            cornerRoom.doors,
+        )
+        assertEquals(
+            mapOf(position(1, 0) to RoomSocketType.FLOOR),
+            cornerRoom.sockets,
+        )
+    }
+
+    @Test
     fun `parser reads identity positions doors and sockets from supplied JSON`() {
         val blueprint = RoomBlueprintParser.parse(roomJson())
 

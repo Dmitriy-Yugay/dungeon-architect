@@ -239,7 +239,7 @@ capacity rather than providing an immediate combat benefit in this milestone.
     the build UI, update the live preview immediately, and prevent either
     control from also committing a placement; test input behavior in every run
     phase.
-56. [ ] Add one simple authored corner-room blueprint with adjacent doors and no
+56. [x] Add one simple authored corner-room blueprint with adjacent doors and no
     special effect, expose it as a room choice, and verify that its rotations
     can extend each compatible open frontier door without overlap.
 57. [ ] Add property-based topology tests that generate legal paths containing
