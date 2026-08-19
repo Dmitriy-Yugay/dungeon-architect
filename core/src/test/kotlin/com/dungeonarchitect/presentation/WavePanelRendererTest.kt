@@ -16,21 +16,24 @@ class WavePanelRendererTest {
                 heroDisplayName = "Militia Recruit",
                 count = 4,
                 heroHealth = 10,
-                objectiveDamage = 10,
+                heartDamage = 10,
                 movementSpeedTilesPerSecond = 2f,
                 traitDescription = "A straightforward melee fighter.",
             ),
             phase = PrototypeRunPhase.BUILDING,
-            objectiveHealth = 10,
-            objectiveMaxHealth = 10,
+            heartHealth = 10,
+            heartMaxHealth = 10,
             isStartEnabled = true,
+            isCancelEnabled = true,
         )
 
         assertEquals("Upcoming wave: 4 x Militia Recruit", view.summary)
         assertEquals("A straightforward melee fighter.", view.traitDescription)
-        assertEquals("Objective health: 10 / 10", view.objectiveStatus)
+        assertEquals("Heart health: 10 / 10", view.heartStatus)
         assertEquals("START WAVE", view.controlLabel)
         assertTrue(view.isControlEnabled)
+        assertEquals("CANCEL", view.cancelLabel)
+        assertTrue(view.isCancelEnabled)
     }
 
     @Test
@@ -41,34 +44,39 @@ class WavePanelRendererTest {
                 heroDisplayName = "Militia Recruit",
                 count = 4,
                 heroHealth = 10,
-                objectiveDamage = 10,
+                heartDamage = 10,
                 movementSpeedTilesPerSecond = 2f,
                 traitDescription = "A straightforward melee fighter.",
             ),
             phase = PrototypeRunPhase.BUILDING,
-            objectiveHealth = 10,
-            objectiveMaxHealth = 10,
+            heartHealth = 10,
+            heartMaxHealth = 10,
             isStartEnabled = false,
+            isCancelEnabled = false,
         )
 
         assertEquals("START WAVE - ROUTE REQUIRED", view.controlLabel)
         assertFalse(view.isControlEnabled)
+        assertEquals("CANCEL", view.cancelLabel)
+        assertFalse(view.isCancelEnabled)
     }
 
     @Test
     fun `panel gives clear terminal feedback and enables restart`() {
-        val victory = view(PrototypeRunPhase.VICTORY, objectiveHealth = 10)
-        val defeat = view(PrototypeRunPhase.DEFEAT, objectiveHealth = 0)
+        val victory = view(PrototypeRunPhase.VICTORY, heartHealth = 10)
+        val defeat = view(PrototypeRunPhase.DEFEAT, heartHealth = 0)
 
-        assertEquals("VICTORY - Objective secured", victory.summary)
-        assertEquals("Objective health: 10 / 10", victory.objectiveStatus)
+        assertEquals("VICTORY - Heart secured", victory.summary)
+        assertEquals("Heart health: 10 / 10", victory.heartStatus)
         assertEquals("RESTART", victory.controlLabel)
         assertTrue(victory.isControlEnabled)
+        assertFalse(victory.isCancelEnabled)
 
-        assertEquals("DEFEAT - Objective destroyed", defeat.summary)
-        assertEquals("Objective health: 0 / 10", defeat.objectiveStatus)
+        assertEquals("DEFEAT - Heart destroyed", defeat.summary)
+        assertEquals("Heart health: 0 / 10", defeat.heartStatus)
         assertEquals("RESTART", defeat.controlLabel)
         assertTrue(defeat.isControlEnabled)
+        assertFalse(defeat.isCancelEnabled)
     }
 
     @Test
@@ -89,22 +97,41 @@ class WavePanelRendererTest {
         assertFalse(bounds.contains(bounds.x, bounds.y + bounds.height))
     }
 
+    @Test
+    fun `cancel button sits left of start without overlap`() {
+        val cancel = WavePanelLayout.cancelButtonBounds(
+            worldWidth = 1_024f,
+            panelBottom = 576f,
+        )
+        val start = WavePanelLayout.startButtonBounds(
+            worldWidth = 1_024f,
+            panelBottom = 576f,
+        )
+
+        assertEquals(624f, cancel.x)
+        assertEquals(592f, cancel.y)
+        assertEquals(112f, cancel.width)
+        assertEquals(48f, cancel.height)
+        assertTrue(cancel.x + cancel.width < start.x)
+    }
+
     private fun view(
         phase: PrototypeRunPhase,
-        objectiveHealth: Int,
+        heartHealth: Int,
     ) = WavePanelView.from(
         wave = UpcomingHeroWave(
             heroType = "militia_recruit",
             heroDisplayName = "Militia Recruit",
             count = 4,
             heroHealth = 10,
-            objectiveDamage = 10,
+            heartDamage = 10,
             movementSpeedTilesPerSecond = 2f,
             traitDescription = "A straightforward melee fighter.",
         ),
         phase = phase,
-        objectiveHealth = objectiveHealth,
-        objectiveMaxHealth = 10,
+        heartHealth = heartHealth,
+        heartMaxHealth = 10,
         isStartEnabled = false,
+        isCancelEnabled = false,
     )
 }

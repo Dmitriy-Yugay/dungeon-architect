@@ -73,7 +73,6 @@ class TrapSocketHoverResultTest {
         width = 10,
         height = 8,
         entrance = position(0, 0),
-        objective = position(9, 7),
         placedRooms = listOf(room),
     )
 
@@ -81,6 +80,7 @@ class TrapSocketHoverResultTest {
         blueprint = RoomBlueprint(
             id = "socket-room",
             displayName = "Socket Room",
+            heartAnchor = GridPosition(column = 0, row = 0),
             footprint = setOf(
                 position(0, 0),
                 position(1, 0),

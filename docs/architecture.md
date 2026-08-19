@@ -28,12 +28,12 @@ Additional platform modules should be added only when needed.
 - **Evaluation:** immutable, non-visual summaries of resolved simulation
   outcomes and metrics.
 - **Presentation:** placeholder grid, placement preview, hero marker, wave
-  information, objective health, run controls, and post-wave explanation values
-  derived from evaluation reports.
+  information, heart health and placement state, run controls, and post-wave
+  explanation values derived from evaluation reports.
 - **Application:** the prototype screen plus controllers for starting,
   advancing, resolving, and restarting the wave.
-- **Content:** JSON definitions and parsers for the prototype run, hero wave,
-  and trap.
+- **Content:** JSON definitions and parsers for room blueprints, the prototype
+  run, hero wave, and trap.
 
 Domain objects should not depend on rendering classes. Systems update the game
 state on a fixed simulation step; rendering may interpolate between steps.
@@ -45,14 +45,14 @@ applies the command to domain state. Presentation reads that state and displays
 the result. This keeps placement rules and combat deterministic enough for unit
 tests.
 
-As the prototype grows, application commands should become recordable and
-simulation systems should emit small immutable events. Events are observations
-of completed gameplay facts, not a replacement for domain state and not a
-global event-bus requirement. The headless evaluator composes the same
-controller and simulation systems used by the playable application and
-summarizes their events into evaluation reports.
+Application commands are explicit controller or click-dispatch operations, and
+simulation systems emit small immutable events. Events are observations of
+completed gameplay facts, not a replacement for domain state and not a global
+event-bus requirement. The headless evaluator composes the same controller and
+simulation systems used by the playable application and summarizes their events
+into evaluation reports.
 
-This creates the intended future flow:
+This creates the current non-visual flow:
 
 `authored scenario + commands + seed -> deterministic simulation -> events -> evaluation report -> presentation or balance analysis`
 
@@ -68,11 +68,32 @@ This creates the intended future flow:
   bounds validation.
 - Grow the persistent dungeon through an open-door frontier. Placement snaps a
   compatible candidate door to exactly one unused placed-room door, consumes
-  the connected pair, and rejects accidental multi-door joins. Entrance and
-  objective cells are directional ports rather than room floor.
+  the connected pair, and rejects accidental multi-door joins. Every other door
+  on the newly placed room remains open, so later rooms may extend any visible
+  branch. The entrance is the only fixed external directional port.
+- Apply a selected quarter-turn orientation to a room's footprint, door cells
+  and facings, sockets, and heart anchor before snapping or validation. The
+  authored corner room combines adjacent door facings with these rotations to
+  support turns and construction in every cardinal direction.
+- Store the dungeon heart as immutable placement state referencing a placed
+  room. Each blueprint owns a required local heart anchor; the selected heart's
+  grid position is derived from that anchor, the room orientation, and its
+  origin. The heart is therefore an arbitrary chosen room endpoint rather than
+  an external fixed port.
 - Build pathfinding neighbors from cells within the same room plus explicit
-  room-door and endpoint connections. Adjacent cells in different rooms are not
-  traversable unless their directional doors connect.
+  room-door and entrance connections. Adjacent cells in different rooms are
+  not traversable unless their directional doors connect. Wave-start validation
+  and simulation route from the fixed entrance to the currently selected heart;
+  unused branches are excluded from that route.
+- Cancel removes only the newest placed room during BUILDING. It also removes
+  every trap attached to that room and clears the heart if that room held it.
+  Because routes, connections, and open doors are derived from remaining state,
+  no separate topology cache needs repair after cancellation.
+- Keep trap and heart occupancy mutually exclusive. Trap placement rejects the
+  selected heart cell, and heart placement rejects a room whose transformed
+  anchor contains a trap. Presentation exposes a BUILDING-only heart mode whose
+  grid clicks take precedence over trap and room placement, but validation and
+  mutation remain in non-rendering domain and application code.
 - Load disposable game content from JSON or another simple text format.
 - Parse authored content from supplied text; the application layer owns file
   loading so content validation does not depend on libGDX global state.
@@ -84,11 +105,12 @@ This creates the intended future flow:
   cooldown remain authored content.
 - Coordinate the prototype run in plain Kotlin. Heroes of the single authored
   type traverse the route one at a time up to the wave's configured count and
-  share trap cooldown state. Arrivals apply authored objective damage; resolving
-  the wave with objective health remaining is victory, while zero health is
-  defeat.
-- Restart resets transient wave progress, objective health, hero state, and
-  trap cooldowns while preserving the player's room and trap layout.
+  share trap cooldown state. Arrivals apply authored heart damage; resolving
+  the wave with heart health remaining is victory, while zero health is defeat.
+- Restart resets transient wave progress, heart health, hero state, event
+  history, and trap cooldowns while preserving the player's room layout, traps,
+  and exact selected heart. A restarted wave snapshots a fresh route and trap
+  runtime state from that persistent dungeon.
 - Represent significant simulation facts as small immutable event values using
   stable scalar identifiers and state snapshots. Record hero arrival rather
   than every fixed-step movement update so evaluation remains meaningful and
@@ -101,20 +123,40 @@ This creates the intended future flow:
 - Evaluate authored layouts headlessly by driving the prototype run controller
   at its fixed simulation step. Derive report totals from the resulting event
   sequence and count exact completed steps for elapsed simulation time rather
-  than duplicating combat or wave-resolution rules.
+  than duplicating combat or wave-resolution rules. Headless evaluation requires
+  a selected, connected heart and uses that heart's route; relocating the heart
+  in the same layout can therefore change the evaluated route and timing.
+
+The full application flow is covered without starting libGDX rendering. The
+test drives the same click dispatcher and control bounds as the prototype to
+select authored rooms, rotate, place, cancel, select the heart, place a trap,
+start, simulate, resolve, and restart. Its checked-in scenario turns through a
+corner into a rotated gallery, proves canceled-room trap cleanup, and verifies
+that the selected-heart route crosses the surviving trap before deterministic
+victory.
 
 ## Near-term constraints
 
-- Keep early room differences limited to geometry, doors, and sockets.
+- Keep early room differences limited to geometry, doors, sockets, and heart
+  anchors.
 - Load room blueprints from authored content before adding special room rules.
 - Keep selection and build-phase rules in the application or domain layers,
   not in renderers.
-- Do not allow room or trap placement after a wave starts.
+- Do not allow room rotation, cancellation, heart placement, room placement, or
+  trap placement after a wave starts.
 - Continue testing placement, routing, combat, and run outcomes without
   starting libGDX.
 
+Only the entrance-to-heart branch has current combat meaning. Off-route rooms
+and traps persist as future construction capacity but do not attract heroes,
+split the wave, grant bonuses, or contribute to evaluation. The prototype also
+lacks an authored three-door junction, so branch invariants are covered in the
+domain while the checked-in room catalog currently builds straight and turned
+chains. Multiple waves, rewards, resources, and a one-room-per-wave drafting
+rule are also absent.
+
 Central asset management, saves, additional platforms, and richer content are
-deferred until the room-choice loop is proven.
+deferred until their workflows justify the added infrastructure.
 
 ## Adopted development dependencies
 
@@ -133,9 +175,9 @@ has the corresponding problem. Listing one is not a commitment to adopt it.
 
 ### Near-term candidates
 
-- **Structured simulation events:** implement as small Kotlin types first. Add a
-  logging or telemetry framework only when local reports and tests no longer
-  satisfy the diagnostic need.
+- **Simulation-event export:** the runtime already uses small Kotlin event
+  values. Add persistent logging or telemetry only when in-memory reports and
+  tests no longer satisfy the diagnostic need.
 - **JSON Schema or stronger serialization validation:** reconsider when the
   authored content surface becomes large enough that editor validation,
   migrations, or cross-file tooling would materially improve iteration.

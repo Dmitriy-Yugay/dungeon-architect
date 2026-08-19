@@ -7,6 +7,7 @@ import com.badlogic.gdx.utils.Disposable
 import com.dungeonarchitect.domain.CardinalDirection
 import com.dungeonarchitect.domain.DungeonGrid
 import com.dungeonarchitect.domain.GridPosition
+import com.dungeonarchitect.domain.HeartPlacementPreview
 import com.dungeonarchitect.domain.PrototypeHeroState
 import com.dungeonarchitect.domain.RoomPlacementPreview
 import com.dungeonarchitect.domain.RoomSocketType
@@ -36,6 +37,7 @@ class DungeonGridRenderer : Disposable {
         projection: Matrix4,
         placementPreview: RoomPlacementPreview?,
         trapPlacementPreview: TrapPlacementPreview?,
+        heartPlacementPreview: HeartPlacementPreview?,
         heroState: PrototypeHeroState?,
         hoveredPosition: GridPosition?,
         selectedPosition: GridPosition?,
@@ -47,6 +49,8 @@ class DungeonGridRenderer : Disposable {
         renderSocketMarkers(roomSocketGridMarkers(grid.placedRooms))
         renderTrapMarkers(placedTrapGridMarkers(grid))
         trapPlacementPreview?.let(::renderTrapPlacementPreview)
+        placedDungeonHeartGridMarker(grid)?.let(::renderHeartMarker)
+        heartPlacementPreview?.let(::renderHeartPlacementPreview)
         heroWorldMarker(heroState, TILE_SIZE)?.let(::renderHero)
         renderHighlights(hoveredPosition, selectedPosition)
     }
@@ -192,6 +196,48 @@ class DungeonGridRenderer : Disposable {
         shapes.end()
     }
 
+    private fun renderHeartMarker(marker: PlacedDungeonHeartGridMarker) {
+        val centerX = (marker.position.column + HALF_TILE) * TILE_SIZE
+        val centerY = (marker.position.row + HALF_TILE) * TILE_SIZE
+        shapes.begin(ShapeRenderer.ShapeType.Filled)
+        shapes.color = HEART_MARKER_COLOR
+        shapes.circle(
+            centerX - HEART_LOBE_OFFSET,
+            centerY + HEART_LOBE_OFFSET,
+            HEART_LOBE_RADIUS,
+        )
+        shapes.circle(
+            centerX + HEART_LOBE_OFFSET,
+            centerY + HEART_LOBE_OFFSET,
+            HEART_LOBE_RADIUS,
+        )
+        shapes.triangle(
+            centerX - HEART_MARKER_RADIUS,
+            centerY + HEART_LOBE_OFFSET,
+            centerX + HEART_MARKER_RADIUS,
+            centerY + HEART_LOBE_OFFSET,
+            centerX,
+            centerY - HEART_MARKER_RADIUS,
+        )
+        shapes.end()
+    }
+
+    private fun renderHeartPlacementPreview(preview: HeartPlacementPreview) {
+        shapes.begin(ShapeRenderer.ShapeType.Line)
+        shapes.color = if (preview.isValid) {
+            VALID_PREVIEW_COLOR
+        } else {
+            INVALID_PREVIEW_COLOR
+        }
+        shapes.rect(
+            preview.position.column * TILE_SIZE + HEART_PREVIEW_INSET,
+            preview.position.row * TILE_SIZE + HEART_PREVIEW_INSET,
+            TILE_SIZE - HEART_PREVIEW_INSET * 2,
+            TILE_SIZE - HEART_PREVIEW_INSET * 2,
+        )
+        shapes.end()
+    }
+
     private fun renderHighlights(
         hoveredPosition: GridPosition?,
         selectedPosition: GridPosition?,
@@ -225,7 +271,6 @@ class DungeonGridRenderer : Disposable {
             TileType.EMPTY -> EMPTY_TILE_COLOR
             TileType.ROOM -> ROOM_COLOR
             TileType.ENTRANCE -> ENTRANCE_COLOR
-            TileType.OBJECTIVE -> OBJECTIVE_COLOR
         }
 
     private companion object {
@@ -241,11 +286,14 @@ class DungeonGridRenderer : Disposable {
         const val SOCKET_MARKER_RADIUS = 8f
         const val TRAP_MARKER_RADIUS = 12f
         const val TRAP_PREVIEW_RADIUS = 18f
+        const val HEART_LOBE_OFFSET = 6f
+        const val HEART_LOBE_RADIUS = 10f
+        const val HEART_MARKER_RADIUS = 16f
+        const val HEART_PREVIEW_INSET = 12f
 
         val EMPTY_TILE_COLOR = Color.valueOf("252B33")
         val ROOM_COLOR = Color.valueOf("5D6D7E")
         val ENTRANCE_COLOR = Color.valueOf("3A9D5D")
-        val OBJECTIVE_COLOR = Color.valueOf("B84B4B")
         val VALID_PREVIEW_COLOR = Color.valueOf("4EA86B")
         val INVALID_PREVIEW_COLOR = Color.valueOf("D85C5C")
         val OPEN_DOOR_MARKER_COLOR = Color.valueOf("F0A44B")
@@ -253,6 +301,7 @@ class DungeonGridRenderer : Disposable {
         val FLOOR_SOCKET_MARKER_COLOR = Color.valueOf("47C6B5")
         val WALL_SOCKET_MARKER_COLOR = Color.valueOf("B779D0")
         val TRAP_MARKER_COLOR = Color.valueOf("E84A5F")
+        val HEART_MARKER_COLOR = Color.valueOf("EF6FAE")
         val HERO_COLOR = Color.valueOf("4BA3D3")
         val HOVER_COLOR = Color.valueOf("E0B84B")
         val SELECTION_COLOR = Color.valueOf("F2F2F2")

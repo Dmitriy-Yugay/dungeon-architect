@@ -19,7 +19,7 @@ class WaveEvaluationReportTest {
         assertEquals(
             WaveEvaluationReport(
                 outcome = WaveOutcome.VICTORY,
-                objectiveHealth = 10,
+                heartHealth = 10,
                 heroKills = 0,
                 heroArrivals = 0,
                 elapsedSimulationSeconds = 0.0,
@@ -28,7 +28,7 @@ class WaveEvaluationReportTest {
             ),
             WaveEvaluationReport(
                 outcome = WaveOutcome.VICTORY,
-                objectiveHealth = 10,
+                heartHealth = 10,
                 heroKills = 0,
                 heroArrivals = 0,
                 elapsedSimulationSeconds = 0.0,
@@ -41,7 +41,7 @@ class WaveEvaluationReportTest {
     @Test
     fun `report rejects negative metrics and invalid elapsed time`() {
         listOf(
-            { report(objectiveHealth = -1) },
+            { report(heartHealth = -1) },
             { report(heroKills = -1) },
             { report(heroArrivals = -1) },
             { report(elapsedSimulationSeconds = -0.1) },
@@ -55,24 +55,24 @@ class WaveEvaluationReportTest {
     }
 
     @Test
-    fun `report outcome must agree with objective health`() {
+    fun `report outcome must agree with heart health`() {
         assertFailsWith<IllegalArgumentException> {
             report(
                 outcome = WaveOutcome.VICTORY,
-                objectiveHealth = 0,
+                heartHealth = 0,
             )
         }
         assertFailsWith<IllegalArgumentException> {
             report(
                 outcome = WaveOutcome.DEFEAT,
-                objectiveHealth = 1,
+                heartHealth = 1,
             )
         }
     }
 
     private fun report(
         outcome: WaveOutcome = WaveOutcome.VICTORY,
-        objectiveHealth: Int = 4,
+        heartHealth: Int = 4,
         heroKills: Int = 3,
         heroArrivals: Int = 1,
         elapsedSimulationSeconds: Double = 2.5,
@@ -80,7 +80,7 @@ class WaveEvaluationReportTest {
         trapDamage: Int = 12,
     ) = WaveEvaluationReport(
         outcome = outcome,
-        objectiveHealth = objectiveHealth,
+        heartHealth = heartHealth,
         heroKills = heroKills,
         heroArrivals = heroArrivals,
         elapsedSimulationSeconds = elapsedSimulationSeconds,

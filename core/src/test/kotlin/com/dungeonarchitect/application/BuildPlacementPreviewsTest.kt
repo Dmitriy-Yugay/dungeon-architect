@@ -5,6 +5,7 @@ import com.dungeonarchitect.domain.CardinalDirection
 import com.dungeonarchitect.domain.DungeonGrid
 import com.dungeonarchitect.domain.GridPosition
 import com.dungeonarchitect.domain.PlacedRoom
+import com.dungeonarchitect.domain.PrototypeRunPhase
 import com.dungeonarchitect.domain.RoomBlueprint
 import com.dungeonarchitect.domain.RoomDoor
 import com.dungeonarchitect.domain.RoomSocketType
@@ -90,11 +91,47 @@ class BuildPlacementPreviewsTest {
         assertTrue(previews.room!!.isValid)
     }
 
+    @Test
+    fun `heart mode replaces trap and room previews with the room anchor preview`() {
+        val fixture = fixture()
+        fixture.buildState.toggleHeartPlacementMode()
+
+        val previews = buildPlacementPreviews(
+            grid = fixture.grid,
+            buildState = fixture.buildState,
+            hoveredPosition = position(5, 3),
+        )
+
+        assertNull(previews.room)
+        assertNull(previews.trap)
+        assertEquals(position(4, 2), previews.heart?.position)
+        assertEquals(fixture.room, previews.heart?.room)
+        assertTrue(previews.heart!!.isValid)
+    }
+
+    @Test
+    fun `heart preview is hidden outside building even if mode remains selected`() {
+        val fixture = fixture()
+        fixture.buildState.toggleHeartPlacementMode()
+
+        val previews = buildPlacementPreviews(
+            grid = fixture.grid,
+            buildState = fixture.buildState,
+            hoveredPosition = position(5, 3),
+            runPhase = PrototypeRunPhase.RUNNING,
+        )
+
+        assertNull(previews.room)
+        assertNull(previews.trap)
+        assertNull(previews.heart)
+    }
+
     private fun fixture(): Fixture {
         val room = PlacedRoom(
             blueprint = RoomBlueprint(
                 id = "socket-room",
                 displayName = "Socket Room",
+                heartAnchor = GridPosition(column = 0, row = 0),
                 footprint = setOf(
                     position(0, 0),
                     position(1, 0),
@@ -125,7 +162,6 @@ class BuildPlacementPreviewsTest {
                 width = 10,
                 height = 8,
                 entrance = position(0, 0),
-                objective = position(9, 7),
                 placedRooms = listOf(room),
             ),
             buildState = BuildState(

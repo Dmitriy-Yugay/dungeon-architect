@@ -22,14 +22,16 @@ class TrapPlacementCommitTest {
     @Test
     fun `started wave snapshots the exact player-placed trap`() {
         val localSocketPosition = position(0, 0)
+        val localHeartAnchor = position(1, 0)
         val room = PlacedRoom(
             blueprint = RoomBlueprint(
                 id = "route-room",
                 displayName = "Route Room",
-                footprint = setOf(localSocketPosition),
+                heartAnchor = localHeartAnchor,
+                footprint = setOf(localSocketPosition, localHeartAnchor),
                 doors = listOf(
                     RoomDoor(localSocketPosition, CardinalDirection.WEST),
-                    RoomDoor(localSocketPosition, CardinalDirection.EAST),
+                    RoomDoor(localHeartAnchor, CardinalDirection.EAST),
                 ),
                 sockets = mapOf(
                     localSocketPosition to RoomSocketType.FLOOR,
@@ -53,9 +55,9 @@ class TrapPlacementCommitTest {
             width = 3,
             height = 1,
             entrance = position(0, 0),
-            objective = position(2, 0),
             placedRooms = listOf(room),
         )
+        assertTrue(grid.placeOrRelocateHeart(room))
         val controller = runController(grid)
         val startButtonBounds = ControlBounds(
             x = 10f,
@@ -73,6 +75,12 @@ class TrapPlacementCommitTest {
                 worldX = 0f,
                 worldY = 0f,
                 startButtonBounds = startButtonBounds,
+                cancelButtonBounds = ControlBounds(
+                    x = 200f,
+                    y = 20f,
+                    width = 100f,
+                    height = 40f,
+                ),
                 roomChoiceControls = emptyList(),
                 runController = controller,
             ),
@@ -88,6 +96,12 @@ class TrapPlacementCommitTest {
                 worldX = 60f,
                 worldY = 40f,
                 startButtonBounds = startButtonBounds,
+                cancelButtonBounds = ControlBounds(
+                    x = 200f,
+                    y = 20f,
+                    width = 100f,
+                    height = 40f,
+                ),
                 roomChoiceControls = emptyList(),
                 runController = controller,
             ),
@@ -157,6 +171,26 @@ class TrapPlacementCommitTest {
             ),
         )
         assertEquals(emptyList(), incompatibleFixture.grid.placedTraps)
+    }
+
+    @Test
+    fun `commit rejects a socket occupied by the dungeon heart`() {
+        val fixture = fixture()
+        assertTrue(fixture.grid.placeOrRelocateHeart(fixture.room))
+        val placedHeart = requireNotNull(fixture.grid.placedHeart)
+
+        assertEquals(
+            TrapPlacementCommitResult.REJECTED,
+            PrototypeScreen.commitTrapPlacement(
+                grid = fixture.grid,
+                buildState = fixture.buildState,
+                clickedPosition = position(4, 3),
+                runPhase = PrototypeRunPhase.BUILDING,
+            ),
+        )
+
+        assertEquals(emptyList(), fixture.grid.placedTraps)
+        assertSame(placedHeart, fixture.grid.placedHeart)
     }
 
     @Test
@@ -272,6 +306,12 @@ class TrapPlacementCommitTest {
             width = 10f,
             height = 10f,
         ),
+        cancelButtonBounds = ControlBounds(
+            x = 120f,
+            y = 100f,
+            width = 10f,
+            height = 10f,
+        ),
         roomChoiceControls = emptyList(),
         runController = runController(fixture.grid),
     )
@@ -281,6 +321,7 @@ class TrapPlacementCommitTest {
             blueprint = RoomBlueprint(
                 id = "socket-room",
                 displayName = "Socket Room",
+                heartAnchor = FLOOR_SOCKET,
                 footprint = setOf(
                     position(0, 0),
                     position(1, 0),
@@ -298,6 +339,7 @@ class TrapPlacementCommitTest {
         val selectedRoomBlueprint = RoomBlueprint(
             id = "one-cell-room",
             displayName = "Corner Room",
+            heartAnchor = SELECTED_ROOM_DOOR,
             footprint = setOf(
                 SELECTED_ROOM_DOOR,
                 position(1, 0),
@@ -322,7 +364,6 @@ class TrapPlacementCommitTest {
                 width = 10,
                 height = 8,
                 entrance = position(0, 0),
-                objective = position(9, 7),
                 placedRooms = listOf(room),
             ),
             buildState = buildState,
@@ -336,11 +377,11 @@ class TrapPlacementCommitTest {
             heroDisplayName = "Militia Recruit",
             count = 1,
             heroHealth = 10,
-            objectiveDamage = 10,
+            heartDamage = 10,
             movementSpeedTilesPerSecond = 2f,
             traitDescription = "A straightforward melee fighter.",
         ),
-        runDefinition = PrototypeRunDefinition(objectiveHealth = 10),
+        runDefinition = PrototypeRunDefinition(heartHealth = 10),
     )
 
     private fun position(column: Int, row: Int) =

@@ -176,7 +176,7 @@ class FixedStepHeroSimulationTest {
                 heroDisplayName = "Militia Recruit",
                 count = 4,
                 heroHealth = 10,
-                objectiveDamage = 10,
+                heartDamage = 10,
                 movementSpeedTilesPerSecond = speed,
                 traitDescription = "A straightforward melee fighter.",
             ),
@@ -196,6 +196,7 @@ class FixedStepHeroSimulationTest {
             blueprint = RoomBlueprint(
                 id = "socket-room",
                 displayName = "Socket Room",
+                heartAnchor = GridPosition(column = 0, row = 0),
                 footprint = setOf(localSocketPosition),
                 doorPositions = setOf(localSocketPosition),
                 sockets = mapOf(

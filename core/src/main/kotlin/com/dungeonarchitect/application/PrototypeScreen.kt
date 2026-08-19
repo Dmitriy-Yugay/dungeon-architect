@@ -14,7 +14,6 @@ import com.dungeonarchitect.domain.BuildState
 import com.dungeonarchitect.domain.CardinalDirection
 import com.dungeonarchitect.domain.DungeonGrid
 import com.dungeonarchitect.domain.GridPosition
-import com.dungeonarchitect.domain.PlacedRoom
 import com.dungeonarchitect.domain.PrototypeRunDefinition
 import com.dungeonarchitect.domain.PrototypeRunPhase
 import com.dungeonarchitect.domain.RoomBlueprint
@@ -24,10 +23,19 @@ import com.dungeonarchitect.domain.TrapSocketHoverResult
 import com.dungeonarchitect.domain.UpcomingHeroWave
 import com.dungeonarchitect.presentation.ControlBounds
 import com.dungeonarchitect.presentation.DungeonGridRenderer
+import com.dungeonarchitect.presentation.HeartPlacementControl
+import com.dungeonarchitect.presentation.HeartPlacementControlRenderer
+import com.dungeonarchitect.presentation.HeartPlacementControlView
+import com.dungeonarchitect.presentation.HeartPlacementLayout
 import com.dungeonarchitect.presentation.RoomChoiceControl
 import com.dungeonarchitect.presentation.RoomChoicesLayout
 import com.dungeonarchitect.presentation.RoomChoicesRenderer
 import com.dungeonarchitect.presentation.RoomChoicesView
+import com.dungeonarchitect.presentation.RoomRotationControl
+import com.dungeonarchitect.presentation.RoomRotationDirection
+import com.dungeonarchitect.presentation.RoomRotationLayout
+import com.dungeonarchitect.presentation.RoomRotationRenderer
+import com.dungeonarchitect.presentation.RoomRotationView
 import com.dungeonarchitect.presentation.WavePanelLayout
 import com.dungeonarchitect.presentation.WavePanelRenderer
 import com.dungeonarchitect.presentation.WavePanelView
@@ -36,9 +44,7 @@ class PrototypeScreen(
     private val buildState: BuildState = loadBuildState { path ->
         Gdx.files.internal(path).readString("UTF-8")
     },
-    private val grid: DungeonGrid = prototypeGrid(
-        buildState.selectedRoomBlueprint,
-    ),
+    private val grid: DungeonGrid = prototypeGrid(),
     private val upcomingWave: UpcomingHeroWave = loadUpcomingWave { path ->
         Gdx.files.internal(path).readString("UTF-8")
     },
@@ -49,6 +55,8 @@ class PrototypeScreen(
     private val camera = OrthographicCamera()
     private val gridRenderer = DungeonGridRenderer()
     private val roomChoicesRenderer = RoomChoicesRenderer()
+    private val roomRotationRenderer = RoomRotationRenderer()
+    private val heartPlacementControlRenderer = HeartPlacementControlRenderer()
     private val wavePanelRenderer = WavePanelRenderer()
     private val worldWidth = gridRenderer.worldWidth(grid)
     private val gridWorldHeight = gridRenderer.worldHeight(grid)
@@ -75,12 +83,14 @@ class PrototypeScreen(
             grid = grid,
             buildState = buildState,
             hoveredPosition = hoveredPosition,
+            runPhase = runController.phase,
         )
         gridRenderer.render(
             grid = grid,
             projection = camera.combined,
             placementPreview = placementPreviews.room,
             trapPlacementPreview = placementPreviews.trap,
+            heartPlacementPreview = placementPreviews.heart,
             heroState = runController.heroState,
             hoveredPosition = hoveredPosition,
             selectedPosition = selectedPosition,
@@ -89,16 +99,31 @@ class PrototypeScreen(
             view = WavePanelView.from(
                 wave = upcomingWave,
                 phase = runController.phase,
-                objectiveHealth = runController.objectiveHealth,
-                objectiveMaxHealth = runController.objectiveMaxHealth,
+                heartHealth = runController.heartHealth,
+                heartMaxHealth = runController.heartMaxHealth,
                 isStartEnabled = runController.isStartEnabled,
+                isCancelEnabled = runController.isCancelEnabled,
             ),
             projection = camera.combined,
             worldWidth = worldWidth,
             panelBottom = gridWorldHeight,
         )
+        val roomChoicesView = RoomChoicesView.from(buildState)
         roomChoicesRenderer.render(
-            view = RoomChoicesView.from(buildState),
+            view = roomChoicesView,
+            projection = camera.combined,
+            worldWidth = worldWidth,
+            panelBottom = gridWorldHeight,
+        )
+        roomRotationRenderer.render(
+            rotationView = RoomRotationView.from(buildState, runController.phase),
+            roomChoicesView = roomChoicesView,
+            projection = camera.combined,
+            worldWidth = worldWidth,
+            panelBottom = gridWorldHeight,
+        )
+        heartPlacementControlRenderer.render(
+            view = HeartPlacementControlView.from(buildState, runController.phase),
             projection = camera.combined,
             worldWidth = worldWidth,
             panelBottom = gridWorldHeight,
@@ -110,6 +135,8 @@ class PrototypeScreen(
     }
 
     override fun dispose() {
+        heartPlacementControlRenderer.dispose()
+        roomRotationRenderer.dispose()
         roomChoicesRenderer.dispose()
         wavePanelRenderer.dispose()
         gridRenderer.dispose()
@@ -126,6 +153,7 @@ class PrototypeScreen(
         )
 
         if (Gdx.input.justTouched()) {
+            val roomChoicesView = RoomChoicesView.from(buildState)
             val result = handleClick(
                 grid = grid,
                 buildState = buildState,
@@ -136,14 +164,36 @@ class PrototypeScreen(
                     worldWidth = worldWidth,
                     panelBottom = gridWorldHeight,
                 ),
+                cancelButtonBounds = WavePanelLayout.cancelButtonBounds(
+                    worldWidth = worldWidth,
+                    panelBottom = gridWorldHeight,
+                ),
+                heartPlacementControl = HeartPlacementLayout.control(
+                    view = HeartPlacementControlView.from(
+                        buildState,
+                        runController.phase,
+                    ),
+                    worldWidth = worldWidth,
+                    panelBottom = gridWorldHeight,
+                ),
                 roomChoiceControls = RoomChoicesLayout.controls(
-                    view = RoomChoicesView.from(buildState),
+                    view = roomChoicesView,
+                    worldWidth = worldWidth,
+                    panelBottom = gridWorldHeight,
+                ),
+                roomRotationControls = RoomRotationLayout.controls(
+                    rotationView = RoomRotationView.from(
+                        buildState,
+                        runController.phase,
+                    ),
+                    roomChoicesView = roomChoicesView,
                     worldWidth = worldWidth,
                     panelBottom = gridWorldHeight,
                 ),
                 runController = runController,
             )
             if (result == PrototypeClickResult.ROOM_PLACED ||
+                result == PrototypeClickResult.HEART_PLACED ||
                 result == PrototypeClickResult.IGNORED
             ) {
                 selectedPosition = hoveredPosition
@@ -157,9 +207,11 @@ class PrototypeScreen(
         private const val RUN_DEFINITION_PATH = "content/prototype-run.json"
         private const val ROOM_BLUEPRINT_PATH = "content/prototype-room.json"
         private const val LONG_GALLERY_PATH = "content/long-gallery.json"
+        private const val CORNER_ROOM_PATH = "content/corner-room.json"
         private val ROOM_BLUEPRINT_PATHS = listOf(
             ROOM_BLUEPRINT_PATH,
             LONG_GALLERY_PATH,
+            CORNER_ROOM_PATH,
         )
 
         private const val BACKGROUND_RED = 0.04f
@@ -167,19 +219,11 @@ class PrototypeScreen(
         private const val BACKGROUND_BLUE = 0.07f
         private const val BACKGROUND_ALPHA = 1f
 
-        internal fun prototypeGrid(blueprint: RoomBlueprint) = DungeonGrid(
+        internal fun prototypeGrid() = DungeonGrid(
             width = 16,
             height = 9,
             entrance = GridPosition(column = 0, row = 4),
-            objective = GridPosition(column = 15, row = 4),
             entranceFacing = CardinalDirection.EAST,
-            objectiveFacing = CardinalDirection.WEST,
-            placedRooms = listOf(
-                PlacedRoom(
-                    blueprint = blueprint,
-                    origin = GridPosition(column = 1, row = 3),
-                ),
-            ),
         )
 
         internal fun placementPreview(
@@ -191,6 +235,7 @@ class PrototypeScreen(
                 grid.snappedPlacementPreview(
                     blueprint = buildState.selectedRoomBlueprint,
                     hoveredPosition = position,
+                    orientation = buildState.selectedRoomOrientation,
                 )
             }
 
@@ -236,11 +281,54 @@ class PrototypeScreen(
                         TrapPlacementCommitResult.REJECTED
                     }
                 is TrapSocketHoverResult.Occupied,
+                is TrapSocketHoverResult.HeartOccupied,
                 is TrapSocketHoverResult.Incompatible,
                 -> TrapPlacementCommitResult.REJECTED
                 TrapSocketHoverResult.NonSocket ->
                     TrapPlacementCommitResult.NON_SOCKET
             }
+        }
+
+        internal fun commitHeartPlacement(
+            grid: DungeonGrid,
+            buildState: BuildState,
+            clickedPosition: GridPosition?,
+            runController: PrototypeRunController,
+        ): HeartPlacementCommitResult {
+            if (!buildState.isHeartPlacementModeActive ||
+                runController.phase != PrototypeRunPhase.BUILDING
+            ) {
+                return HeartPlacementCommitResult.REJECTED
+            }
+            val preview = clickedPosition?.let(grid::heartPlacementPreview)
+                ?: return HeartPlacementCommitResult.REJECTED
+            val room = preview.room
+            if (!preview.isValid || room == null ||
+                !runController.placeOrRelocateHeart(room)
+            ) {
+                return HeartPlacementCommitResult.REJECTED
+            }
+
+            buildState.deactivateHeartPlacementMode()
+            return HeartPlacementCommitResult.PLACED
+        }
+
+        internal fun rotateSelectedRoom(
+            buildState: BuildState,
+            direction: RoomRotationDirection,
+            runPhase: PrototypeRunPhase,
+        ): Boolean {
+            if (runPhase != PrototypeRunPhase.BUILDING) {
+                return false
+            }
+
+            when (direction) {
+                RoomRotationDirection.COUNTER_CLOCKWISE ->
+                    buildState.rotateSelectedRoomCounterClockwise()
+                RoomRotationDirection.CLOCKWISE ->
+                    buildState.rotateSelectedRoomClockwise()
+            }
+            return true
         }
 
         internal fun loadUpcomingWave(
@@ -289,17 +377,60 @@ class PrototypeScreen(
             worldX: Float,
             worldY: Float,
             startButtonBounds: ControlBounds,
+            cancelButtonBounds: ControlBounds,
             roomChoiceControls: List<RoomChoiceControl>,
+            roomRotationControls: List<RoomRotationControl> = emptyList(),
+            heartPlacementControl: HeartPlacementControl? = null,
             runController: PrototypeRunController,
         ): PrototypeClickResult {
+            if (heartPlacementControl?.bounds?.contains(worldX, worldY) == true) {
+                return if (runController.phase == PrototypeRunPhase.BUILDING) {
+                    buildState.toggleHeartPlacementMode()
+                    if (buildState.isHeartPlacementModeActive) {
+                        PrototypeClickResult.HEART_MODE_ACTIVATED
+                    } else {
+                        PrototypeClickResult.HEART_MODE_DEACTIVATED
+                    }
+                } else {
+                    PrototypeClickResult.HEART_MODE_REJECTED
+                }
+            }
+
+            if (cancelButtonBounds.contains(worldX, worldY)) {
+                return if (runController.cancelLastPlacedRoom()) {
+                    PrototypeClickResult.ROOM_CANCELED
+                } else {
+                    PrototypeClickResult.CANCEL_REJECTED
+                }
+            }
+
             if (startButtonBounds.contains(worldX, worldY)) {
                 return when {
                     runController.restart() ->
                         PrototypeClickResult.RUN_RESTARTED
-                    runController.start() ->
+                    runController.start() -> {
+                        buildState.deactivateHeartPlacementMode()
                         PrototypeClickResult.WAVE_STARTED
+                    }
                     else ->
                         PrototypeClickResult.WAVE_START_REJECTED
+                }
+            }
+
+            val clickedRotation = roomRotationControls.firstOrNull { control ->
+                control.bounds.contains(worldX, worldY)
+            }
+            if (clickedRotation != null) {
+                return if (
+                    rotateSelectedRoom(
+                        buildState = buildState,
+                        direction = clickedRotation.view.direction,
+                        runPhase = runController.phase,
+                    )
+                ) {
+                    PrototypeClickResult.ROOM_ROTATED
+                } else {
+                    PrototypeClickResult.ROOM_ROTATION_REJECTED
                 }
             }
 
@@ -314,6 +445,22 @@ class PrototypeScreen(
                     PrototypeClickResult.ROOM_CHOICE_SELECTED
                 } else {
                     PrototypeClickResult.IGNORED
+                }
+            }
+
+            if (buildState.isHeartPlacementModeActive) {
+                return when (
+                    commitHeartPlacement(
+                        grid = grid,
+                        buildState = buildState,
+                        clickedPosition = clickedPosition,
+                        runController = runController,
+                    )
+                ) {
+                    HeartPlacementCommitResult.PLACED ->
+                        PrototypeClickResult.HEART_PLACED
+                    HeartPlacementCommitResult.REJECTED ->
+                        PrototypeClickResult.HEART_PLACEMENT_REJECTED
                 }
             }
 
@@ -353,8 +500,22 @@ internal enum class PrototypeClickResult {
     RUN_RESTARTED,
     ROOM_CHOICE_SELECTED,
     ROOM_PLACED,
+    ROOM_CANCELED,
+    CANCEL_REJECTED,
+    ROOM_ROTATED,
+    ROOM_ROTATION_REJECTED,
+    HEART_MODE_ACTIVATED,
+    HEART_MODE_DEACTIVATED,
+    HEART_MODE_REJECTED,
+    HEART_PLACED,
+    HEART_PLACEMENT_REJECTED,
     TRAP_PLACED,
     IGNORED,
+}
+
+internal enum class HeartPlacementCommitResult {
+    PLACED,
+    REJECTED,
 }
 
 internal enum class TrapPlacementCommitResult {

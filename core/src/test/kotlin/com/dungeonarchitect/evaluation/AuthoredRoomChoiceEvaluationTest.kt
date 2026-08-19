@@ -19,14 +19,14 @@ import kotlin.test.assertTrue
 
 class AuthoredRoomChoiceEvaluationTest {
     @Test
-    fun `authored room choices have equal combat results but different duration`() {
+    fun `authored room choices produce deterministic heart-route evaluations`() {
         val prototypeRoomReport = evaluateAuthoredRoom("prototype-room.json")
         val longGalleryReport = evaluateAuthoredRoom("long-gallery.json")
 
         assertEquals(
             WaveEvaluationReport(
                 outcome = WaveOutcome.VICTORY,
-                objectiveHealth = 10,
+                heartHealth = 10,
                 heroKills = 4,
                 heroArrivals = 0,
                 elapsedSimulationSeconds = fixedSteps(244),
@@ -49,21 +49,17 @@ class AuthoredRoomChoiceEvaluationTest {
             origin = GridPosition(column = 1, row = 0),
         )
         val entranceDoor = blueprint.door(CardinalDirection.WEST)
-        val objectiveDoor = blueprint.door(CardinalDirection.EAST)
         val entrance = CardinalDirection.WEST.move(
             placedRoom.toGridPosition(entranceDoor.position),
         )
-        val objective = CardinalDirection.EAST.move(
-            placedRoom.toGridPosition(objectiveDoor.position),
-        )
-        val occupiedPositions = placedRoom.gridPositions + entrance + objective
+        val occupiedPositions = placedRoom.gridPositions + entrance
         val grid = DungeonGrid(
             width = occupiedPositions.maxOf(GridPosition::column) + 1,
             height = occupiedPositions.maxOf(GridPosition::row) + 1,
             entrance = entrance,
-            objective = objective,
             placedRooms = listOf(placedRoom),
         )
+        assertTrue(grid.placeOrRelocateHeart(placedRoom))
         assertTrue(
             grid.placeTrap(
                 room = placedRoom,

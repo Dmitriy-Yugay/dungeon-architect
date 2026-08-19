@@ -16,7 +16,7 @@ object PrototypeRunDefinitionParser {
         }
 
         return PrototypeRunDefinition(
-            objectiveHealth = root.requiredInt("objectiveHealth"),
+            heartHealth = root.requiredInt("heartHealth"),
         )
     }
 

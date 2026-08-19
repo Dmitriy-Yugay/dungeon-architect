@@ -1,6 +1,7 @@
 package com.dungeonarchitect.application
 
 import com.dungeonarchitect.domain.DungeonGrid
+import com.dungeonarchitect.domain.PlacedRoom
 import com.dungeonarchitect.domain.PrototypeHeroState
 import com.dungeonarchitect.domain.PrototypeRunDefinition
 import com.dungeonarchitect.domain.PrototypeRunPhase
@@ -8,14 +9,14 @@ import com.dungeonarchitect.domain.StartedHeroWave
 import com.dungeonarchitect.domain.UpcomingHeroWave
 import com.dungeonarchitect.simulation.DeterministicTrapSystem
 import com.dungeonarchitect.simulation.FixedStepHeroSimulation
-import com.dungeonarchitect.simulation.ObjectiveDamaged
+import com.dungeonarchitect.simulation.HeartDamaged
 import com.dungeonarchitect.simulation.SimulationEvent
 import com.dungeonarchitect.simulation.WaveOutcome
 import com.dungeonarchitect.simulation.WaveResolved
 import kotlin.math.max
 
 class PrototypeRunController(
-    grid: DungeonGrid,
+    private val grid: DungeonGrid,
     private val upcomingWave: UpcomingHeroWave,
     runDefinition: PrototypeRunDefinition,
 ) {
@@ -24,12 +25,12 @@ class PrototypeRunController(
     private var trapSystem: DeterministicTrapSystem? = null
     private val mutableEvents = mutableListOf<SimulationEvent>()
 
-    val objectiveMaxHealth: Int = runDefinition.objectiveHealth
+    val heartMaxHealth: Int = runDefinition.heartHealth
 
     var phase: PrototypeRunPhase = PrototypeRunPhase.BUILDING
         private set
 
-    var objectiveHealth: Int = objectiveMaxHealth
+    var heartHealth: Int = heartMaxHealth
         private set
 
     var resolvedHeroCount: Int = 0
@@ -48,6 +49,10 @@ class PrototypeRunController(
         get() = phase == PrototypeRunPhase.BUILDING &&
             waveStartController.isStartEnabled
 
+    val isCancelEnabled: Boolean
+        get() = phase == PrototypeRunPhase.BUILDING &&
+            grid.placedRooms.isNotEmpty()
+
     val isControlEnabled: Boolean
         get() = isStartEnabled ||
             phase == PrototypeRunPhase.VICTORY ||
@@ -65,6 +70,22 @@ class PrototypeRunController(
         heroSimulation = newHeroSimulation(wave)
         phase = PrototypeRunPhase.RUNNING
         return true
+    }
+
+    fun cancelLastPlacedRoom(): Boolean {
+        if (phase != PrototypeRunPhase.BUILDING) {
+            return false
+        }
+
+        return grid.cancelLastPlacedRoom()
+    }
+
+    fun placeOrRelocateHeart(room: PlacedRoom): Boolean {
+        if (phase != PrototypeRunPhase.BUILDING) {
+            return false
+        }
+
+        return grid.placeOrRelocateHeart(room)
     }
 
     fun advance(elapsedSeconds: Float) {
@@ -106,7 +127,7 @@ class PrototypeRunController(
         waveStartController.restart()
         heroSimulation = null
         trapSystem = null
-        objectiveHealth = objectiveMaxHealth
+        heartHealth = heartMaxHealth
         resolvedHeroCount = 0
         mutableEvents.clear()
         phase = PrototypeRunPhase.BUILDING
@@ -117,24 +138,24 @@ class PrototypeRunController(
         val heroNumber = resolvedHeroCount + 1
         resolvedHeroCount++
         if (heroState.hasArrived) {
-            val healthBeforeDamage = objectiveHealth
-            objectiveHealth = max(
+            val healthBeforeDamage = heartHealth
+            heartHealth = max(
                 0,
-                objectiveHealth - upcomingWave.objectiveDamage,
+                heartHealth - upcomingWave.heartDamage,
             )
             recordEvent(
-                ObjectiveDamaged(
+                HeartDamaged(
                     heroNumber = heroNumber,
-                    damage = healthBeforeDamage - objectiveHealth,
-                    remainingHealth = objectiveHealth,
+                    damage = healthBeforeDamage - heartHealth,
+                    remainingHealth = heartHealth,
                 ),
             )
-            if (objectiveHealth == 0) {
+            if (heartHealth == 0) {
                 phase = PrototypeRunPhase.DEFEAT
                 recordEvent(
                     WaveResolved(
                         outcome = WaveOutcome.DEFEAT,
-                        objectiveHealth = objectiveHealth,
+                        heartHealth = heartHealth,
                     ),
                 )
                 return
@@ -146,7 +167,7 @@ class PrototypeRunController(
             recordEvent(
                 WaveResolved(
                     outcome = WaveOutcome.VICTORY,
-                    objectiveHealth = objectiveHealth,
+                    heartHealth = heartHealth,
                 ),
             )
         }

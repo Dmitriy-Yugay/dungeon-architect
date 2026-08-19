@@ -10,7 +10,7 @@ import kotlin.test.assertEquals
 
 class RoomChoicesRendererTest {
     @Test
-    fun `layout creates two ordered controls left of the start button`() {
+    fun `layout creates two ordered controls left of the cancel button`() {
         val squareRoom = blueprint("square-room", "Square Room")
         val longGallery = blueprint("long-gallery", "Long Gallery")
         val view = RoomChoicesView.from(
@@ -36,9 +36,9 @@ class RoomChoicesRendererTest {
                         isSelected = true,
                     ),
                     bounds = ControlBounds(
-                        x = 440f,
+                        x = 248f,
                         y = 592f,
-                        width = 144f,
+                        width = 112f,
                         height = 48f,
                     ),
                 ),
@@ -49,9 +49,9 @@ class RoomChoicesRendererTest {
                         isSelected = false,
                     ),
                     bounds = ControlBounds(
-                        x = 592f,
+                        x = 368f,
                         y = 592f,
-                        width = 144f,
+                        width = 112f,
                         height = 48f,
                     ),
                 ),
@@ -59,8 +59,8 @@ class RoomChoicesRendererTest {
             controls,
         )
         assertEquals(
-            752f,
-            WavePanelLayout.startButtonBounds(1_024f, 576f).x,
+            624f,
+            WavePanelLayout.cancelButtonBounds(1_024f, 576f).x,
         )
     }
 
@@ -70,6 +70,7 @@ class RoomChoicesRendererTest {
     ) = RoomBlueprint(
         id = id,
         displayName = displayName,
+        heartAnchor = GridPosition(column = 0, row = 0),
         footprint = setOf(GridPosition(column = 0, row = 0)),
         doorPositions = setOf(GridPosition(column = 0, row = 0)),
     )

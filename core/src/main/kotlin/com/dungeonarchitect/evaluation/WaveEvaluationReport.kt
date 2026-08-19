@@ -4,7 +4,7 @@ import com.dungeonarchitect.simulation.WaveOutcome
 
 data class WaveEvaluationReport(
     val outcome: WaveOutcome,
-    val objectiveHealth: Int,
+    val heartHealth: Int,
     val heroKills: Int,
     val heroArrivals: Int,
     val elapsedSimulationSeconds: Double,
@@ -12,8 +12,8 @@ data class WaveEvaluationReport(
     val trapDamage: Int,
 ) {
     init {
-        require(objectiveHealth >= 0) {
-            "Wave report objective health must not be negative."
+        require(heartHealth >= 0) {
+            "Wave report heart health must not be negative."
         }
         require(heroKills >= 0) {
             "Wave report hero kills must not be negative."
@@ -34,10 +34,10 @@ data class WaveEvaluationReport(
             "Wave report trap damage must not be negative."
         }
         require(
-            (outcome == WaveOutcome.VICTORY && objectiveHealth > 0) ||
-                (outcome == WaveOutcome.DEFEAT && objectiveHealth == 0),
+            (outcome == WaveOutcome.VICTORY && heartHealth > 0) ||
+                (outcome == WaveOutcome.DEFEAT && heartHealth == 0),
         ) {
-            "Wave report outcome must agree with the remaining objective health."
+            "Wave report outcome must agree with the remaining heart health."
         }
     }
 }

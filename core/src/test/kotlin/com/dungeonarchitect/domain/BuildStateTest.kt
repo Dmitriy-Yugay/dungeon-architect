@@ -9,6 +9,51 @@ import kotlin.test.assertTrue
 
 class BuildStateTest {
     @Test
+    fun `selected room orientation cycles in both directions`() {
+        val room = blueprint("square-room")
+        val state = BuildState(
+            availableRoomBlueprints = listOf(room),
+            selectedRoomBlueprint = room,
+            selectedTrapDefinition = trapDefinition(),
+        )
+
+        assertEquals(RoomOrientation.UNROTATED, state.selectedRoomOrientation)
+
+        val clockwise = RoomOrientation.entries.drop(1) + RoomOrientation.UNROTATED
+        clockwise.forEach { expected ->
+            state.rotateSelectedRoomClockwise()
+            assertEquals(expected, state.selectedRoomOrientation)
+        }
+
+        val counterClockwise = listOf(
+            RoomOrientation.CLOCKWISE_270,
+            RoomOrientation.CLOCKWISE_180,
+            RoomOrientation.CLOCKWISE_90,
+            RoomOrientation.UNROTATED,
+        )
+        counterClockwise.forEach { expected ->
+            state.rotateSelectedRoomCounterClockwise()
+            assertEquals(expected, state.selectedRoomOrientation)
+        }
+    }
+
+    @Test
+    fun `build state accepts an initial selected room orientation`() {
+        val room = blueprint("square-room")
+        val state = BuildState(
+            availableRoomBlueprints = listOf(room),
+            selectedRoomBlueprint = room,
+            selectedTrapDefinition = trapDefinition(),
+            selectedRoomOrientation = RoomOrientation.CLOCKWISE_180,
+        )
+
+        assertEquals(
+            RoomOrientation.CLOCKWISE_180,
+            state.selectedRoomOrientation,
+        )
+    }
+
+    @Test
     fun `build state stores ordered choices and selected blueprint`() {
         val squareRoom = blueprint("square-room")
         val longGallery = blueprint("long-gallery")
@@ -68,10 +113,15 @@ class BuildStateTest {
             selectedRoomBlueprint = squareRoom,
             selectedTrapDefinition = trapDefinition(),
         )
+        state.rotateSelectedRoomClockwise()
 
         assertTrue(state.selectRoomBlueprint("long-gallery"))
 
         assertSame(longGallery, state.selectedRoomBlueprint)
+        assertEquals(
+            RoomOrientation.CLOCKWISE_90,
+            state.selectedRoomOrientation,
+        )
     }
 
     @Test
@@ -141,6 +191,7 @@ class BuildStateTest {
     private fun blueprint(id: String) = RoomBlueprint(
         id = id,
         displayName = id,
+        heartAnchor = GridPosition(column = 0, row = 0),
         footprint = setOf(GridPosition(column = 0, row = 0)),
         doorPositions = setOf(GridPosition(column = 0, row = 0)),
     )

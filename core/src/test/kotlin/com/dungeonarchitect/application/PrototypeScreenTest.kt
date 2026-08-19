@@ -27,61 +27,47 @@ import kotlin.test.assertTrue
 
 class PrototypeScreenTest {
     @Test
-    fun `prototype grid starts with one authored room`() {
-        val room = prototypeGrid().placedRooms.single()
+    fun `prototype grid starts with an empty player-built layout`() {
+        val grid = prototypeGrid()
 
-        assertEquals("prototype-room", room.blueprint.id)
-        assertEquals("Prototype Room", room.blueprint.displayName)
-        assertEquals(GridPosition(column = 1, row = 3), room.origin)
-        assertEquals(
-            setOf(
-                GridPosition(column = 1, row = 3),
-                GridPosition(column = 2, row = 3),
-                GridPosition(column = 3, row = 3),
-                GridPosition(column = 1, row = 4),
-                GridPosition(column = 2, row = 4),
-                GridPosition(column = 3, row = 4),
-                GridPosition(column = 1, row = 5),
-                GridPosition(column = 2, row = 5),
-                GridPosition(column = 3, row = 5),
-            ),
-            room.gridPositions,
-        )
+        assertEquals(emptyList(), grid.placedRooms)
+        assertEquals(emptySet(), grid.walkablePositions)
+        assertNull(grid.entranceToHeartRoute)
     }
 
     @Test
     fun `authored prototype room has one floor trap socket`() {
-        val room = prototypeGrid().placedRooms.single()
+        val blueprint = authoredBuildState().selectedRoomBlueprint
 
         assertEquals(
             mapOf(
                 GridPosition(column = 1, row = 1) to RoomSocketType.FLOOR,
             ),
-            room.blueprint.sockets,
+            blueprint.sockets,
         )
     }
 
     @Test
     fun `placement preview uses the authored blueprint at the hovered origin`() {
         val buildState = authoredBuildState()
-        val grid = prototypeGrid(buildState)
+        val grid = prototypeGrid()
 
         val preview = PrototypeScreen.placementPreview(
             grid = grid,
             buildState = buildState,
-            hoveredPosition = GridPosition(column = 4, row = 4),
+            hoveredPosition = GridPosition(column = 1, row = 4),
         )!!
 
-        assertEquals(GridPosition(column = 4, row = 3), preview.room.origin)
-        assertEquals(grid.placedRooms.single().blueprint, preview.room.blueprint)
+        assertEquals(GridPosition(column = 1, row = 3), preview.room.origin)
+        assertSame(buildState.selectedRoomBlueprint, preview.room.blueprint)
         assertTrue(preview.isValid)
     }
 
     @Test
     fun `changing build selection changes placement preview blueprint and geometry`() {
         val buildState = authoredBuildState()
-        val grid = prototypeGrid(buildState)
-        val hoveredPosition = GridPosition(column = 4, row = 4)
+        val grid = prototypeGrid()
+        val hoveredPosition = GridPosition(column = 1, row = 4)
 
         assertTrue(buildState.selectRoomBlueprint("long-gallery"))
         val preview = PrototypeScreen.placementPreview(
@@ -94,14 +80,14 @@ class PrototypeScreenTest {
         assertEquals("long-gallery", preview.room.blueprint.id)
         assertEquals(
             setOf(
+                GridPosition(column = 1, row = 3),
+                GridPosition(column = 2, row = 3),
+                GridPosition(column = 3, row = 3),
                 GridPosition(column = 4, row = 3),
-                GridPosition(column = 5, row = 3),
-                GridPosition(column = 6, row = 3),
-                GridPosition(column = 7, row = 3),
+                GridPosition(column = 1, row = 4),
+                GridPosition(column = 2, row = 4),
+                GridPosition(column = 3, row = 4),
                 GridPosition(column = 4, row = 4),
-                GridPosition(column = 5, row = 4),
-                GridPosition(column = 6, row = 4),
-                GridPosition(column = 7, row = 4),
             ),
             preview.room.gridPositions,
         )
@@ -110,7 +96,7 @@ class PrototypeScreenTest {
     @Test
     fun `placement preview is absent away from an open door`() {
         val buildState = authoredBuildState()
-        val grid = prototypeGrid(buildState)
+        val grid = prototypeGrid()
 
         assertNull(
             PrototypeScreen.placementPreview(
@@ -119,7 +105,7 @@ class PrototypeScreenTest {
                 hoveredPosition = GridPosition(column = 10, row = 8),
             ),
         )
-        assertEquals(1, grid.placedRooms.size)
+        assertEquals(0, grid.placedRooms.size)
     }
 
     @Test
@@ -128,7 +114,7 @@ class PrototypeScreenTest {
 
         assertNull(
             PrototypeScreen.placementPreview(
-                grid = prototypeGrid(buildState),
+                grid = prototypeGrid(),
                 buildState = buildState,
                 hoveredPosition = null,
             ),
@@ -144,19 +130,19 @@ class PrototypeScreenTest {
             PrototypeRunPhase.DEFEAT to false,
         ).forEach { (phase, expectedPlacement) ->
             val buildState = authoredBuildState()
-            val grid = prototypeGrid(buildState)
+            val grid = prototypeGrid()
             val roomsBeforeClick = grid.placedRooms
 
             val wasPlaced = PrototypeScreen.commitPlacement(
                 grid = grid,
                 buildState = buildState,
-                clickedPosition = GridPosition(column = 4, row = 4),
+                clickedPosition = GridPosition(column = 1, row = 4),
                 runPhase = phase,
             )
 
             assertEquals(expectedPlacement, wasPlaced, phase.name)
             if (expectedPlacement) {
-                assertEquals(2, grid.placedRooms.size, phase.name)
+                assertEquals(1, grid.placedRooms.size, phase.name)
                 assertSame(
                     buildState.selectedRoomBlueprint,
                     grid.placedRooms.last().blueprint,
@@ -171,8 +157,8 @@ class PrototypeScreenTest {
     @Test
     fun `commit placement uses the newly selected long gallery`() {
         val buildState = authoredBuildState()
-        val grid = prototypeGrid(buildState)
-        val clickedPosition = GridPosition(column = 4, row = 4)
+        val grid = prototypeGrid()
+        val clickedPosition = GridPosition(column = 1, row = 4)
         assertTrue(buildState.selectRoomBlueprint("long-gallery"))
 
         val preview = PrototypeScreen.placementPreview(
@@ -200,7 +186,7 @@ class PrototypeScreenTest {
     @Test
     fun `invalid click leaves prototype rooms unchanged`() {
         val buildState = authoredBuildState()
-        val grid = prototypeGrid(buildState)
+        val grid = prototypeGrid()
         assertTrue(buildState.selectRoomBlueprint("long-gallery"))
         val roomsBeforeClick = grid.placedRooms
 
@@ -227,7 +213,7 @@ class PrototypeScreenTest {
                   "heroDisplayName": "Militia Recruit",
                   "count": 4,
                   "heroHealth": 10,
-                  "objectiveDamage": 10,
+                  "heartDamage": 10,
                   "movementSpeedTilesPerSecond": 2.0,
                   "traitDescription": "A straightforward melee fighter."
                 }
@@ -265,12 +251,13 @@ class PrototypeScreenTest {
             listOf(
                 "content/prototype-room.json",
                 "content/long-gallery.json",
+                "content/corner-room.json",
                 "content/spike-trap.json",
             ),
             requestedPaths,
         )
         assertEquals(
-            listOf("prototype-room", "long-gallery"),
+            listOf("prototype-room", "long-gallery", "corner-room"),
             buildState.availableRoomBlueprints.map(RoomBlueprint::id),
         )
         assertEquals("prototype-room", buildState.selectedRoomBlueprint.id)
@@ -306,11 +293,11 @@ class PrototypeScreenTest {
 
         val runDefinition = PrototypeScreen.loadRunDefinition { path ->
             requestedPath = path
-            """{ "objectiveHealth": 10 }"""
+            """{ "heartHealth": 10 }"""
         }
 
         assertEquals("content/prototype-run.json", requestedPath)
-        assertEquals(10, runDefinition.objectiveHealth)
+        assertEquals(10, runDefinition.heartHealth)
     }
 
     @Test
@@ -321,7 +308,7 @@ class PrototypeScreenTest {
     @Test
     fun `room choice click selects without placing or starting the wave`() {
         val buildState = authoredBuildState()
-        val grid = prototypeGrid(buildState)
+        val grid = prototypeGrid()
         val controller = runController(grid)
         val roomsBeforeClick = grid.placedRooms
         val controls = roomChoiceControls(buildState)
@@ -336,6 +323,7 @@ class PrototypeScreenTest {
             worldX = longGalleryControl.bounds.x + 1f,
             worldY = longGalleryControl.bounds.y + 1f,
             startButtonBounds = startButtonBounds(),
+            cancelButtonBounds = cancelButtonBounds(),
             roomChoiceControls = controls,
             runController = controller,
         )
@@ -368,6 +356,7 @@ class PrototypeScreenTest {
             worldX = longGalleryControl.bounds.x + 1f,
             worldY = longGalleryControl.bounds.y + 1f,
             startButtonBounds = startButtonBounds(),
+            cancelButtonBounds = cancelButtonBounds(),
             roomChoiceControls = controls,
             runController = controller,
         )
@@ -406,6 +395,7 @@ class PrototypeScreenTest {
             worldX = 0f,
             worldY = 0f,
             startButtonBounds = startButtonBounds(),
+            cancelButtonBounds = cancelButtonBounds(),
             roomChoiceControls = roomChoiceControls(buildState),
             runController = controller,
         )
@@ -430,6 +420,7 @@ class PrototypeScreenTest {
             worldX = 60f,
             worldY = 40f,
             startButtonBounds = bounds,
+            cancelButtonBounds = cancelButtonBounds(),
             roomChoiceControls = roomChoiceControls(buildState),
             runController = controller,
         )
@@ -442,9 +433,9 @@ class PrototypeScreenTest {
     @Test
     fun `click outside start control remains a placement click`() {
         val buildState = authoredBuildState()
-        val grid = prototypeGrid(buildState)
+        val grid = prototypeGrid()
         val controller = runController(grid)
-        val clickedPosition = GridPosition(column = 4, row = 4)
+        val clickedPosition = GridPosition(column = 1, row = 4)
         assertTrue(buildState.selectRoomBlueprint("long-gallery"))
 
         val result = PrototypeScreen.handleClick(
@@ -459,16 +450,55 @@ class PrototypeScreenTest {
                 width = 100f,
                 height = 40f,
             ),
+            cancelButtonBounds = cancelButtonBounds(),
             roomChoiceControls = roomChoiceControls(buildState),
             runController = controller,
         )
 
         assertEquals(PrototypeClickResult.ROOM_PLACED, result)
-        assertEquals(GridPosition(column = 4, row = 3), grid.placedRooms.last().origin)
+        assertEquals(GridPosition(column = 1, row = 3), grid.placedRooms.last().origin)
         assertSame(
             buildState.selectedRoomBlueprint,
             grid.placedRooms.last().blueprint,
         )
+        assertNull(controller.startedWave)
+    }
+
+    @Test
+    fun `cancel control consumes repeated clicks without another action`() {
+        val buildState = authoredBuildState()
+        val grid = cancellableGrid()
+        val controller = runController(grid)
+        val bounds = ControlBounds(x = 10f, y = 20f, width = 100f, height = 40f)
+        val overlappingChoice = roomChoiceControls(buildState)
+            .single { control -> control.choice.id == "long-gallery" }
+            .copy(bounds = bounds)
+
+        fun clickCancel() = PrototypeScreen.handleClick(
+            grid = grid,
+            buildState = buildState,
+            clickedPosition = GridPosition(column = 2, row = 0),
+            worldX = 60f,
+            worldY = 40f,
+            startButtonBounds = bounds,
+            cancelButtonBounds = bounds,
+            roomChoiceControls = listOf(overlappingChoice),
+            runController = controller,
+        )
+
+        assertTrue(controller.isCancelEnabled)
+        assertEquals(PrototypeClickResult.ROOM_CANCELED, clickCancel())
+        assertEquals(1, grid.placedRooms.size)
+        assertEquals("prototype-room", buildState.selectedRoomBlueprint.id)
+        assertNull(controller.startedWave)
+
+        assertEquals(PrototypeClickResult.ROOM_CANCELED, clickCancel())
+        assertEquals(emptyList(), grid.placedRooms)
+        assertFalse(controller.isCancelEnabled)
+
+        assertEquals(PrototypeClickResult.CANCEL_REJECTED, clickCancel())
+        assertEquals(emptyList(), grid.placedRooms)
+        assertEquals("prototype-room", buildState.selectedRoomBlueprint.id)
         assertNull(controller.startedWave)
     }
 
@@ -493,6 +523,7 @@ class PrototypeScreenTest {
                 width = 100f,
                 height = 40f,
             ),
+            cancelButtonBounds = cancelButtonBounds(),
             roomChoiceControls = roomChoiceControls(buildState),
             runController = controller,
         )
@@ -501,35 +532,55 @@ class PrototypeScreenTest {
         assertEquals(PrototypeRunPhase.BUILDING, controller.phase)
     }
 
-    private fun readyGrid() = DungeonGrid(
-        width = 3,
-        height = 2,
-        entrance = GridPosition(column = 0, row = 0),
-        objective = GridPosition(column = 2, row = 0),
-        placedRooms = listOf(
-            PlacedRoom(
-                blueprint = RoomBlueprint(
-                    id = "test-room",
-                    displayName = "Test Room",
-                    footprint = setOf(GridPosition(column = 0, row = 0)),
-                    doors = CardinalDirection.entries.map { facing ->
-                        RoomDoor(
-                            position = GridPosition(column = 0, row = 0),
-                            facing = facing,
-                        )
-                    },
-                ),
-                origin = GridPosition(column = 1, row = 0),
+    private fun readyGrid(): DungeonGrid {
+        val room = PlacedRoom(
+            blueprint = RoomBlueprint(
+                id = "test-room",
+                displayName = "Test Room",
+                heartAnchor = GridPosition(column = 0, row = 0),
+                footprint = setOf(GridPosition(column = 0, row = 0)),
+                doors = CardinalDirection.entries.map { facing ->
+                    RoomDoor(
+                        position = GridPosition(column = 0, row = 0),
+                        facing = facing,
+                    )
+                },
             ),
-        ),
-    )
+            origin = GridPosition(column = 1, row = 0),
+        )
+        return DungeonGrid(
+            width = 3,
+            height = 2,
+            entrance = GridPosition(column = 0, row = 0),
+            placedRooms = listOf(room),
+        ).also { grid ->
+            assertTrue(grid.placeOrRelocateHeart(room))
+        }
+    }
 
-    private fun prototypeGrid() = PrototypeScreen.prototypeGrid(
-        authoredBuildState().selectedRoomBlueprint,
-    )
+    private fun cancellableGrid(): DungeonGrid {
+        val blueprint = RoomBlueprint(
+            id = "cancel-room",
+            displayName = "Cancel Room",
+            heartAnchor = GridPosition(column = 0, row = 0),
+            footprint = setOf(GridPosition(column = 0, row = 0)),
+            doors = listOf(
+                RoomDoor(GridPosition(0, 0), CardinalDirection.WEST),
+                RoomDoor(GridPosition(0, 0), CardinalDirection.EAST),
+            ),
+        )
+        return DungeonGrid(
+            width = 4,
+            height = 1,
+            entrance = GridPosition(column = 0, row = 0),
+            placedRooms = listOf(
+                PlacedRoom(blueprint, GridPosition(column = 1, row = 0)),
+                PlacedRoom(blueprint, GridPosition(column = 2, row = 0)),
+            ),
+        )
+    }
 
-    private fun prototypeGrid(buildState: BuildState) =
-        PrototypeScreen.prototypeGrid(buildState.selectedRoomBlueprint)
+    private fun prototypeGrid() = PrototypeScreen.prototypeGrid()
 
     private fun authoredBuildState() = PrototypeScreen.loadBuildState(
         ::authoredContentJson,
@@ -543,6 +594,11 @@ class PrototypeScreenTest {
         )
 
     private fun startButtonBounds() = WavePanelLayout.startButtonBounds(
+        worldWidth = WORLD_WIDTH,
+        panelBottom = PANEL_BOTTOM,
+    )
+
+    private fun cancelButtonBounds() = WavePanelLayout.cancelButtonBounds(
         worldWidth = WORLD_WIDTH,
         panelBottom = PANEL_BOTTOM,
     )
@@ -564,7 +620,7 @@ class PrototypeScreenTest {
         heroDisplayName = "Militia Recruit",
         count = 4,
         heroHealth = 10,
-        objectiveDamage = 10,
+        heartDamage = 10,
         movementSpeedTilesPerSecond = 2f,
         traitDescription = "A straightforward melee fighter.",
     )
@@ -572,7 +628,7 @@ class PrototypeScreenTest {
     private fun runController(grid: DungeonGrid) = PrototypeRunController(
         grid = grid,
         upcomingWave = upcomingWave(),
-        runDefinition = PrototypeRunDefinition(objectiveHealth = 10),
+        runDefinition = PrototypeRunDefinition(heartHealth = 10),
     )
 
     private fun trapDefinition() = TrapDefinition(

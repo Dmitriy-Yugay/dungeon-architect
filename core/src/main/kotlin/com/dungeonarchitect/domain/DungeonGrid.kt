@@ -6,18 +6,19 @@ class DungeonGrid(
     val width: Int,
     val height: Int,
     val entrance: GridPosition,
-    val objective: GridPosition,
     val entranceFacing: CardinalDirection = CardinalDirection.EAST,
-    val objectiveFacing: CardinalDirection = CardinalDirection.WEST,
     placedRooms: List<PlacedRoom> = emptyList(),
 ) {
     private val mutablePlacedRooms = placedRooms.toMutableList()
     private val mutablePlacedTraps = mutableListOf<PlacedTrap>()
+    private var mutablePlacedHeart: PlacedDungeonHeart? = null
 
     val placedRooms: List<PlacedRoom>
         get() = mutablePlacedRooms.toList()
     val placedTraps: List<PlacedTrap>
         get() = mutablePlacedTraps.toList()
+    val placedHeart: PlacedDungeonHeart?
+        get() = mutablePlacedHeart
     val walkablePositions: Set<GridPosition>
         get() = buildSet {
             mutablePlacedRooms.forEach { addAll(it.gridPositions) }
@@ -38,36 +39,31 @@ class DungeonGrid(
         }
     val entranceDoor: PlacedRoomDoor?
         get() = doorsConnectedToPort(entrance, entranceFacing).singleOrNull()
-    val objectiveDoor: PlacedRoomDoor?
-        get() = doorsConnectedToPort(objective, objectiveFacing).singleOrNull()
     val openRoomDoors: Set<PlacedRoomDoor>
         get() {
             val connectedDoors = roomDoorConnections.flatMapTo(mutableSetOf()) {
                 listOf(it.first, it.second)
             }
             entranceDoor?.let(connectedDoors::add)
-            objectiveDoor?.let(connectedDoors::add)
             return mutablePlacedRooms
                 .flatMapTo(mutableSetOf(), PlacedRoom::doors) - connectedDoors
         }
-    val entranceToObjectiveRoute: List<GridPosition>?
-        get() = FourDirectionalPathfinder.findPath(
-            start = entrance,
-            end = objective,
-            neighbors = ::traversalNeighbors,
-        )
+    val entranceToHeartRoute: List<GridPosition>?
+        get() {
+            val heart = placedHeart ?: return null
+            return FourDirectionalPathfinder.findPath(
+                start = entrance,
+                end = heart.gridPosition,
+                neighbors = ::traversalNeighbors,
+            )
+        }
 
     init {
         require(width > 0) { "Grid width must be positive." }
         require(height > 0) { "Grid height must be positive." }
         require(contains(entrance)) { "Entrance must be inside the grid." }
-        require(contains(objective)) { "Objective must be inside the grid." }
-        require(entrance != objective) { "Entrance and objective must occupy different tiles." }
         require(mutablePlacedRooms.none { entrance in it.gridPositions }) {
             "Placed rooms must not cover the entrance."
-        }
-        require(mutablePlacedRooms.none { objective in it.gridPositions }) {
-            "Placed rooms must not cover the objective."
         }
         require(mutablePlacedRooms.all { it.fitsInside(this) }) {
             "Every placed room must fit inside the grid."
@@ -82,9 +78,6 @@ class DungeonGrid(
         require(doorsConnectedToPort(entrance, entranceFacing).size <= 1) {
             "At most one room door may connect to the entrance port."
         }
-        require(doorsConnectedToPort(objective, objectiveFacing).size <= 1) {
-            "At most one room door may connect to the objective port."
-        }
     }
 
     fun contains(position: GridPosition): Boolean =
@@ -96,11 +89,9 @@ class DungeonGrid(
     fun canPlace(room: PlacedRoom): Boolean =
         room.fitsInside(this) &&
             entrance !in room.gridPositions &&
-            objective !in room.gridPositions &&
             mutablePlacedRooms.none(room::overlaps) &&
             hasOneFrontierConnection(room) &&
-            portRemainsAvailable(room, entrance, entranceFacing) &&
-            portRemainsAvailable(room, objective, objectiveFacing)
+            portRemainsAvailable(room, entrance, entranceFacing)
 
     fun place(room: PlacedRoom): Boolean {
         if (!canPlace(room)) {
@@ -109,6 +100,52 @@ class DungeonGrid(
 
         mutablePlacedRooms += room
         return true
+    }
+
+    fun cancelLastPlacedRoom(): Boolean {
+        val room = mutablePlacedRooms.lastOrNull() ?: return false
+
+        mutablePlacedTraps.removeAll { trap -> trap.room == room }
+        if (mutablePlacedHeart?.room === room) {
+            mutablePlacedHeart = null
+        }
+        mutablePlacedRooms.removeLast()
+        return true
+    }
+
+    fun placeOrRelocateHeart(room: PlacedRoom): Boolean {
+        if (!canPlaceOrRelocateHeart(room)) {
+            return false
+        }
+        if (mutablePlacedHeart?.room === room) {
+            return true
+        }
+
+        mutablePlacedHeart = PlacedDungeonHeart(room)
+        return true
+    }
+
+    fun canPlaceOrRelocateHeart(room: PlacedRoom): Boolean =
+        mutablePlacedRooms.any { it === room } &&
+            mutablePlacedTraps.none { trap ->
+                trap.gridPosition == room.toGridPosition(room.geometry.heartAnchor)
+            }
+
+    fun heartPlacementPreview(
+        hoveredPosition: GridPosition,
+    ): HeartPlacementPreview {
+        val room = mutablePlacedRooms.firstOrNull { placedRoom ->
+            hoveredPosition in placedRoom.gridPositions
+        } ?: return HeartPlacementPreview(
+            room = null,
+            position = hoveredPosition,
+            isValid = false,
+        )
+        return HeartPlacementPreview(
+            room = room,
+            position = room.toGridPosition(room.geometry.heartAnchor),
+            isValid = canPlaceOrRelocateHeart(room),
+        )
     }
 
     fun placeTrap(
@@ -120,14 +157,15 @@ class DungeonGrid(
             return false
         }
 
-        val socketType =
-            room.blueprint.sockets[localSocketPosition] ?: return false
+        val socketType = room.geometry.sockets[localSocketPosition] ?: return false
         if (!definition.isCompatibleWith(socketType)) {
             return false
         }
 
         val gridPosition = room.toGridPosition(localSocketPosition)
-        if (mutablePlacedTraps.any { it.gridPosition == gridPosition }) {
+        if (mutablePlacedTraps.any { it.gridPosition == gridPosition } ||
+            mutablePlacedHeart?.gridPosition == gridPosition
+        ) {
             return false
         }
 
@@ -145,7 +183,7 @@ class DungeonGrid(
     ): TrapSocketHoverResult {
         val (room, localSocketPosition) = mutablePlacedRooms
             .firstNotNullOfOrNull { placedRoom ->
-                placedRoom.blueprint.sockets.keys
+                placedRoom.geometry.sockets.keys
                     .firstOrNull { localPosition ->
                         placedRoom.toGridPosition(localPosition) == hoveredPosition
                     }
@@ -154,7 +192,7 @@ class DungeonGrid(
             ?: return TrapSocketHoverResult.NonSocket
 
         val socketType = requireNotNull(
-            room.blueprint.sockets[localSocketPosition],
+            room.geometry.sockets[localSocketPosition],
         )
         if (!definition.isCompatibleWith(socketType)) {
             return TrapSocketHoverResult.Incompatible(socketType)
@@ -166,6 +204,10 @@ class DungeonGrid(
         if (placedTrap != null) {
             return TrapSocketHoverResult.Occupied(placedTrap)
         }
+        val placedHeart = mutablePlacedHeart
+        if (placedHeart?.gridPosition == hoveredPosition) {
+            return TrapSocketHoverResult.HeartOccupied(placedHeart)
+        }
 
         return TrapSocketHoverResult.Valid(
             room = room,
@@ -176,15 +218,17 @@ class DungeonGrid(
     fun placementPreview(
         blueprint: RoomBlueprint,
         origin: GridPosition,
+        orientation: RoomOrientation = RoomOrientation.UNROTATED,
     ): RoomPlacementPreview {
-        val room = PlacedRoom(blueprint, origin)
+        val room = PlacedRoom(blueprint, origin, orientation)
         return RoomPlacementPreview(room, canPlace(room))
     }
 
     fun snappedPlacementPreview(
         blueprint: RoomBlueprint,
         hoveredPosition: GridPosition,
-    ): RoomPlacementPreview? = snapCandidates(blueprint)
+        orientation: RoomOrientation = RoomOrientation.UNROTATED,
+    ): RoomPlacementPreview? = snapCandidates(blueprint, orientation)
         .filter { hoveredPosition in it.gridPositions }
         .sortedWith(
             compareByDescending<PlacedRoom>(::canPlace)
@@ -204,7 +248,6 @@ class DungeonGrid(
 
         return when {
             entrance.column == column && entrance.row == row -> TileType.ENTRANCE
-            objective.column == column && objective.row == row -> TileType.OBJECTIVE
             mutablePlacedRooms.any { GridPosition(column, row) in it.gridPositions } -> TileType.ROOM
             else -> TileType.EMPTY
         }
@@ -239,9 +282,13 @@ class DungeonGrid(
         return existingConnections + candidateConnections <= 1
     }
 
-    private fun snapCandidates(blueprint: RoomBlueprint): List<PlacedRoom> {
+    private fun snapCandidates(
+        blueprint: RoomBlueprint,
+        orientation: RoomOrientation,
+    ): List<PlacedRoom> {
+        val orientedDoors = blueprint.geometry(orientation).doors
         val origins = if (mutablePlacedRooms.isEmpty()) {
-            blueprint.doors
+            orientedDoors
                 .filter { it.facing == entranceFacing.opposite }
                 .map { door ->
                     originForDoor(
@@ -251,7 +298,7 @@ class DungeonGrid(
                 }
         } else {
             openRoomDoors.flatMap { openDoor ->
-                blueprint.doors
+                orientedDoors
                     .filter { it.facing == openDoor.door.facing.opposite }
                     .map { door ->
                         originForDoor(
@@ -262,7 +309,9 @@ class DungeonGrid(
             }
         }
 
-        return origins.distinct().map { origin -> PlacedRoom(blueprint, origin) }
+        return origins.distinct().map { origin ->
+            PlacedRoom(blueprint, origin, orientation)
+        }
     }
 
     private fun originForDoor(
@@ -278,7 +327,6 @@ class DungeonGrid(
         if (room == null) {
             return when (position) {
                 entrance -> listOfNotNull(entranceDoor?.gridPosition)
-                objective -> listOfNotNull(objectiveDoor?.gridPosition)
                 else -> emptyList()
             }
         }
@@ -300,9 +348,6 @@ class DungeonGrid(
                 .forEach { door ->
                     if (door == entranceDoor) {
                         add(entrance)
-                    }
-                    if (door == objectiveDoor) {
-                        add(objective)
                     }
                 }
         }

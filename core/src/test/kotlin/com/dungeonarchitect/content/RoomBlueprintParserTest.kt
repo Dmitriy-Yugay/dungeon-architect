@@ -10,6 +10,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFails
 import kotlin.test.assertFailsWith
+import kotlin.test.assertFalse
 import kotlin.test.assertNotEquals
 
 class RoomBlueprintParserTest {
@@ -20,6 +21,8 @@ class RoomBlueprintParserTest {
         assertEquals("prototype-room", blueprint.id)
         assertEquals("Prototype Room", blueprint.displayName)
         assertEquals(9, blueprint.footprint.size)
+        assertEquals(position(1, 2), blueprint.heartAnchor)
+        assertFalse(blueprint.heartAnchor in blueprint.sockets)
         assertEquals(
             setOf(position(0, 1), position(2, 1)),
             blueprint.doorPositions,
@@ -46,6 +49,8 @@ class RoomBlueprintParserTest {
 
         assertEquals("long-gallery", longGallery.id)
         assertEquals("Long Gallery", longGallery.displayName)
+        assertEquals(position(3, 0), longGallery.heartAnchor)
+        assertFalse(longGallery.heartAnchor in longGallery.sockets)
         assertNotEquals(prototypeRoom.id, longGallery.id)
         assertEquals(
             setOf(
@@ -80,11 +85,44 @@ class RoomBlueprintParserTest {
     }
 
     @Test
+    fun `authored corner room has adjacent doors and one ordinary socket`() {
+        val cornerRoom = RoomBlueprintParser.parse(
+            authoredRoomJson("corner-room.json"),
+        )
+
+        assertEquals("corner-room", cornerRoom.id)
+        assertEquals("Corner Room", cornerRoom.displayName)
+        assertEquals(position(0, 1), cornerRoom.heartAnchor)
+        assertFalse(cornerRoom.heartAnchor in cornerRoom.sockets)
+        assertEquals(
+            setOf(
+                position(0, 0),
+                position(1, 0),
+                position(0, 1),
+                position(1, 1),
+            ),
+            cornerRoom.footprint,
+        )
+        assertEquals(
+            setOf(
+                RoomDoor(position(0, 0), CardinalDirection.WEST),
+                RoomDoor(position(1, 1), CardinalDirection.NORTH),
+            ),
+            cornerRoom.doors,
+        )
+        assertEquals(
+            mapOf(position(1, 0) to RoomSocketType.FLOOR),
+            cornerRoom.sockets,
+        )
+    }
+
+    @Test
     fun `parser reads identity positions doors and sockets from supplied JSON`() {
         val blueprint = RoomBlueprintParser.parse(roomJson())
 
         assertEquals("guard-hall", blueprint.id)
         assertEquals("Guard Hall", blueprint.displayName)
+        assertEquals(position(1, 0), blueprint.heartAnchor)
         assertEquals(
             setOf(position(0, 0), position(1, 0), position(0, 1), position(1, 1)),
             blueprint.footprint,
@@ -130,6 +168,9 @@ class RoomBlueprintParserTest {
         listOf(
             roomJson(footprint = "[7]"),
             roomJson(footprint = """[{"column": 0}]"""),
+            roomJson(heartAnchor = "[]"),
+            roomJson(heartAnchor = """{"column": 1}"""),
+            roomJson(heartAnchor = """{"column": 1, "row": 0.5}"""),
             roomJson(
                 doors = """
                     [
@@ -172,6 +213,15 @@ class RoomBlueprintParserTest {
 
         assertFailsWith<IllegalArgumentException> {
             RoomBlueprintParser.parse(doorOutsideFootprint)
+        }
+    }
+
+    @Test
+    fun `parser rejects a heart anchor outside the footprint`() {
+        assertFailsWith<IllegalArgumentException> {
+            RoomBlueprintParser.parse(
+                roomJson(heartAnchor = """{"column": 2, "row": 0}"""),
+            )
         }
     }
 
@@ -263,6 +313,7 @@ class RoomBlueprintParserTest {
               {"column": 1, "row": 1}
             ]
         """.trimIndent(),
+        heartAnchor: String = """{"column": 1, "row": 0}""",
         doors: String = """
             [
               {
@@ -286,6 +337,7 @@ class RoomBlueprintParserTest {
     ): String = jsonObject(
         requiredFields(
             footprint = footprint,
+            heartAnchor = heartAnchor,
             doors = doors,
             sockets = sockets,
         ),
@@ -293,6 +345,7 @@ class RoomBlueprintParserTest {
 
     private fun requiredFields(
         footprint: String = """[{"column": 0, "row": 0}]""",
+        heartAnchor: String = """{"column": 0, "row": 0}""",
         doors: String = """
             [
               {
@@ -306,6 +359,7 @@ class RoomBlueprintParserTest {
         "id" to "\"guard-hall\"",
         "displayName" to "\"Guard Hall\"",
         "footprint" to footprint,
+        "heartAnchor" to heartAnchor,
         "doors" to doors,
         "sockets" to sockets,
     )

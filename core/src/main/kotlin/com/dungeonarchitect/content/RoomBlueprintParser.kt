@@ -24,6 +24,10 @@ object RoomBlueprintParser {
             id = root.requiredString("id"),
             displayName = root.requiredString("displayName"),
             footprint = root.requiredPositions("footprint"),
+            heartAnchor = root.requiredPosition(
+                name = "heartAnchor",
+                owner = "Room blueprint",
+            ),
             doors = doors,
             sockets = root.requiredSockets("sockets"),
         )

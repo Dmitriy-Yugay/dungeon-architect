@@ -4,6 +4,7 @@ import com.dungeonarchitect.domain.DungeonGrid
 import com.dungeonarchitect.domain.GridPosition
 import com.dungeonarchitect.domain.PlacedRoom
 import com.dungeonarchitect.domain.RoomBlueprint
+import com.dungeonarchitect.domain.RoomOrientation
 import com.dungeonarchitect.domain.RoomSocketType
 import com.dungeonarchitect.domain.TrapDefinition
 import kotlin.test.Test
@@ -11,6 +12,30 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class PlacedTrapMarkersTest {
+    @Test
+    fun `rotated trap marker uses the oriented socket position`() {
+        val room = placedRoom(
+            id = "rotated-room",
+            origin = position(4, 6),
+            orientation = RoomOrientation.CLOCKWISE_90,
+        )
+        val grid = gridWith(room)
+        val orientedSocket = position(0, 0)
+
+        assertTrue(grid.placeTrap(room, orientedSocket, spikeTrap()))
+
+        assertEquals(
+            listOf(
+                PlacedTrapGridMarker(
+                    position = position(4, 6),
+                    trapId = "spike_trap",
+                    displayName = "Spike Trap",
+                ),
+            ),
+            placedTrapGridMarkers(grid),
+        )
+    }
+
     @Test
     fun `trap marker translates its socket and preserves stable identity`() {
         val room = placedRoom(
@@ -69,22 +94,24 @@ class PlacedTrapMarkersTest {
         width = 10,
         height = 8,
         entrance = position(0, 0),
-        objective = position(9, 7),
         placedRooms = rooms.toList(),
     )
 
     private fun placedRoom(
         id: String,
         origin: GridPosition,
+        orientation: RoomOrientation = RoomOrientation.UNROTATED,
     ) = PlacedRoom(
         blueprint = RoomBlueprint(
             id = id,
             displayName = "Test Room",
+            heartAnchor = GridPosition(column = 0, row = 0),
             footprint = setOf(position(0, 0), LOCAL_SOCKET),
             doorPositions = setOf(position(0, 0)),
             sockets = mapOf(LOCAL_SOCKET to RoomSocketType.FLOOR),
         ),
         origin = origin,
+        orientation = orientation,
     )
 
     private fun spikeTrap() = trapDefinition(

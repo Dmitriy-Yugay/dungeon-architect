@@ -3,11 +3,13 @@ package com.dungeonarchitect.domain
 data class PlacedRoom(
     val blueprint: RoomBlueprint,
     val origin: GridPosition,
+    val orientation: RoomOrientation = RoomOrientation.UNROTATED,
 ) {
+    val geometry: RoomGeometry = blueprint.geometry(orientation)
     val gridPositions: Set<GridPosition> =
-        blueprint.footprint.mapTo(mutableSetOf(), ::toGridPosition)
+        geometry.footprint.mapTo(mutableSetOf(), ::toGridPosition)
     val doors: Set<PlacedRoomDoor> =
-        blueprint.doors.mapTo(mutableSetOf()) { door -> PlacedRoomDoor(this, door) }
+        geometry.doors.mapTo(mutableSetOf()) { door -> PlacedRoomDoor(this, door) }
 
     fun fitsInside(grid: DungeonGrid): Boolean =
         gridPositions.all(grid::contains)
@@ -22,8 +24,8 @@ data class PlacedRoom(
             }
 
     fun toGridPosition(localPosition: GridPosition): GridPosition {
-        require(localPosition in blueprint.footprint) {
-            "Local position $localPosition is not part of the room footprint."
+        require(localPosition in geometry.footprint) {
+            "Local position $localPosition is not part of the oriented room footprint."
         }
 
         return GridPosition(

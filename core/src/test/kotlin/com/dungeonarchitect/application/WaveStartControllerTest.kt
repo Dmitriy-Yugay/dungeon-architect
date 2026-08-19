@@ -17,11 +17,51 @@ import kotlin.test.assertTrue
 
 class WaveStartControllerTest {
     @Test
-    fun `start is disabled while the dungeon has no complete route`() {
+    fun `start is disabled while the dungeon has no placed heart`() {
         val controller = WaveStartController(
             grid = gridWithoutRoute(),
             upcomingWave = upcomingWave(),
         )
+
+        assertFalse(controller.isStartEnabled)
+        assertFalse(controller.start())
+        assertNull(controller.startedWave)
+    }
+
+    @Test
+    fun `start is disabled when the placed heart is disconnected from entrance`() {
+        val entranceRoom = PlacedRoom(
+            blueprint = RoomBlueprint(
+                id = "entrance-room",
+                displayName = "Entrance Room",
+                heartAnchor = GridPosition(0, 0),
+                footprint = setOf(GridPosition(0, 0)),
+                doors = listOf(
+                    RoomDoor(GridPosition(0, 0), CardinalDirection.WEST),
+                ),
+            ),
+            origin = GridPosition(1, 0),
+        )
+        val heartRoom = PlacedRoom(
+            blueprint = RoomBlueprint(
+                id = "heart-room",
+                displayName = "Heart Room",
+                heartAnchor = GridPosition(0, 0),
+                footprint = setOf(GridPosition(0, 0)),
+                doors = listOf(
+                    RoomDoor(GridPosition(0, 0), CardinalDirection.WEST),
+                ),
+            ),
+            origin = GridPosition(3, 0),
+        )
+        val grid = DungeonGrid(
+            width = 5,
+            height = 1,
+            entrance = GridPosition(0, 0),
+            placedRooms = listOf(entranceRoom, heartRoom),
+        )
+        assertTrue(grid.placeOrRelocateHeart(heartRoom))
+        val controller = WaveStartController(grid, upcomingWave())
 
         assertFalse(controller.isStartEnabled)
         assertFalse(controller.start())
@@ -52,12 +92,12 @@ class WaveStartControllerTest {
         assertTrue(controller.start())
         assertFalse(controller.isStartEnabled)
         assertEquals(wave, controller.startedWave?.wave)
-        assertEquals(grid.entranceToObjectiveRoute, controller.startedWave?.route)
+        assertEquals(grid.entranceToHeartRoute, controller.startedWave?.route)
         assertEquals(grid.placedTraps, controller.startedWave?.traps)
 
         assertFalse(controller.start())
         assertEquals(wave, controller.startedWave?.wave)
-        assertEquals(grid.entranceToObjectiveRoute, controller.startedWave?.route)
+        assertEquals(grid.entranceToHeartRoute, controller.startedWave?.route)
 
         controller.restart()
 
@@ -69,46 +109,46 @@ class WaveStartControllerTest {
         width = 3,
         height = 1,
         entrance = GridPosition(column = 0, row = 0),
-        objective = GridPosition(column = 2, row = 0),
     )
 
-    private fun gridWithRoute() = DungeonGrid(
-        width = 3,
-        height = 1,
-        entrance = GridPosition(column = 0, row = 0),
-        objective = GridPosition(column = 2, row = 0),
-        placedRooms = listOf(
-            PlacedRoom(
-                blueprint = RoomBlueprint(
-                    id = "socket-room",
-                    displayName = "Socket Room",
-                    footprint = setOf(GridPosition(column = 0, row = 0)),
-                    doors = listOf(
-                        RoomDoor(
-                            position = GridPosition(column = 0, row = 0),
-                            facing = CardinalDirection.WEST,
-                        ),
-                        RoomDoor(
-                            position = GridPosition(column = 0, row = 0),
-                            facing = CardinalDirection.EAST,
-                        ),
-                    ),
-                    sockets = mapOf(
-                        GridPosition(column = 0, row = 0) to
-                            RoomSocketType.FLOOR,
+    private fun gridWithRoute(): DungeonGrid {
+        val trapSocket = GridPosition(column = 0, row = 0)
+        val room = PlacedRoom(
+            blueprint = RoomBlueprint(
+                id = "socket-room",
+                displayName = "Socket Room",
+                heartAnchor = GridPosition(column = 1, row = 0),
+                footprint = setOf(
+                    GridPosition(column = 0, row = 0),
+                    GridPosition(column = 1, row = 0),
+                ),
+                doors = listOf(
+                    RoomDoor(trapSocket, CardinalDirection.WEST),
+                    RoomDoor(
+                        GridPosition(column = 1, row = 0),
+                        CardinalDirection.EAST,
                     ),
                 ),
-                origin = GridPosition(column = 1, row = 0),
+                sockets = mapOf(trapSocket to RoomSocketType.FLOOR),
             ),
-        ),
-    )
+            origin = GridPosition(column = 1, row = 0),
+        )
+        return DungeonGrid(
+            width = 3,
+            height = 1,
+            entrance = GridPosition(column = 0, row = 0),
+            placedRooms = listOf(room),
+        ).also { grid ->
+            assertTrue(grid.placeOrRelocateHeart(room))
+        }
+    }
 
     private fun upcomingWave() = UpcomingHeroWave(
         heroType = "militia_recruit",
         heroDisplayName = "Militia Recruit",
         count = 4,
         heroHealth = 10,
-        objectiveDamage = 10,
+        heartDamage = 10,
         movementSpeedTilesPerSecond = 2f,
         traitDescription = "A straightforward melee fighter.",
     )

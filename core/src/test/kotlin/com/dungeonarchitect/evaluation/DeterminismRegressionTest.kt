@@ -18,7 +18,7 @@ import com.dungeonarchitect.simulation.HeroArrived
 import com.dungeonarchitect.simulation.HeroDamaged
 import com.dungeonarchitect.simulation.HeroDied
 import com.dungeonarchitect.simulation.HeroSpawned
-import com.dungeonarchitect.simulation.ObjectiveDamaged
+import com.dungeonarchitect.simulation.HeartDamaged
 import com.dungeonarchitect.simulation.TrapActivated
 import com.dungeonarchitect.simulation.WaveOutcome
 import com.dungeonarchitect.simulation.WaveResolved
@@ -46,10 +46,10 @@ class DeterminismRegressionTest {
         assertEquals(
             WaveEvaluationReport(
                 outcome = WaveOutcome.VICTORY,
-                objectiveHealth = 6,
+                heartHealth = 6,
                 heroKills = 1,
                 heroArrivals = 1,
-                elapsedSimulationSeconds = elapsedSteps(5),
+                elapsedSimulationSeconds = elapsedSteps(4),
                 trapActivations = 1,
                 trapDamage = 5,
             ),
@@ -80,9 +80,9 @@ class DeterminismRegressionTest {
                 HeroDamaged(1, TRAP_ID, damage = 5, remainingHealth = 0),
                 HeroDied(1, heroPosition(1)),
                 HeroSpawned(2, HERO_TYPE, heroPosition(0), health = 5),
-                HeroArrived(2, heroPosition(3)),
-                ObjectiveDamaged(2, damage = 4, remainingHealth = 6),
-                WaveResolved(WaveOutcome.VICTORY, objectiveHealth = 6),
+                HeroArrived(2, heroPosition(2)),
+                HeartDamaged(2, damage = 4, remainingHealth = 6),
+                WaveResolved(WaveOutcome.VICTORY, heartHealth = 6),
             ),
             first.events,
         )
@@ -94,12 +94,12 @@ class DeterminismRegressionTest {
             width = 4,
             height = 1,
             entrance = GridPosition(0, 0),
-            objective = GridPosition(3, 0),
             placedRooms = listOf(
                 PlacedRoom(
                     blueprint = RoomBlueprint(
                         id = "cooldown-room",
                         displayName = "Cooldown Room",
+                        heartAnchor = GridPosition(column = 1, row = 0),
                         footprint = setOf(
                             GridPosition(0, 0),
                             GridPosition(1, 0),
@@ -114,6 +114,7 @@ class DeterminismRegressionTest {
                 ),
             ),
         )
+        assertTrue(grid.placeOrRelocateHeart(grid.placedRooms.single()))
         assertTrue(
             grid.placeTrap(
                 room = grid.placedRooms.single(),
@@ -134,11 +135,11 @@ class DeterminismRegressionTest {
                 heroDisplayName = "Militia Recruit",
                 count = 2,
                 heroHealth = 5,
-                objectiveDamage = 4,
+                heartDamage = 4,
                 movementSpeedTilesPerSecond = 60f,
                 traitDescription = "A straightforward melee fighter.",
             ),
-            runDefinition = PrototypeRunDefinition(objectiveHealth = 10),
+            runDefinition = PrototypeRunDefinition(heartHealth = 10),
         )
     }
 

@@ -12,7 +12,7 @@ class UpcomingHeroWaveTest {
             heroDisplayName = "Militia Recruit",
             count = 4,
             heroHealth = 10,
-            objectiveDamage = 10,
+            heartDamage = 10,
             movementSpeedTilesPerSecond = 2f,
             traitDescription = "A straightforward melee fighter.",
         )
@@ -21,7 +21,7 @@ class UpcomingHeroWaveTest {
         assertEquals("Militia Recruit", wave.heroDisplayName)
         assertEquals(4, wave.count)
         assertEquals(10, wave.heroHealth)
-        assertEquals(10, wave.objectiveDamage)
+        assertEquals(10, wave.heartDamage)
         assertEquals(2f, wave.movementSpeedTilesPerSecond)
         assertEquals("A straightforward melee fighter.", wave.traitDescription)
     }
@@ -37,12 +37,12 @@ class UpcomingHeroWaveTest {
     }
 
     @Test
-    fun `wave rejects non-positive objective damage`() {
+    fun `wave rejects non-positive heart damage`() {
         assertFailsWith<IllegalArgumentException> {
-            wave(objectiveDamage = 0)
+            wave(heartDamage = 0)
         }
         assertFailsWith<IllegalArgumentException> {
-            wave(objectiveDamage = -1)
+            wave(heartDamage = -1)
         }
     }
 
@@ -83,7 +83,7 @@ class UpcomingHeroWaveTest {
         heroDisplayName: String = "Militia Recruit",
         count: Int = 4,
         heroHealth: Int = 10,
-        objectiveDamage: Int = 10,
+        heartDamage: Int = 10,
         movementSpeedTilesPerSecond: Float = 2f,
         traitDescription: String = "A straightforward melee fighter.",
     ) = UpcomingHeroWave(
@@ -91,7 +91,7 @@ class UpcomingHeroWaveTest {
         heroDisplayName = heroDisplayName,
         count = count,
         heroHealth = heroHealth,
-        objectiveDamage = objectiveDamage,
+        heartDamage = heartDamage,
         movementSpeedTilesPerSecond = movementSpeedTilesPerSecond,
         traitDescription = traitDescription,
     )

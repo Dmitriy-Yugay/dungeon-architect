@@ -17,7 +17,7 @@ class SimulationEventTest {
             TrapActivated(1, "spike-trap", trapPosition),
             HeroDamaged(1, "spike-trap", 3, 7),
             HeroDied(1, position),
-            ObjectiveDamaged(1, 4, 6),
+            HeartDamaged(1, 4, 6),
             WaveResolved(WaveOutcome.VICTORY, 6),
         )
 
@@ -29,7 +29,7 @@ class SimulationEventTest {
                 TrapActivated(1, "spike-trap", trapPosition.copy()),
                 HeroDamaged(1, "spike-trap", 3, 7),
                 HeroDied(1, position.copy()),
-                ObjectiveDamaged(1, 4, 6),
+                HeartDamaged(1, 4, 6),
                 WaveResolved(WaveOutcome.VICTORY, 6),
             ),
         )
@@ -44,7 +44,7 @@ class SimulationEventTest {
             { TrapActivated(0, "spike-trap", GridPosition(0, 0)) },
             { HeroDamaged(0, "spike-trap", 3, 7) },
             { HeroDied(0, position) },
-            { ObjectiveDamaged(0, 4, 6) },
+            { HeartDamaged(0, 4, 6) },
         )
 
         invalidEvents.forEach { event ->
@@ -63,32 +63,32 @@ class SimulationEventTest {
             { HeroDamaged(1, " ", 3, 7) },
             { HeroDamaged(1, "spike-trap", 0, 7) },
             { HeroDamaged(1, "spike-trap", 3, -1) },
-            { ObjectiveDamaged(1, 0, 6) },
-            { ObjectiveDamaged(1, 4, -1) },
+            { HeartDamaged(1, 0, 6) },
+            { HeartDamaged(1, 4, -1) },
         ).forEach { event ->
             assertFailsWith<IllegalArgumentException> { event() }
         }
     }
 
     @Test
-    fun `wave outcome must agree with objective health`() {
+    fun `wave outcome must agree with heart health`() {
         assertEquals(
-            WaveResolved(WaveOutcome.VICTORY, objectiveHealth = 1),
-            WaveResolved(WaveOutcome.VICTORY, objectiveHealth = 1),
+            WaveResolved(WaveOutcome.VICTORY, heartHealth = 1),
+            WaveResolved(WaveOutcome.VICTORY, heartHealth = 1),
         )
         assertEquals(
-            WaveResolved(WaveOutcome.DEFEAT, objectiveHealth = 0),
-            WaveResolved(WaveOutcome.DEFEAT, objectiveHealth = 0),
+            WaveResolved(WaveOutcome.DEFEAT, heartHealth = 0),
+            WaveResolved(WaveOutcome.DEFEAT, heartHealth = 0),
         )
 
         assertFailsWith<IllegalArgumentException> {
-            WaveResolved(WaveOutcome.VICTORY, objectiveHealth = 0)
+            WaveResolved(WaveOutcome.VICTORY, heartHealth = 0)
         }
         assertFailsWith<IllegalArgumentException> {
-            WaveResolved(WaveOutcome.DEFEAT, objectiveHealth = 1)
+            WaveResolved(WaveOutcome.DEFEAT, heartHealth = 1)
         }
         assertFailsWith<IllegalArgumentException> {
-            WaveResolved(WaveOutcome.DEFEAT, objectiveHealth = -1)
+            WaveResolved(WaveOutcome.DEFEAT, heartHealth = -1)
         }
     }
 }

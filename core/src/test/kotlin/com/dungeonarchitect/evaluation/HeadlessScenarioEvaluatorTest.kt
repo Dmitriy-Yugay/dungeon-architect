@@ -32,7 +32,7 @@ class HeadlessScenarioEvaluatorTest {
         assertEquals(
             WaveEvaluationReport(
                 outcome = WaveOutcome.VICTORY,
-                objectiveHealth = 10,
+                heartHealth = 10,
                 heroKills = 2,
                 heroArrivals = 0,
                 elapsedSimulationSeconds = fixedSteps(4),
@@ -42,17 +42,17 @@ class HeadlessScenarioEvaluatorTest {
             HeadlessScenarioEvaluator.evaluate(
                 grid = grid,
                 wave = wave(heroCount = 2, heroHealth = 5),
-                runDefinition = PrototypeRunDefinition(objectiveHealth = 10),
+                runDefinition = PrototypeRunDefinition(heartHealth = 10),
             ),
         )
     }
 
     @Test
-    fun `hero arrivals produce a defeat report with clamped objective damage`() {
+    fun `hero arrivals produce a defeat report with clamped heart damage`() {
         assertEquals(
             WaveEvaluationReport(
                 outcome = WaveOutcome.DEFEAT,
-                objectiveHealth = 0,
+                heartHealth = 0,
                 heroKills = 0,
                 heroArrivals = 2,
                 elapsedSimulationSeconds = fixedSteps(4),
@@ -64,9 +64,9 @@ class HeadlessScenarioEvaluatorTest {
                 wave = wave(
                     heroCount = 3,
                     heroHealth = 5,
-                    objectiveDamage = 10,
+                    heartDamage = 10,
                 ),
-                runDefinition = PrototypeRunDefinition(objectiveHealth = 15),
+                runDefinition = PrototypeRunDefinition(heartHealth = 15),
             ),
         )
     }
@@ -78,14 +78,52 @@ class HeadlessScenarioEvaluatorTest {
             wave = wave(
                 heroCount = 1,
                 heroHealth = 5,
-                objectiveDamage = 1,
+                heartDamage = 1,
                 speed = 70f,
             ),
-            runDefinition = PrototypeRunDefinition(objectiveHealth = 10),
+            runDefinition = PrototypeRunDefinition(heartHealth = 10),
         )
 
         assertEquals(fixedSteps(2), report.elapsedSimulationSeconds)
         assertEquals(WaveOutcome.VICTORY, report.outcome)
+    }
+
+    @Test
+    fun `selected heart determines the route when the layout continues beyond it`() {
+        val firstRoom = routeCellRoom("first", originColumn = 1)
+        val secondRoom = routeCellRoom("second", originColumn = 2)
+        val grid = DungeonGrid(
+            width = 4,
+            height = 1,
+            entrance = GridPosition(0, 0),
+            placedRooms = listOf(firstRoom, secondRoom),
+        )
+        assertTrue(grid.placeOrRelocateHeart(firstRoom))
+
+        val firstHeartReport = HeadlessScenarioEvaluator.evaluate(
+            grid = grid,
+            wave = wave(
+                heroCount = 1,
+                heroHealth = 5,
+                heartDamage = 1,
+            ),
+            runDefinition = PrototypeRunDefinition(heartHealth = 10),
+        )
+        assertTrue(grid.placeOrRelocateHeart(secondRoom))
+        val secondHeartReport = HeadlessScenarioEvaluator.evaluate(
+            grid = grid,
+            wave = wave(
+                heroCount = 1,
+                heroHealth = 5,
+                heartDamage = 1,
+            ),
+            runDefinition = PrototypeRunDefinition(heartHealth = 10),
+        )
+
+        assertEquals(fixedSteps(1), firstHeartReport.elapsedSimulationSeconds)
+        assertEquals(fixedSteps(2), secondHeartReport.elapsedSimulationSeconds)
+        assertEquals(1, firstHeartReport.heroArrivals)
+        assertEquals(1, secondHeartReport.heroArrivals)
     }
 
     @Test
@@ -96,56 +134,74 @@ class HeadlessScenarioEvaluatorTest {
                     width = 3,
                     height = 1,
                     entrance = GridPosition(0, 0),
-                    objective = GridPosition(2, 0),
                 ),
                 wave = wave(heroCount = 1, heroHealth = 5),
-                runDefinition = PrototypeRunDefinition(objectiveHealth = 10),
+                runDefinition = PrototypeRunDefinition(heartHealth = 10),
             )
         }
 
         assertEquals(
-            "A headless scenario requires a route from entrance to objective.",
+            "A headless scenario requires a route from entrance to the heart.",
             error.message,
         )
     }
 
-    private fun routedGrid(hasSocket: Boolean = false) = DungeonGrid(
-        width = 3,
-        height = 1,
-        entrance = GridPosition(0, 0),
-        objective = GridPosition(2, 0),
-        placedRooms = listOf(
-            PlacedRoom(
-                blueprint = RoomBlueprint(
-                    id = "test-room",
-                    displayName = "Test Room",
-                    footprint = setOf(GridPosition(0, 0)),
-                    doors = listOf(
-                        RoomDoor(GridPosition(0, 0), CardinalDirection.WEST),
-                        RoomDoor(GridPosition(0, 0), CardinalDirection.EAST),
-                    ),
-                    sockets = if (hasSocket) {
-                        mapOf(GridPosition(0, 0) to RoomSocketType.FLOOR)
-                    } else {
-                        emptyMap()
-                    },
+    private fun routedGrid(hasSocket: Boolean = false): DungeonGrid {
+        val trapSocket = GridPosition(0, 0)
+        val heartAnchor = GridPosition(1, 0)
+        val room = PlacedRoom(
+            blueprint = RoomBlueprint(
+                id = "test-room",
+                displayName = "Test Room",
+                heartAnchor = heartAnchor,
+                footprint = setOf(trapSocket, heartAnchor),
+                doors = listOf(
+                    RoomDoor(trapSocket, CardinalDirection.WEST),
+                    RoomDoor(heartAnchor, CardinalDirection.EAST),
                 ),
-                origin = GridPosition(1, 0),
+                sockets = if (hasSocket) {
+                    mapOf(trapSocket to RoomSocketType.FLOOR)
+                } else {
+                    emptyMap()
+                },
+            ),
+            origin = GridPosition(1, 0),
+        )
+        return DungeonGrid(
+            width = 3,
+            height = 1,
+            entrance = GridPosition(0, 0),
+            placedRooms = listOf(room),
+        ).also { grid ->
+            assertTrue(grid.placeOrRelocateHeart(room))
+        }
+    }
+
+    private fun routeCellRoom(id: String, originColumn: Int) = PlacedRoom(
+        blueprint = RoomBlueprint(
+            id = id,
+            displayName = id,
+            heartAnchor = GridPosition(0, 0),
+            footprint = setOf(GridPosition(0, 0)),
+            doors = listOf(
+                RoomDoor(GridPosition(0, 0), CardinalDirection.WEST),
+                RoomDoor(GridPosition(0, 0), CardinalDirection.EAST),
             ),
         ),
+        origin = GridPosition(originColumn, 0),
     )
 
     private fun wave(
         heroCount: Int,
         heroHealth: Int,
-        objectiveDamage: Int = 10,
+        heartDamage: Int = 10,
         speed: Float = 60f,
     ) = UpcomingHeroWave(
         heroType = "militia_recruit",
         heroDisplayName = "Militia Recruit",
         count = heroCount,
         heroHealth = heroHealth,
-        objectiveDamage = objectiveDamage,
+        heartDamage = heartDamage,
         movementSpeedTilesPerSecond = speed,
         traitDescription = "A straightforward melee fighter.",
     )

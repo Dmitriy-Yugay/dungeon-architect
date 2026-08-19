@@ -4,14 +4,50 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertFailsWith
+import kotlin.test.assertSame
 import kotlin.test.assertTrue
 
 class PlacedRoomTest {
+    @Test
+    fun `rotated room retains blueprint identity and uses oriented local geometry`() {
+        val blueprint = asymmetricBlueprint()
+        val room = PlacedRoom(
+            blueprint = blueprint,
+            origin = position(4, 6),
+            orientation = RoomOrientation.CLOCKWISE_90,
+        )
+
+        assertSame(blueprint, room.blueprint)
+        assertEquals(RoomOrientation.CLOCKWISE_90, room.orientation)
+        assertEquals(
+            setOf(
+                position(4, 8),
+                position(4, 7),
+                position(4, 6),
+                position(5, 8),
+            ),
+            room.gridPositions,
+        )
+        assertEquals(
+            setOf(
+                RoomDoor(position(1, 2), CardinalDirection.EAST),
+                RoomDoor(position(0, 0), CardinalDirection.SOUTH),
+            ),
+            room.geometry.doors,
+        )
+        assertEquals(
+            mapOf(position(0, 1) to RoomSocketType.FLOOR),
+            room.geometry.sockets,
+        )
+        assertEquals(position(4, 7), room.toGridPosition(position(0, 1)))
+    }
+
     @Test
     fun `placed room translates its local footprint to grid positions`() {
         val blueprint = RoomBlueprint(
             id = "test-room",
             displayName = "Test Room",
+            heartAnchor = GridPosition(column = 0, row = 0),
             footprint = setOf(
                 position(0, 0),
                 position(1, 0),
@@ -41,6 +77,7 @@ class PlacedRoomTest {
         val blueprint = RoomBlueprint(
             id = "test-room",
             displayName = "Test Room",
+            heartAnchor = GridPosition(column = 0, row = 0),
             footprint = setOf(position(0, 0)),
             doorPositions = setOf(position(0, 0)),
         )
@@ -70,6 +107,24 @@ class PlacedRoomTest {
         assertFalse(placedRoom(origin = position(0, -1)).fitsInside(grid))
         assertFalse(placedRoom(origin = position(3, 0)).fitsInside(grid))
         assertFalse(placedRoom(origin = position(0, 2)).fitsInside(grid))
+    }
+
+    @Test
+    fun `rotated asymmetric footprint drives boundary and overlap checks`() {
+        val rotated = PlacedRoom(
+            blueprint = asymmetricBlueprint(),
+            origin = position(0, 0),
+            orientation = RoomOrientation.CLOCKWISE_90,
+        )
+        val occupiedCell = singleCellRoom(origin = position(0, 1))
+        val boundingBoxGap = singleCellRoom(origin = position(1, 0))
+
+        assertTrue(rotated.fitsInside(dungeonGrid()))
+        assertFalse(
+            rotated.copy(origin = position(3, 0)).fitsInside(dungeonGrid()),
+        )
+        assertTrue(rotated.overlaps(occupiedCell))
+        assertFalse(rotated.overlaps(boundingBoxGap))
     }
 
     @Test
@@ -142,7 +197,6 @@ class PlacedRoomTest {
         width = 4,
         height = 3,
         entrance = position(0, 1),
-        objective = position(3, 1),
     )
 
     private fun placedRoom(
@@ -152,6 +206,7 @@ class PlacedRoomTest {
         blueprint = RoomBlueprint(
             id = "test-room",
             displayName = "Test Room",
+            heartAnchor = GridPosition(column = 0, row = 0),
             footprint = setOf(
                 position(0, 0),
                 position(1, 0),
@@ -167,10 +222,28 @@ class PlacedRoomTest {
         blueprint = RoomBlueprint(
             id = "single-cell-room",
             displayName = "Single Cell Room",
+            heartAnchor = GridPosition(column = 0, row = 0),
             footprint = setOf(position(0, 0)),
             doorPositions = setOf(position(0, 0)),
         ),
         origin = origin,
+    )
+
+    private fun asymmetricBlueprint() = RoomBlueprint(
+        id = "asymmetric-room",
+        displayName = "Asymmetric Room",
+        heartAnchor = GridPosition(column = 0, row = 0),
+        footprint = setOf(
+            position(0, 0),
+            position(1, 0),
+            position(2, 0),
+            position(0, 1),
+        ),
+        doors = listOf(
+            RoomDoor(position(0, 1), CardinalDirection.NORTH),
+            RoomDoor(position(2, 0), CardinalDirection.EAST),
+        ),
+        sockets = mapOf(position(1, 0) to RoomSocketType.FLOOR),
     )
 
     private fun position(column: Int, row: Int) =

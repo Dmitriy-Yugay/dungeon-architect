@@ -14,6 +14,16 @@ internal data class RoomChoiceControl(
 )
 
 internal object RoomChoicesLayout {
+    fun leftEdge(
+        view: RoomChoicesView,
+        worldWidth: Float,
+        panelBottom: Float,
+    ): Float = controls(view, worldWidth, panelBottom)
+        .firstOrNull()
+        ?.bounds
+        ?.x
+        ?: WavePanelLayout.cancelButtonBounds(worldWidth, panelBottom).x
+
     fun controls(
         view: RoomChoicesView,
         worldWidth: Float,
@@ -21,11 +31,11 @@ internal object RoomChoicesLayout {
     ): List<RoomChoiceControl> {
         val groupWidth = view.choices.size * CONTROL_WIDTH +
             (view.choices.size - 1).coerceAtLeast(0) * CONTROL_GAP
-        val startButton = WavePanelLayout.startButtonBounds(
+        val heartControlBounds = HeartPlacementLayout.bounds(
             worldWidth = worldWidth,
             panelBottom = panelBottom,
         )
-        val groupLeft = startButton.x - START_BUTTON_GAP - groupWidth
+        val groupLeft = heartControlBounds.x - WAVE_CONTROL_GAP - groupWidth
 
         return view.choices.mapIndexed { index, choice ->
             RoomChoiceControl(
@@ -40,10 +50,10 @@ internal object RoomChoicesLayout {
         }
     }
 
-    private const val CONTROL_WIDTH = 144f
+    private const val CONTROL_WIDTH = 112f
     private const val CONTROL_HEIGHT = 48f
     private const val CONTROL_GAP = 8f
-    private const val START_BUTTON_GAP = 16f
+    private const val WAVE_CONTROL_GAP = 16f
 }
 
 class RoomChoicesRenderer : Disposable {

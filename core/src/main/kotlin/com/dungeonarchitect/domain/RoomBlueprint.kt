@@ -4,6 +4,7 @@ class RoomBlueprint(
     val id: String,
     val displayName: String,
     footprint: Set<GridPosition>,
+    val heartAnchor: GridPosition,
     doors: List<RoomDoor>,
     sockets: Map<GridPosition, RoomSocketType> = emptyMap(),
 ) {
@@ -17,6 +18,7 @@ class RoomBlueprint(
         id: String,
         displayName: String,
         footprint: Set<GridPosition>,
+        heartAnchor: GridPosition,
         doorPositions: Set<GridPosition>,
         doorFacings: Map<GridPosition, CardinalDirection> = emptyMap(),
         sockets: Map<GridPosition, RoomSocketType> = emptyMap(),
@@ -24,6 +26,7 @@ class RoomBlueprint(
         id = id,
         displayName = displayName,
         footprint = footprint,
+        heartAnchor = heartAnchor,
         doors = inferDoors(footprint, doorPositions, doorFacings),
         sockets = sockets,
     )
@@ -50,6 +53,9 @@ class RoomBlueprint(
         require(isFourDirectionallyConnected(this.footprint)) {
             "A room footprint must be connected in four directions."
         }
+        require(heartAnchor in this.footprint) {
+            "A room heart anchor must occupy a footprint cell."
+        }
         require(this.doors.isNotEmpty()) {
             "A room blueprint must contain at least one door."
         }
@@ -67,6 +73,27 @@ class RoomBlueprint(
         require(this.sockets.keys.all { it in this.footprint }) {
             "Every room socket must occupy a cell in the room footprint."
         }
+    }
+
+    fun geometry(
+        orientation: RoomOrientation = RoomOrientation.UNROTATED,
+    ): RoomGeometry {
+        val width = footprint.maxOf(GridPosition::column) + 1
+        val height = footprint.maxOf(GridPosition::row) + 1
+        fun transform(position: GridPosition) =
+            orientation.transform(position, width, height)
+
+        return RoomGeometry(
+            footprint = footprint.mapTo(mutableSetOf(), ::transform),
+            heartAnchor = transform(heartAnchor),
+            doors = doors.mapTo(mutableSetOf()) { door ->
+                RoomDoor(
+                    position = transform(door.position),
+                    facing = orientation.transform(door.facing),
+                )
+            },
+            sockets = sockets.mapKeys { (position) -> transform(position) },
+        )
     }
 
     private fun isFourDirectionallyConnected(positions: Set<GridPosition>): Boolean {

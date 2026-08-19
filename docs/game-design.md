@@ -7,9 +7,11 @@ deadly, efficient stronghold.
 
 ## Core idea
 
-Rooms are the central strategic unit. Before each wave, the player studies
-advance intelligence, chooses one room from a small selection, connects it to
-the persistent dungeon, and equips its available defense sockets.
+Rooms are the central strategic unit. The intended loop asks the player to
+study advance intelligence, choose from a small room selection, connect rooms
+to the persistent dungeon, and equip available defense sockets. The current
+prototype permits several placements during its single build phase; drafting
+limits are not implemented yet.
 
 The dungeon records earlier decisions: a room chosen for the current wave may
 create a useful synergy or an awkward layout later.
@@ -19,12 +21,20 @@ create a useful synergy or an awkward layout later.
 1. Receive information about the next hero party.
 2. Choose one of several room blueprints.
 3. Attach the room to the dungeon.
-4. Equip compatible traps or guardians.
-5. Start the wave and observe the result.
-6. Gain resources or upgrades and prepare for the next wave.
+4. Place or relocate the dungeon heart in a chosen room.
+5. Equip compatible traps or guardians.
+6. Start the wave and observe the result.
+7. Gain resources or upgrades and prepare for the next wave.
 
-Rooms persist during a run. Replacing an old room is unavailable early and may
-become possible later at a significant cost.
+Rooms persist during a run. Replacing an arbitrary established room is
+unavailable early and may become possible later at a significant cost.
+
+During the build phase, Cancel undoes the most recently placed room so an
+accidental placement can be corrected before it becomes part of the persistent
+run. Its attached traps are removed, and its selected heart is unplaced if the
+heart was in that room. Repeated cancellation may be used to reach an earlier
+mistake. This is an undo rule, not free replacement of an arbitrary established
+room.
 
 ## Room design
 
@@ -36,10 +46,11 @@ A room may eventually define:
 - a special rule or interaction with heroes;
 - adjacency synergies and a meaningful disadvantage.
 
-Early rooms must remain simple. For the first prototype, rooms should differ
-mainly by shape, door placement, and socket layout. Strong passive effects,
-complex restrictions, room upgrades, rotation, and adjacency bonuses come
-later.
+Early rooms remain simple. The prototype rooms differ mainly by shape, door
+placement, socket layout, and authored heart anchor. Explicit quarter-turn
+rotation and the simple corner room allow routes to turn and grow in every
+cardinal direction. Strong passive effects, complex restrictions, room
+upgrades, and adjacency bonuses come later.
 
 Possible late-game room directions include a guardian-focused barracks, a
 trap-heavy gallery, an alchemy room that changes damage effects, and a treasury
@@ -57,16 +68,32 @@ content.
   become possible attachment points for later choices.
 - Merely touching another room does not connect floor space. Heroes cross room
   boundaries only through recorded door connections.
-- The entrance faces east and the objective faces west in the prototype. A room
-  must meet each endpoint through a correspondingly facing door; rooms cannot
-  cover endpoint cells.
+- The entrance remains a fixed external port. The dungeon heart is not an
+  external endpoint: the player selects any placed room, and the heart occupies
+  that blueprint's authored local anchor after orientation and placement are
+  applied.
+- A dedicated build-phase heart control enters heart-placement mode. Hovering
+  any cell in a placed room previews that room's transformed anchor; a valid
+  click places or relocates the heart and leaves the mode. Empty cells and
+  anchors occupied by traps are rejected without falling through to room or
+  trap placement.
+- Heart and trap occupancy is exclusive. A trap cannot occupy the selected
+  heart anchor, and a room whose anchor already contains a trap cannot receive
+  the heart.
 - A layout is ready for a wave only when it has a route from the entrance to
-  the objective.
+  the selected dungeon heart.
+- In a branched layout, heroes use the entrance-to-heart branch. Unused side
+  branches are future build capacity and have no automatic combat value in the
+  early prototype.
+- Rooms may be rotated by explicit clockwise or counter-clockwise quarter turns
+  before placement. Footprints, doors, sockets, and heart anchors transform
+  together. The corner room supplies the adjacent door facings needed to turn
+  a route; open doors on any branch remain eligible frontier attachment points.
 - Individual room placements may leave that route incomplete while the player
   is still constructing the layout.
 - Layout creates tactical value through distance, choke points, and defense
   coverage.
-- Construction and defense placement consume a shared, limited resource.
+- Resources and per-wave construction limits are not implemented yet.
 
 ### Persistent topology decision
 
@@ -91,8 +118,10 @@ point visible and persistent, supports branching without permitting a single
 placement to create a surprising loop, and gives routing an explicit graph of
 door connections. Flexible attachment offered more topology but made accidental
 joins hard to preview; the single active tail was clear but discarded too much
-spatial choice. Rotation remains deferred, so authored room orientation is part
-of the choice for now.
+spatial choice. Quarter-turn rotation and the authored corner room now extend
+this rule without changing it: every accepted room still connects
+through exactly one open frontier door, while its other doors remain available
+for straight extensions, turns, or later branches.
 
 ## Wave intelligence
 
@@ -107,12 +136,13 @@ a simple one-to-one counter puzzle.
 
 ## Combat
 
-Heroes enter in waves and follow a valid route to the objective. Different hero
-roles may vary in speed, health, damage, or resistance. Defenses should have
-clear strengths, counters, ranges, and costs.
+Heroes enter in waves and follow the valid route to the selected dungeon heart.
+Different hero roles may vary in speed, health, damage, or resistance. Defenses
+should have clear strengths, counters, ranges, and costs.
 
-The player wins a wave by defeating all heroes. The run ends when the objective
-loses all health.
+The player wins a wave when the heart survives after every hero is resolved;
+heroes that reach it deal their authored heart damage. The run ends in defeat
+when heart health reaches zero.
 
 ## Prototype stages
 
@@ -123,9 +153,10 @@ socketed trap, deterministic combat, outcomes, and restart.
 
 ### Room choice — complete
 
-The prototype has two simple authored room blueprints and lets the player choose
-which one to place. The rooms differ only in geometry, doors, and socket layout.
-The player also places the existing basic trap into a compatible socket.
+This stage introduced two simple authored room blueprints and room selection.
+The flexible-construction stage subsequently added the third, corner blueprint.
+The rooms differ only in geometry, doors, socket layout, and heart anchor. The
+player also places the existing basic trap into a compatible socket.
 
 This stage may allow several rooms to be placed during the initial build phase
 so the current fixed map can form a complete route. It is a temporary prototype
@@ -133,21 +164,21 @@ rule, not the final run economy.
 
 #### Authored choice evaluation
 
-The two room blueprints were compared headlessly using their checked-in JSON,
-the authored hero wave, spike trap, and objective health. Each scenario used
-one room with its west and east doors attached directly to the entrance and
-objective. The same trap occupied the room's sole authored floor socket. This
-isolates the blueprint's route geometry and socket position while keeping all
-combat values and placement opportunities equivalent.
+The original two room blueprints were compared headlessly using their checked-in
+JSON, the authored hero wave, spike trap, and heart health. Each scenario used
+one room connected to the fixed entrance, with the heart selected at that
+room's authored anchor. The same trap occupied the room's sole authored floor
+socket. This isolates the blueprint's route geometry and socket position while
+keeping all combat values and placement opportunities equivalent.
 
-| Room | Outcome | Objective health | Kills | Arrivals | Trap activations | Trap damage | Elapsed simulation time |
+| Room | Outcome | Heart health | Kills | Arrivals | Trap activations | Trap damage | Elapsed simulation time |
 | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
 | Prototype Room | Victory | 10 | 4 | 0 | 8 | 40 | 244 steps (4.0667 s) |
 | Long Gallery | Victory | 10 | 4 | 0 | 8 | 40 | 364 steps (6.0667 s) |
 
 The Long Gallery takes 120 fixed steps, or 2 seconds, longer because its route
 and trap socket are farther from the entrance. That timing difference does not
-currently change the outcome, objective health, kills, arrivals, activations,
+currently change the outcome, heart health, kills, arrivals, activations,
 or damage, so the authored choices do not yet produce meaningfully different
 strategic results under the prototype content. The longer observation time is
 not itself valuable while the game has no time score or overlapping heroes.
@@ -156,16 +187,28 @@ Do not tune the assets as part of this evaluation. A separate reviewed content
 task should make geometry or socket placement affect a consequential metric,
 then repeat this comparison and validate the result through human playtesting.
 
-### Persistent drafting — topology selected
+### Flexible construction and dungeon heart — complete
 
-Each new room extends the open-door frontier described above. Multiple waves,
-rewards, one-room-per-wave limits, and late-game replacement costs remain later
-work.
+The application flow now supports selecting authored rooms, rotating them,
+building a turned persistent dungeon, undoing the newest mistaken room,
+choosing the heart room, placing compatible traps, and resolving the authored
+wave. The open-frontier rule also supports branches whenever a blueprint leaves
+multiple doors open. An automated application-level scenario verifies a
+horizontal gallery, corner, and rotated gallery route; cancellation and
+attached-trap cleanup; a trap lying on the selected-heart route; deterministic
+victory; and layout, trap, and heart persistence after restart.
+
+Branches that do not lead to the selected heart remain construction options
+only. They do not split heroes, attract targets, grant bonuses, or make their
+off-route traps useful in combat. The current authored catalog also has no
+three-door junction, so it demonstrates straight and turned chains but cannot
+create a branch without another blueprint. Multiple waves, rewards,
+one-room-per-wave limits, and late-game replacement costs remain later work.
 
 ## First playable content target
 
-- One entrance, one objective, and a fixed build area
-- Two simple room blueprints without special effects
+- One fixed entrance, one player-placed dungeon heart, and a fixed build area
+- Three simple room blueprints without special effects, including one corner
 - One basic trap
 - One basic hero type
 - One authored wave with a clear preview
@@ -181,9 +224,9 @@ Rooms should change geometry, available actions, or hero behavior rather than
 only providing small numerical bonuses.
 
 Important combat decisions and outcomes should be explainable from recorded
-game state. A post-wave summary should eventually identify facts such as hero
-arrivals, trap activations, damage, cooldown gaps, and route length instead of
-presenting only victory or defeat.
+game state. The current post-wave summary reports hero arrivals, trap
+activations and damage, heart health, and elapsed simulation time. Cooldown gaps
+and route length remain useful future explanation details.
 
 Automated evaluation may search or simulate player choices for design and
 balance analysis, but it does not define the intended experience by itself.
@@ -195,7 +238,7 @@ interesting, and consistent with the player fantasy.
 - At what late-game point is room replacement unlocked, and how is its
   significant cost calculated?
 - How many room choices should appear before each wave?
-- Can some heroes pursue room-specific goals instead of the main objective?
+- Can some heroes pursue room-specific goals instead of the dungeon heart?
 
 ## Future gameplay decision points
 

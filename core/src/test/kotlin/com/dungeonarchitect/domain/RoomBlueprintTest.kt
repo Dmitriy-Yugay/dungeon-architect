@@ -19,12 +19,14 @@ class RoomBlueprintTest {
             id = "guard-hall",
             displayName = "Guard Hall",
             footprint = footprint,
+            heartAnchor = position(1, 1),
             doorPositions = doors,
         )
 
         assertEquals("guard-hall", blueprint.id)
         assertEquals("Guard Hall", blueprint.displayName)
         assertEquals(footprint, blueprint.footprint)
+        assertEquals(position(1, 1), blueprint.heartAnchor)
         assertEquals(doors, blueprint.doorPositions)
     }
 
@@ -82,6 +84,16 @@ class RoomBlueprintTest {
                 footprint = setOf(position(0, 0)),
                 doorPositions = setOf(position(0, 0)),
                 sockets = mapOf(position(1, 0) to RoomSocketType.FLOOR),
+            )
+        }
+    }
+
+    @Test
+    fun `blueprint rejects a heart anchor outside its footprint`() {
+        assertFailsWith<IllegalArgumentException> {
+            blueprint(
+                footprint = setOf(position(0, 0)),
+                heartAnchor = position(1, 0),
             )
         }
     }
@@ -165,6 +177,7 @@ class RoomBlueprintTest {
         val blueprint = RoomBlueprint(
             id = "junction",
             displayName = "Junction",
+            heartAnchor = GridPosition(column = 0, row = 0),
             footprint = setOf(position(0, 0)),
             doors = listOf(
                 RoomDoor(position(0, 0), CardinalDirection.WEST),
@@ -183,6 +196,7 @@ class RoomBlueprintTest {
             RoomBlueprint(
                 id = "repeated-door",
                 displayName = "Repeated Door",
+                heartAnchor = GridPosition(column = 0, row = 0),
                 footprint = setOf(position(0, 0)),
                 doors = listOf(westDoor, westDoor),
             )
@@ -191,6 +205,7 @@ class RoomBlueprintTest {
             RoomBlueprint(
                 id = "inward-door",
                 displayName = "Inward Door",
+                heartAnchor = GridPosition(column = 0, row = 0),
                 footprint = setOf(position(0, 0), position(1, 0)),
                 doors = listOf(
                     RoomDoor(position(0, 0), CardinalDirection.EAST),
@@ -206,11 +221,13 @@ class RoomBlueprintTest {
         id: String = "test-room",
         displayName: String = "Test Room",
         footprint: Set<GridPosition> = setOf(position(0, 0)),
+        heartAnchor: GridPosition = position(0, 0),
         doorPositions: Set<GridPosition> = setOf(position(0, 0)),
         sockets: Map<GridPosition, RoomSocketType> = emptyMap(),
     ) = RoomBlueprint(
         id = id,
         displayName = displayName,
+        heartAnchor = heartAnchor,
         footprint = footprint,
         doorPositions = doorPositions,
         sockets = sockets,
