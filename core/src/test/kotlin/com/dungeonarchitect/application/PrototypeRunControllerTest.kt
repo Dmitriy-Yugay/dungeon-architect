@@ -11,6 +11,7 @@ import com.dungeonarchitect.domain.RoomDoor
 import com.dungeonarchitect.domain.RoomSocketType
 import com.dungeonarchitect.domain.TrapDefinition
 import com.dungeonarchitect.domain.UpcomingHeroWave
+import com.dungeonarchitect.evaluation.WaveEvaluationReport
 import com.dungeonarchitect.simulation.FixedStepHeroSimulation
 import com.dungeonarchitect.simulation.HeroArrived
 import com.dungeonarchitect.simulation.HeroDamaged
@@ -36,6 +37,7 @@ class PrototypeRunControllerTest {
                 heroCount = heroCount,
             )
             assertTrue(controller.start())
+            assertNull(controller.evaluationReport)
 
             repeat(heroCount) { resolvedBeforeStep ->
                 controller.advance(elapsedSeconds = fixedSteps(2))
@@ -53,6 +55,20 @@ class PrototypeRunControllerTest {
 
             assertEquals(10, controller.heartHealth)
             assertTrue(controller.isControlEnabled)
+            assertEquals(
+                WaveEvaluationReport(
+                    outcome = WaveOutcome.VICTORY,
+                    heartHealth = 10,
+                    heroKills = heroCount,
+                    heroArrivals = 0,
+                    elapsedSimulationSeconds =
+                        heroCount * 2 *
+                            FixedStepHeroSimulation.FIXED_STEP_SECONDS,
+                    trapActivations = heroCount,
+                    trapDamage = heroCount * 5,
+                ),
+                controller.evaluationReport,
+            )
         }
     }
 
@@ -70,6 +86,19 @@ class PrototypeRunControllerTest {
             assertEquals(PrototypeRunPhase.DEFEAT, controller.phase)
             assertEquals(0, controller.heartHealth)
             assertEquals(1, controller.resolvedHeroCount)
+            assertEquals(
+                WaveEvaluationReport(
+                    outcome = WaveOutcome.DEFEAT,
+                    heartHealth = 0,
+                    heroKills = 0,
+                    heroArrivals = 1,
+                    elapsedSimulationSeconds =
+                        2 * FixedStepHeroSimulation.FIXED_STEP_SECONDS,
+                    trapActivations = 0,
+                    trapDamage = 0,
+                ),
+                controller.evaluationReport,
+            )
         }
     }
 
@@ -119,6 +148,38 @@ class PrototypeRunControllerTest {
         assertEquals(singleChunk.resolvedHeroCount, fourChunks.resolvedHeroCount)
         assertEquals(singleChunk.heroState, fourChunks.heroState)
         assertEquals(singleChunk.events, fourChunks.events)
+        assertEquals(singleChunk.evaluationReport, fourChunks.evaluationReport)
+    }
+
+    @Test
+    fun `evaluation elapsed time is deterministic across irregular frame chunks`() {
+        val fixedChunkController = controller(
+            grid = gridWithLethalTrap(),
+            heroCount = 2,
+        )
+        val irregularChunkController = controller(
+            grid = gridWithLethalTrap(),
+            heroCount = 2,
+        )
+        assertTrue(fixedChunkController.start())
+        assertTrue(irregularChunkController.start())
+
+        fixedChunkController.advance(elapsedSeconds = fixedSteps(4))
+        repeat(100) {
+            if (irregularChunkController.phase == PrototypeRunPhase.RUNNING) {
+                irregularChunkController.advance(elapsedSeconds = 0.005f)
+            }
+        }
+
+        assertEquals(PrototypeRunPhase.VICTORY, irregularChunkController.phase)
+        assertEquals(
+            fixedChunkController.evaluationReport,
+            irregularChunkController.evaluationReport,
+        )
+        assertEquals(
+            4 * FixedStepHeroSimulation.FIXED_STEP_SECONDS,
+            irregularChunkController.evaluationReport?.elapsedSimulationSeconds,
+        )
     }
 
     @Test
@@ -207,6 +268,7 @@ class PrototypeRunControllerTest {
         assertEquals(rooms, grid.placedRooms)
         assertEquals(traps, grid.placedTraps)
         assertEquals(emptyList(), controller.events)
+        assertNull(controller.evaluationReport)
         assertTrue(completedRunEvents.isNotEmpty())
 
         assertTrue(controller.start())

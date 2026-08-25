@@ -30,6 +30,8 @@ import com.dungeonarchitect.presentation.HeartPlacementControl
 import com.dungeonarchitect.presentation.HeartPlacementControlRenderer
 import com.dungeonarchitect.presentation.HeartPlacementControlView
 import com.dungeonarchitect.presentation.HeartPlacementLayout
+import com.dungeonarchitect.presentation.PostWaveExplanationRenderer
+import com.dungeonarchitect.presentation.PostWaveExplanationView
 import com.dungeonarchitect.presentation.RoomChoiceControl
 import com.dungeonarchitect.presentation.RoomChoicesLayout
 import com.dungeonarchitect.presentation.RoomChoicesRenderer
@@ -63,6 +65,7 @@ class PrototypeScreen(
     private val roomChoicesRenderer = RoomChoicesRenderer()
     private val roomRotationRenderer = RoomRotationRenderer()
     private val heartPlacementControlRenderer = HeartPlacementControlRenderer()
+    private val postWaveExplanationRenderer = PostWaveExplanationRenderer()
     private val wavePanelRenderer = WavePanelRenderer()
     private val worldWidth = gridRenderer.worldWidth(grid)
     private val gridWorldHeight = gridRenderer.worldHeight(grid)
@@ -120,6 +123,14 @@ class PrototypeScreen(
                 ?: emptyList(),
             combatFeedback = combatFeedback,
         )
+        runController.evaluationReport?.let { report ->
+            postWaveExplanationRenderer.render(
+                view = PostWaveExplanationView.from(report),
+                projection = camera.combined,
+                worldWidth = worldWidth,
+                worldHeight = gridWorldHeight,
+            )
+        }
         val roomChoicesView = RoomChoicesView.from(buildState)
         val roomRotationView = RoomRotationView.from(buildState, runController.phase)
         val heartPlacementView = HeartPlacementControlView.from(
@@ -173,6 +184,7 @@ class PrototypeScreen(
     }
 
     override fun dispose() {
+        postWaveExplanationRenderer.dispose()
         heartPlacementControlRenderer.dispose()
         roomRotationRenderer.dispose()
         roomChoicesRenderer.dispose()

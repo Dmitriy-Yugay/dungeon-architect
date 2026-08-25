@@ -319,7 +319,7 @@ while retaining deterministic, data-driven values.
 70. [x] Add readable live combat feedback for trap activation and hero damage,
     such as a brief trap pulse and HP-bar change, derived from simulation state
     or events without moving gameplay rules into rendering.
-71. [ ] Render the existing post-wave explanation model in the playable screen
+71. [x] Render the existing post-wave explanation model in the playable screen
     so kills, arrivals, trap activations, damage, heart health, and elapsed time
     explain the result before restart.
 72. [ ] Run a focused keyboard-and-mouse playtest of first-room placement, a
