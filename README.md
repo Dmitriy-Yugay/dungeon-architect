@@ -6,20 +6,24 @@ heroes.
 
 ## Status
 
-The first end-to-end prototype is complete. The desktop application supports
-connected room placement, route validation, an authored hero wave, deterministic
-trap combat, objective damage, victory, defeat, and restart. Visuals remain
-placeholder shapes.
+The flexible-construction prototype is complete. The desktop application
+supports room choice, snapped and rotated room placement, build-phase undo, a
+player-placed dungeon heart, route-aware trap placement, an authored hero wave,
+deterministic combat and evaluation, victory, defeat, and layout-preserving
+restart. Visuals remain placeholder shapes.
 
 ## Prototype controls
 
-- Move the pointer over the grid to preview the prototype room.
-- Click a green preview to place the room; red previews are invalid.
-- Connect rooms from the entrance to the objective to enable the wave.
-- Click **START WAVE** to run the authored wave.
-- Click **RESTART** after victory or defeat.
-
-The current trap is installed automatically in the starter room.
+- Choose one of the three room blueprints in the bottom panel.
+- Use **CCW** or **CW**, then move the pointer over a snapped grid location to
+  preview the selected orientation.
+- Click a green room preview to place it; red previews are invalid.
+- Click **CANCEL** to undo the most recently placed room during the build phase.
+- Click an empty compatible socket to place the spike trap.
+- Click **PLACE HEART**, then a placed room, to select or relocate the dungeon
+  heart.
+- Connect the entrance to the heart to enable **START WAVE**.
+- Click **RESTART** after victory or defeat; the built layout is preserved.
 
 ## Requirements
 

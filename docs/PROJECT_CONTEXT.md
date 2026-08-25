@@ -137,7 +137,7 @@ Treat every numbered item as a separate task.
 19. [x] Apply deterministic trap damage; test targeting, cooldown, and death.
 20. [x] Add objective damage, victory, defeat, and restart.
 
-### Room choice — next
+### Room choice — complete
 
 21. [x] Add a stable ID and display name to a room blueprint; test blank-value
     validation.
@@ -202,7 +202,7 @@ decision without adding new gameplay content.
 50. [x] Add a presentation-only post-wave explanation model derived from the
     report, showing why the defense won or lost.
 
-### Flexible construction and selectable dungeon heart — next
+### Flexible construction and selectable dungeon heart — complete
 
 For this milestone, **Cancel** means undoing the most recently placed room while
 the run is still in the build phase. Repeated cancellation can walk back to an
@@ -270,6 +270,66 @@ capacity rather than providing an immediate combat benefit in this milestone.
     dungeon, canceling and replacing a mistaken room, selecting the heart room,
     placing a trap, and completing the wave; then update `game-design.md` and
     `architecture.md` with the verified behavior and remaining constraints.
+
+### Demo-readiness and combat readability — next
+
+The next milestone should make the existing loop immediately understandable
+before expanding it with resources or multiple waves. The current bottom panel
+packs status text and every build control into the same vertical area: control
+bounds do not intersect one another, but the heart-health text overlaps the
+control row. Room placement also requires the pointer to already be inside an
+otherwise invisible snapped candidate before a ghost appears. Rotation can move
+that candidate away from the pointer and make the preview disappear. These are
+interaction problems, not only placeholder-art limitations.
+
+The current spike trap deals 5 damage to a 10-health recruit and activates twice
+while the recruit crosses its cell. Consequently, one on-route trap kills every
+hero in the authored wave, and the evaluated room choices differ only in elapsed
+time. The balance pass should make the number and position of defenses matter,
+while retaining deterministic, data-driven values.
+
+64. [ ] Add a presentation-only hero health-bar model and render a compact,
+    high-contrast HP bar above the active hero. Derive its maximum from authored
+    wave content, clamp the displayed fraction, hide it with the dead hero, and
+    test full, damaged, zero, and invalid-boundary cases without starting libGDX.
+65. [ ] Replace the bottom panel's independent coordinate calculations with one
+    layout model containing separate status and control regions. Use a clear
+    two-row hierarchy for wave information, room selection, placement actions,
+    and run actions; verify that text safe areas and controls do not overlap at
+    the 1024-unit logical viewport and the default 1280 x 720 window.
+66. [ ] Make room attachment points discoverable without cursor hunting. Render
+    eligible open doors, select the entrance or an open door as the active
+    attachment target, and keep one exact room ghost visible there. The ghost
+    must include footprint, connecting door, other doors, sockets, and heart
+    anchor, with valid/invalid state and a short reason where useful.
+67. [ ] Rework rotation around that stable attachment target so rotating never
+    makes the ghost disappear merely because the pointer moved outside the new
+    footprint. Replace `CCW`, `CW`, and `ROT n` jargon with arrow affordances,
+    plain orientation feedback, and discoverable keyboard shortcuts; test click
+    precedence and every quarter turn.
+68. [ ] Improve room-choice controls from text-only buttons to compact cards or
+    thumbnails that show footprint, doors, sockets, selected state, and current
+    orientation. Add concise build-mode guidance and active-mode feedback for
+    room, trap, and heart placement, then test layout and state mapping.
+69. [ ] Add an evaluator-backed balance matrix for zero, one, and two well-spaced
+    on-route spike traps across the authored room geometries. Tune damage and/or
+    cooldown only in JSON so zero traps loses, one trap no longer perfect-clears
+    the wave, and deliberate multi-trap coverage can win; lock the chosen reports
+    in regression tests and record the design rationale in `game-design.md`.
+70. [ ] Add readable live combat feedback for trap activation and hero damage,
+    such as a brief trap pulse and HP-bar change, derived from simulation state
+    or events without moving gameplay rules into rendering.
+71. [ ] Render the existing post-wave explanation model in the playable screen
+    so kills, arrivals, trap activations, damage, heart health, and elapsed time
+    explain the result before restart.
+72. [ ] Run a focused keyboard-and-mouse playtest of first-room placement, a
+    turned multi-room route, heart and trap placement, wave resolution, and
+    restart. Fix discovered demo-blocking usability defects, update the control
+    guide, and capture the accepted layout and balance expectations in tests.
+
+After item 72, reassess whether the next product milestone should add the
+multi-wave/resource loop or first deepen room and defense variety. Do not add
+those systems during this polish milestone.
 
 For every task:
 
