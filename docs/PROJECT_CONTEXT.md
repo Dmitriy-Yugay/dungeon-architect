@@ -288,7 +288,7 @@ hero in the authored wave, and the evaluated room choices differ only in elapsed
 time. The balance pass should make the number and position of defenses matter,
 while retaining deterministic, data-driven values.
 
-64. [ ] Add a presentation-only hero health-bar model and render a compact,
+64. [x] Add a presentation-only hero health-bar model and render a compact,
     high-contrast HP bar above the active hero. Derive its maximum from authored
     wave content, clamp the displayed fraction, hide it with the dead hero, and
     test full, damaged, zero, and invalid-boundary cases without starting libGDX.

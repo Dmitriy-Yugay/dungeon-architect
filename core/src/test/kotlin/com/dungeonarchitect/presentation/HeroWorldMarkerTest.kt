@@ -78,6 +78,7 @@ class HeroWorldMarkerTest {
         position = HeroGridPosition(column = column, row = row),
         hasArrived = hasArrived,
         health = health,
+        maxHealth = 10,
     )
 
     private companion object {

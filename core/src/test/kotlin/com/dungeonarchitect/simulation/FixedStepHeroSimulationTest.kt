@@ -28,6 +28,7 @@ class FixedStepHeroSimulationTest {
         assertEquals(HeroGridPosition(column = 0.5f, row = 0f), simulation.heroState.position)
         assertFalse(simulation.heroState.hasArrived)
         assertEquals(10, simulation.heroState.health)
+        assertEquals(10, simulation.heroState.maxHealth)
     }
 
     @Test
@@ -154,6 +155,7 @@ class FixedStepHeroSimulationTest {
         )
 
         assertEquals(0, simulation.heroState.health)
+        assertEquals(10, simulation.heroState.maxHealth)
         assertTrue(simulation.heroState.isDead)
         assertFalse(simulation.heroState.hasArrived)
         assertEquals(HeroGridPosition(column = 0f, row = 0f), simulation.heroState.position)

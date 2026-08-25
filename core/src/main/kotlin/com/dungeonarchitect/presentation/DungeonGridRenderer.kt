@@ -52,6 +52,7 @@ class DungeonGridRenderer : Disposable {
         placedDungeonHeartGridMarker(grid)?.let(::renderHeartMarker)
         heartPlacementPreview?.let(::renderHeartPlacementPreview)
         heroWorldMarker(heroState, TILE_SIZE)?.let(::renderHero)
+        heroHealthBar(heroState, TILE_SIZE)?.let(::renderHeroHealthBar)
         renderHighlights(hoveredPosition, selectedPosition)
     }
 
@@ -97,6 +98,27 @@ class DungeonGridRenderer : Disposable {
         shapes.begin(ShapeRenderer.ShapeType.Filled)
         shapes.color = HERO_COLOR
         shapes.circle(marker.centerX, marker.centerY, marker.radius)
+        shapes.end()
+    }
+
+    private fun renderHeroHealthBar(bar: HeroHealthBar) {
+        shapes.begin(ShapeRenderer.ShapeType.Filled)
+        shapes.color = HERO_HEALTH_BORDER_COLOR
+        shapes.rect(bar.left, bar.bottom, bar.width, bar.height)
+
+        val innerLeft = bar.left + HERO_HEALTH_BAR_BORDER
+        val innerBottom = bar.bottom + HERO_HEALTH_BAR_BORDER
+        val innerWidth = bar.width - HERO_HEALTH_BAR_BORDER * 2f
+        val innerHeight = bar.height - HERO_HEALTH_BAR_BORDER * 2f
+        shapes.color = HERO_HEALTH_BACKGROUND_COLOR
+        shapes.rect(innerLeft, innerBottom, innerWidth, innerHeight)
+        shapes.color = HERO_HEALTH_FILL_COLOR
+        shapes.rect(
+            innerLeft,
+            innerBottom,
+            innerWidth * bar.fillFraction,
+            innerHeight,
+        )
         shapes.end()
     }
 
@@ -290,6 +312,7 @@ class DungeonGridRenderer : Disposable {
         const val HEART_LOBE_RADIUS = 10f
         const val HEART_MARKER_RADIUS = 16f
         const val HEART_PREVIEW_INSET = 12f
+        const val HERO_HEALTH_BAR_BORDER = 2f
 
         val EMPTY_TILE_COLOR = Color.valueOf("252B33")
         val ROOM_COLOR = Color.valueOf("5D6D7E")
@@ -303,6 +326,9 @@ class DungeonGridRenderer : Disposable {
         val TRAP_MARKER_COLOR = Color.valueOf("E84A5F")
         val HEART_MARKER_COLOR = Color.valueOf("EF6FAE")
         val HERO_COLOR = Color.valueOf("4BA3D3")
+        val HERO_HEALTH_BORDER_COLOR = Color.valueOf("F2F2F2")
+        val HERO_HEALTH_BACKGROUND_COLOR = Color.valueOf("301C25")
+        val HERO_HEALTH_FILL_COLOR = Color.valueOf("63D471")
         val HOVER_COLOR = Color.valueOf("E0B84B")
         val SELECTION_COLOR = Color.valueOf("F2F2F2")
     }
