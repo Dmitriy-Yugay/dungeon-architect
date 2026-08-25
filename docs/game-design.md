@@ -162,30 +162,41 @@ This stage may allow several rooms to be placed during the initial build phase
 so the current fixed map can form a complete route. It is a temporary prototype
 rule, not the final run economy.
 
-#### Authored choice evaluation
+#### Authored trap balance evaluation
 
-The original two room blueprints were compared headlessly using their checked-in
-JSON, the authored hero wave, spike trap, and heart health. Each scenario used
-one room connected to the fixed entrance, with the heart selected at that
-room's authored anchor. The same trap occupied the room's sole authored floor
-socket. This isolates the blueprint's route geometry and socket position while
-keeping all combat values and placement opportunities equivalent.
+All three room geometries are evaluated headlessly using the checked-in room,
+wave, trap, and heart JSON. Each fixture builds a connected route from repeated
+copies of one blueprint and selects the final room's heart anchor. Prototype
+Rooms and Long Galleries use three-room straight routes. The Corner Room uses
+four alternating turns so two of its sockets lie on the chosen route without
+overlap. The two armed sockets are separated by at least two route tiles.
 
-| Room | Outcome | Heart health | Kills | Arrivals | Trap activations | Trap damage | Elapsed simulation time |
-| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| Prototype Room | Victory | 10 | 4 | 0 | 8 | 40 | 244 steps (4.0667 s) |
-| Long Gallery | Victory | 10 | 4 | 0 | 8 | 40 | 364 steps (6.0667 s) |
+| Room geometry | Traps | Outcome | Heart health | Kills | Arrivals | Activations | Trap damage | Elapsed simulation time |
+| --- | ---: | --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Prototype Room | 0 | Defeat | 0 | 0 | 1 | 0 | 0 | 270 steps (4.5000 s) |
+| Prototype Room | 1 | Defeat | 0 | 0 | 1 | 2 | 8 | 270 steps (4.5000 s) |
+| Prototype Room | 2 | Victory | 10 | 4 | 0 | 12 | 40 | 544 steps (9.0667 s) |
+| Long Gallery | 0 | Defeat | 0 | 0 | 1 | 0 | 0 | 390 steps (6.5000 s) |
+| Long Gallery | 1 | Defeat | 0 | 0 | 1 | 2 | 8 | 390 steps (6.5000 s) |
+| Long Gallery | 2 | Victory | 10 | 4 | 0 | 12 | 40 | 784 steps (13.0667 s) |
+| Corner Room | 0 | Defeat | 0 | 0 | 1 | 0 | 0 | 330 steps (5.5000 s) |
+| Corner Room | 1 | Defeat | 0 | 0 | 1 | 2 | 8 | 330 steps (5.5000 s) |
+| Corner Room | 2 | Victory | 10 | 4 | 0 | 12 | 40 | 904 steps (15.0667 s) |
 
-The Long Gallery takes 120 fixed steps, or 2 seconds, longer because its route
-and trap socket are farther from the entrance. That timing difference does not
-currently change the outcome, heart health, kills, arrivals, activations,
-or damage, so the authored choices do not yet produce meaningfully different
-strategic results under the prototype content. The longer observation time is
-not itself valuable while the game has no time score or overlapping heroes.
+Spike damage is authored as 4, down from 5; cooldown remains 0.25 seconds. A
+recruit has 10 health and receives two activations while crossing one socket,
+so a lone trap deals 8 damage and cannot perfect-clear the wave. A second,
+well-spaced on-route trap supplies the third activation needed for a kill. Each
+hero therefore dies after 10 recorded damage, and two deliberate placements
+protect the untouched heart against all four recruits. With zero or one trap,
+the first surviving recruit deals the heart's full 10 health in damage and ends
+the run.
 
-Do not tune the assets as part of this evaluation. A separate reviewed content
-task should make geometry or socket placement affect a consequential metric,
-then repeat this comparison and validate the result through human playtesting.
+This is intentionally a placement-count threshold, not a claim that the room
+choices are strategically distinct yet. Geometry currently changes route and
+observation time; later content should make socket pattern, timing, or room
+rules affect which defensive plan is best. Human playtesting still needs to
+confirm that acquiring and placing two traps feels clear and attainable.
 
 ### Flexible construction and dungeon heart — complete
 

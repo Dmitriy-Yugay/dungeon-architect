@@ -25,18 +25,18 @@ class AuthoredRoomChoiceEvaluationTest {
 
         assertEquals(
             WaveEvaluationReport(
-                outcome = WaveOutcome.VICTORY,
-                heartHealth = 10,
-                heroKills = 4,
-                heroArrivals = 0,
-                elapsedSimulationSeconds = fixedSteps(244),
-                trapActivations = 8,
-                trapDamage = 40,
+                outcome = WaveOutcome.DEFEAT,
+                heartHealth = 0,
+                heroKills = 0,
+                heroArrivals = 1,
+                elapsedSimulationSeconds = fixedSteps(90),
+                trapActivations = 2,
+                trapDamage = 8,
             ),
             prototypeRoomReport,
         )
         assertEquals(
-            prototypeRoomReport.copy(elapsedSimulationSeconds = fixedSteps(364)),
+            prototypeRoomReport.copy(elapsedSimulationSeconds = fixedSteps(150)),
             longGalleryReport,
         )
     }

@@ -311,7 +311,7 @@ while retaining deterministic, data-driven values.
     thumbnails that show footprint, doors, sockets, selected state, and current
     orientation. Add concise build-mode guidance and active-mode feedback for
     room, trap, and heart placement, then test layout and state mapping.
-69. [ ] Add an evaluator-backed balance matrix for zero, one, and two well-spaced
+69. [x] Add an evaluator-backed balance matrix for zero, one, and two well-spaced
     on-route spike traps across the authored room geometries. Tune damage and/or
     cooldown only in JSON so zero traps loses, one trap no longer perfect-clears
     the wave, and deliberate multi-trap coverage can win; lock the chosen reports

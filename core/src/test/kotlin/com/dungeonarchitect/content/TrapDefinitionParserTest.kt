@@ -14,7 +14,7 @@ class TrapDefinitionParserTest {
 
         assertEquals("spike_trap", trap.id)
         assertEquals("Spike Trap", trap.displayName)
-        assertEquals(5, trap.damage)
+        assertEquals(4, trap.damage)
         assertEquals(0.25f, trap.cooldownSeconds)
         assertEquals(setOf(RoomSocketType.FLOOR), trap.compatibleSocketTypes)
     }
