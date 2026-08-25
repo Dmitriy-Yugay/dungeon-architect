@@ -202,6 +202,52 @@ class PrototypeScreenTest {
     }
 
     @Test
+    fun `attachment click selects a stable target and ghost click places there`() {
+        val buildState = authoredBuildState()
+        val grid = prototypeGrid()
+        val controller = runController(grid)
+
+        val selected = PrototypeScreen.handleClick(
+            grid = grid,
+            buildState = buildState,
+            clickedPosition = grid.entrance,
+            clickedAttachmentTarget = grid.roomAttachmentTargets.single(),
+            worldX = 100f,
+            worldY = 100f,
+            startButtonBounds = startButtonBounds(),
+            cancelButtonBounds = cancelButtonBounds(),
+            roomChoiceControls = roomChoiceControls(buildState),
+            runController = controller,
+        )
+        val target = buildState.selectedRoomAttachmentTarget
+
+        assertEquals(PrototypeClickResult.ROOM_ATTACHMENT_SELECTED, selected)
+        assertEquals(grid.roomAttachmentTargets.single(), target)
+        val preview = requireNotNull(
+            grid.targetedPlacementPreview(
+                blueprint = buildState.selectedRoomBlueprint,
+                target = requireNotNull(target),
+                orientation = buildState.selectedRoomOrientation,
+            ),
+        )
+        val clickedGhostCell = preview.room.gridPositions.first()
+        val placed = PrototypeScreen.handleClick(
+            grid = grid,
+            buildState = buildState,
+            clickedPosition = clickedGhostCell,
+            worldX = 100f,
+            worldY = 100f,
+            startButtonBounds = startButtonBounds(),
+            cancelButtonBounds = cancelButtonBounds(),
+            roomChoiceControls = roomChoiceControls(buildState),
+            runController = controller,
+        )
+
+        assertEquals(PrototypeClickResult.ROOM_PLACED, placed)
+        assertEquals(preview.room, grid.placedRooms.single())
+    }
+
+    @Test
     fun `application loads the authored wave through the supplied internal text reader`() {
         var requestedPath: String? = null
 

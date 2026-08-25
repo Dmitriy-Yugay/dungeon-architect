@@ -10,6 +10,7 @@ import com.dungeonarchitect.domain.GridPosition
 import com.dungeonarchitect.domain.HeartPlacementPreview
 import com.dungeonarchitect.domain.PrototypeHeroState
 import com.dungeonarchitect.domain.RoomPlacementPreview
+import com.dungeonarchitect.domain.RoomAttachmentTarget
 import com.dungeonarchitect.domain.RoomSocketType
 import com.dungeonarchitect.domain.TileType
 import kotlin.math.floor
@@ -32,6 +33,18 @@ class DungeonGridRenderer : Disposable {
         return GridPosition(column, row).takeIf(grid::contains)
     }
 
+    fun roomAttachmentTargetAt(
+        grid: DungeonGrid,
+        worldX: Float,
+        worldY: Float,
+    ): RoomAttachmentTarget? = roomAttachmentTargetAt(
+        grid = grid,
+        worldX = worldX,
+        worldY = worldY,
+        tileSize = TILE_SIZE,
+        clickRadius = ATTACHMENT_CLICK_RADIUS,
+    )
+
     fun render(
         grid: DungeonGrid,
         projection: Matrix4,
@@ -41,11 +54,14 @@ class DungeonGridRenderer : Disposable {
         heroState: PrototypeHeroState?,
         hoveredPosition: GridPosition?,
         selectedPosition: GridPosition?,
+        roomAttachmentTargets: List<RoomAttachmentTargetMarker> = emptyList(),
     ) {
         shapes.projectionMatrix = projection
         renderTiles(grid)
-        placementPreview?.let(::renderPlacementPreview)
+        placementPreview?.let(::renderPlacementPreviewFootprint)
         renderDoorMarkers(roomDoorGridMarkers(grid))
+        renderRoomAttachmentTargets(roomAttachmentTargets)
+        placementPreview?.let(::renderPlacementPreviewDetails)
         renderSocketMarkers(roomSocketGridMarkers(grid.placedRooms))
         renderTrapMarkers(placedTrapGridMarkers(grid))
         trapPlacementPreview?.let(::renderTrapPlacementPreview)
@@ -78,7 +94,7 @@ class DungeonGridRenderer : Disposable {
         shapes.end()
     }
 
-    private fun renderPlacementPreview(preview: RoomPlacementPreview) {
+    private fun renderPlacementPreviewFootprint(preview: RoomPlacementPreview) {
         shapes.begin(ShapeRenderer.ShapeType.Filled)
         shapes.color = if (preview.isValid) VALID_PREVIEW_COLOR else INVALID_PREVIEW_COLOR
 
@@ -91,6 +107,85 @@ class DungeonGridRenderer : Disposable {
             )
         }
 
+        shapes.end()
+    }
+
+    private fun renderPlacementPreviewDetails(preview: RoomPlacementPreview) {
+        val ghost = roomPlacementGhost(preview)
+        shapes.begin(ShapeRenderer.ShapeType.Filled)
+        ghost.doors.forEach { marker ->
+            shapes.color = when {
+                marker.isConnecting && ghost.isValid -> GHOST_CONNECTING_DOOR_COLOR
+                marker.isConnecting -> INVALID_PREVIEW_COLOR
+                else -> GHOST_DOOR_COLOR
+            }
+            val (offsetX, offsetY) = doorMarkerOffset(marker.facing)
+            val isHorizontalEdge = marker.facing == CardinalDirection.NORTH ||
+                marker.facing == CardinalDirection.SOUTH
+            shapes.rect(
+                marker.position.column * TILE_SIZE + offsetX,
+                marker.position.row * TILE_SIZE + offsetY,
+                if (isHorizontalEdge) DOOR_MARKER_LENGTH else DOOR_MARKER_THICKNESS,
+                if (isHorizontalEdge) DOOR_MARKER_THICKNESS else DOOR_MARKER_LENGTH,
+            )
+        }
+        ghost.sockets.forEach { (position, type) ->
+            shapes.color = when (type) {
+                RoomSocketType.FLOOR -> GHOST_FLOOR_SOCKET_COLOR
+                RoomSocketType.WALL -> GHOST_WALL_SOCKET_COLOR
+            }
+            shapes.circle(
+                (position.column + HALF_TILE) * TILE_SIZE,
+                (position.row + HALF_TILE) * TILE_SIZE,
+                GHOST_SOCKET_RADIUS,
+            )
+        }
+        val heartX = (ghost.heartAnchor.column + HALF_TILE) * TILE_SIZE
+        val heartY = (ghost.heartAnchor.row + HALF_TILE) * TILE_SIZE
+        shapes.color = GHOST_HEART_ANCHOR_COLOR
+        shapes.triangle(
+            heartX,
+            heartY + GHOST_HEART_RADIUS,
+            heartX + GHOST_HEART_RADIUS,
+            heartY,
+            heartX,
+            heartY - GHOST_HEART_RADIUS,
+        )
+        shapes.triangle(
+            heartX,
+            heartY + GHOST_HEART_RADIUS,
+            heartX,
+            heartY - GHOST_HEART_RADIUS,
+            heartX - GHOST_HEART_RADIUS,
+            heartY,
+        )
+        shapes.end()
+    }
+
+    private fun renderRoomAttachmentTargets(
+        markers: List<RoomAttachmentTargetMarker>,
+    ) {
+        shapes.begin(ShapeRenderer.ShapeType.Line)
+        markers.forEach { marker ->
+            shapes.color = if (marker.isActive) {
+                ACTIVE_ATTACHMENT_COLOR
+            } else {
+                AVAILABLE_ATTACHMENT_COLOR
+            }
+            val (centerX, centerY) = roomAttachmentMarkerCenter(marker, TILE_SIZE)
+            shapes.circle(
+                centerX,
+                centerY,
+                if (marker.isActive) ACTIVE_ATTACHMENT_RADIUS else ATTACHMENT_RADIUS,
+            )
+            val outsideCenter = marker.facing.move(marker.position)
+            shapes.line(
+                centerX,
+                centerY,
+                (outsideCenter.column + HALF_TILE) * TILE_SIZE,
+                (outsideCenter.row + HALF_TILE) * TILE_SIZE,
+            )
+        }
         shapes.end()
     }
 
@@ -313,12 +408,24 @@ class DungeonGridRenderer : Disposable {
         const val HEART_MARKER_RADIUS = 16f
         const val HEART_PREVIEW_INSET = 12f
         const val HERO_HEALTH_BAR_BORDER = 2f
+        const val ATTACHMENT_RADIUS = 20f
+        const val ACTIVE_ATTACHMENT_RADIUS = 25f
+        const val ATTACHMENT_CLICK_RADIUS = 26f
+        const val GHOST_SOCKET_RADIUS = 6f
+        const val GHOST_HEART_RADIUS = 9f
 
         val EMPTY_TILE_COLOR = Color.valueOf("252B33")
         val ROOM_COLOR = Color.valueOf("5D6D7E")
         val ENTRANCE_COLOR = Color.valueOf("3A9D5D")
         val VALID_PREVIEW_COLOR = Color.valueOf("4EA86B")
         val INVALID_PREVIEW_COLOR = Color.valueOf("D85C5C")
+        val AVAILABLE_ATTACHMENT_COLOR = Color.valueOf("F0C15B")
+        val ACTIVE_ATTACHMENT_COLOR = Color.valueOf("FFF1A8")
+        val GHOST_CONNECTING_DOOR_COLOR = Color.valueOf("FFF1A8")
+        val GHOST_DOOR_COLOR = Color.valueOf("DCA75A")
+        val GHOST_FLOOR_SOCKET_COLOR = Color.valueOf("82E4D5")
+        val GHOST_WALL_SOCKET_COLOR = Color.valueOf("D4A0E5")
+        val GHOST_HEART_ANCHOR_COLOR = Color.valueOf("FF9BCB")
         val OPEN_DOOR_MARKER_COLOR = Color.valueOf("F0A44B")
         val CONNECTED_DOOR_MARKER_COLOR = Color.valueOf("8A6A45")
         val FLOOR_SOCKET_MARKER_COLOR = Color.valueOf("47C6B5")

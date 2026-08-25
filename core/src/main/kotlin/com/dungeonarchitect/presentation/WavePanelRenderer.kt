@@ -14,6 +14,7 @@ data class WavePanelView(
     val summary: String,
     val traitDescription: String,
     val heartStatus: String,
+    val buildGuidance: String,
     val controlLabel: String,
     val isControlEnabled: Boolean,
     val cancelLabel: String,
@@ -27,6 +28,7 @@ data class WavePanelView(
             heartMaxHealth: Int,
             isStartEnabled: Boolean,
             isCancelEnabled: Boolean,
+            buildGuidance: String = "",
         ) = WavePanelView(
             summary = when (phase) {
                 PrototypeRunPhase.BUILDING ->
@@ -39,6 +41,7 @@ data class WavePanelView(
             traitDescription = wave.traitDescription,
             heartStatus =
                 "Heart health: $heartHealth / $heartMaxHealth",
+            buildGuidance = buildGuidance,
             controlLabel = when (phase) {
                 PrototypeRunPhase.BUILDING ->
                     if (isStartEnabled) {
@@ -300,6 +303,12 @@ class WavePanelRenderer : Disposable {
             layout.heartStatusSafeArea.x,
             layout.heartStatusSafeArea.y + HEART_STATUS_BASELINE_OFFSET,
         )
+        font.draw(
+            batch,
+            view.buildGuidance,
+            layout.heartStatusSafeArea.x,
+            layout.heartStatusSafeArea.y + GUIDANCE_BASELINE_OFFSET,
+        )
 
         font.color =
             if (view.isControlEnabled) ENABLED_LABEL_COLOR else DISABLED_LABEL_COLOR
@@ -331,7 +340,8 @@ class WavePanelRenderer : Disposable {
     private companion object {
         const val SUMMARY_BASELINE_OFFSET = 40f
         const val DESCRIPTION_BASELINE_OFFSET = 16f
-        const val HEART_STATUS_BASELINE_OFFSET = 28f
+        const val HEART_STATUS_BASELINE_OFFSET = 40f
+        const val GUIDANCE_BASELINE_OFFSET = 16f
 
         val PANEL_COLOR = Color.valueOf("171B20")
         val ENABLED_BUTTON_COLOR = Color.valueOf("3A9D5D")

@@ -30,11 +30,7 @@ class RoomChoicesRendererTest {
         assertEquals(
             listOf(
                 RoomChoiceControl(
-                    choice = RoomChoiceView(
-                        id = "square-room",
-                        displayName = "Square Room",
-                        isSelected = true,
-                    ),
+                    choice = view.choices[0],
                     bounds = ControlBounds(
                         x = 16f,
                         y = 592f,
@@ -43,11 +39,7 @@ class RoomChoicesRendererTest {
                     ),
                 ),
                 RoomChoiceControl(
-                    choice = RoomChoiceView(
-                        id = "long-gallery",
-                        displayName = "Long Gallery",
-                        isSelected = false,
-                    ),
+                    choice = view.choices[1],
                     bounds = ControlBounds(
                         x = 120f,
                         y = 592f,

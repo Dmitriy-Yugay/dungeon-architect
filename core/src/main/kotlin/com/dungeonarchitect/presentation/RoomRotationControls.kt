@@ -33,31 +33,32 @@ internal data class RoomRotationView(
         ): RoomRotationView {
             val isEnabled = phase == PrototypeRunPhase.BUILDING
             return RoomRotationView(
-                orientationLabel = buildState.selectedRoomOrientation.label,
+                orientationLabel = buildState.selectedRoomOrientation.plainLabel,
                 controls = listOf(
                     RoomRotationControlView(
                         direction = RoomRotationDirection.COUNTER_CLOCKWISE,
-                        label = "CCW",
+                        label = "< Q",
                         isEnabled = isEnabled,
                     ),
                     RoomRotationControlView(
                         direction = RoomRotationDirection.CLOCKWISE,
-                        label = "CW",
+                        label = "E >",
                         isEnabled = isEnabled,
                     ),
                 ),
             )
         }
 
-        private val RoomOrientation.label: String
-            get() = when (this) {
-                RoomOrientation.UNROTATED -> "ROT 0"
-                RoomOrientation.CLOCKWISE_90 -> "ROT 90"
-                RoomOrientation.CLOCKWISE_180 -> "ROT 180"
-                RoomOrientation.CLOCKWISE_270 -> "ROT 270"
-            }
     }
 }
+
+internal val RoomOrientation.plainLabel: String
+    get() = when (this) {
+        RoomOrientation.UNROTATED -> "Original"
+        RoomOrientation.CLOCKWISE_90 -> "90 right"
+        RoomOrientation.CLOCKWISE_180 -> "Turned 180"
+        RoomOrientation.CLOCKWISE_270 -> "90 left"
+    }
 
 internal data class RoomRotationControl(
     val view: RoomRotationControlView,
@@ -142,16 +143,6 @@ internal class RoomRotationRenderer : Disposable {
                     (control.bounds.height + labelLayout.height) / 2f,
             )
         }
-        val left = controls.firstOrNull()?.bounds?.x ?: 0f
-        val right = controls.lastOrNull()?.bounds?.let { it.x + it.width } ?: left
-        font.color = ORIENTATION_LABEL_COLOR
-        labelLayout.setText(font, rotationView.orientationLabel)
-        font.draw(
-            batch,
-            rotationView.orientationLabel,
-            left + (right - left - labelLayout.width) / 2f,
-            layout.controlsRegion.y + ORIENTATION_LABEL_BASELINE,
-        )
         batch.end()
     }
 
@@ -162,12 +153,9 @@ internal class RoomRotationRenderer : Disposable {
     }
 
     private companion object {
-        const val ORIENTATION_LABEL_BASELINE = 12f
-
         val ENABLED_COLOR = Color.valueOf("596A8A")
         val DISABLED_COLOR = Color.valueOf("3F454D")
         val ENABLED_LABEL_COLOR = Color.WHITE
         val DISABLED_LABEL_COLOR = Color.valueOf("AAB0B8")
-        val ORIENTATION_LABEL_COLOR = Color.valueOf("B8C0CC")
     }
 }

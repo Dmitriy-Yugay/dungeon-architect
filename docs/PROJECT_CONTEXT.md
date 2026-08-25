@@ -297,17 +297,17 @@ while retaining deterministic, data-driven values.
     two-row hierarchy for wave information, room selection, placement actions,
     and run actions; verify that text safe areas and controls do not overlap at
     the 1024-unit logical viewport and the default 1280 x 720 window.
-66. [ ] Make room attachment points discoverable without cursor hunting. Render
+66. [x] Make room attachment points discoverable without cursor hunting. Render
     eligible open doors, select the entrance or an open door as the active
     attachment target, and keep one exact room ghost visible there. The ghost
     must include footprint, connecting door, other doors, sockets, and heart
     anchor, with valid/invalid state and a short reason where useful.
-67. [ ] Rework rotation around that stable attachment target so rotating never
+67. [x] Rework rotation around that stable attachment target so rotating never
     makes the ghost disappear merely because the pointer moved outside the new
     footprint. Replace `CCW`, `CW`, and `ROT n` jargon with arrow affordances,
     plain orientation feedback, and discoverable keyboard shortcuts; test click
     precedence and every quarter turn.
-68. [ ] Improve room-choice controls from text-only buttons to compact cards or
+68. [x] Improve room-choice controls from text-only buttons to compact cards or
     thumbnails that show footprint, doors, sockets, selected state, and current
     orientation. Add concise build-mode guidance and active-mode feedback for
     room, trap, and heart placement, then test layout and state mapping.

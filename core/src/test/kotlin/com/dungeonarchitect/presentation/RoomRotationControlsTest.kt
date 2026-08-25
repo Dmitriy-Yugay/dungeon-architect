@@ -23,17 +23,17 @@ class RoomRotationControlsTest {
             phase = PrototypeRunPhase.BUILDING,
         )
 
-        assertEquals("ROT 90", view.orientationLabel)
+        assertEquals("90 right", view.orientationLabel)
         assertEquals(
             listOf(
                 RoomRotationControlView(
                     direction = RoomRotationDirection.COUNTER_CLOCKWISE,
-                    label = "CCW",
+                    label = "< Q",
                     isEnabled = true,
                 ),
                 RoomRotationControlView(
                     direction = RoomRotationDirection.CLOCKWISE,
-                    label = "CW",
+                    label = "E >",
                     isEnabled = true,
                 ),
             ),

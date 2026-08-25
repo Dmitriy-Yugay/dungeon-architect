@@ -1,6 +1,7 @@
 package com.dungeonarchitect.application
 
 import com.badlogic.gdx.Gdx
+import com.badlogic.gdx.Input
 import com.badlogic.gdx.ScreenAdapter
 import com.badlogic.gdx.graphics.OrthographicCamera
 import com.badlogic.gdx.math.Vector2
@@ -16,6 +17,7 @@ import com.dungeonarchitect.domain.DungeonGrid
 import com.dungeonarchitect.domain.GridPosition
 import com.dungeonarchitect.domain.PrototypeRunDefinition
 import com.dungeonarchitect.domain.PrototypeRunPhase
+import com.dungeonarchitect.domain.RoomAttachmentTarget
 import com.dungeonarchitect.domain.RoomBlueprint
 import com.dungeonarchitect.domain.RoomPlacementPreview
 import com.dungeonarchitect.domain.TrapDefinition
@@ -39,6 +41,8 @@ import com.dungeonarchitect.presentation.RoomRotationView
 import com.dungeonarchitect.presentation.WavePanelLayout
 import com.dungeonarchitect.presentation.WavePanelRenderer
 import com.dungeonarchitect.presentation.WavePanelView
+import com.dungeonarchitect.presentation.buildModeGuidance
+import com.dungeonarchitect.presentation.roomAttachmentTargetMarkers
 
 class PrototypeScreen(
     private val buildState: BuildState = loadBuildState { path ->
@@ -79,11 +83,20 @@ class PrototypeScreen(
         updatePointerState()
         runController.advance(delta)
         ScreenUtils.clear(BACKGROUND_RED, BACKGROUND_GREEN, BACKGROUND_BLUE, BACKGROUND_ALPHA)
+        val attachmentTargets = if (runController.phase == PrototypeRunPhase.BUILDING) {
+            grid.roomAttachmentTargets
+        } else {
+            emptyList()
+        }
+        val activeAttachmentTarget = buildState.retainOrSelectRoomAttachmentTarget(
+            attachmentTargets,
+        )
         val placementPreviews = buildPlacementPreviews(
             grid = grid,
             buildState = buildState,
             hoveredPosition = hoveredPosition,
             runPhase = runController.phase,
+            attachmentTarget = activeAttachmentTarget,
         )
         gridRenderer.render(
             grid = grid,
@@ -94,6 +107,11 @@ class PrototypeScreen(
             heroState = runController.heroState,
             hoveredPosition = hoveredPosition,
             selectedPosition = selectedPosition,
+            roomAttachmentTargets = roomAttachmentTargetMarkers(
+                grid = grid,
+                activeTarget = activeAttachmentTarget,
+            ).takeIf { runController.phase == PrototypeRunPhase.BUILDING }
+                ?: emptyList(),
         )
         val roomChoicesView = RoomChoicesView.from(buildState)
         val roomRotationView = RoomRotationView.from(buildState, runController.phase)
@@ -115,6 +133,13 @@ class PrototypeScreen(
                 heartMaxHealth = runController.heartMaxHealth,
                 isStartEnabled = runController.isStartEnabled,
                 isCancelEnabled = runController.isCancelEnabled,
+                buildGuidance = buildModeGuidance(
+                    buildState = buildState,
+                    phase = runController.phase,
+                    roomPreview = placementPreviews.room,
+                    hasTrapPreview = placementPreviews.trap != null,
+                    activeAttachmentTarget = activeAttachmentTarget,
+                ),
             ),
             projection = camera.combined,
             layout = panelLayout,
@@ -149,6 +174,7 @@ class PrototypeScreen(
     }
 
     private fun updatePointerState() {
+        updateKeyboardShortcuts()
         pointerCoordinates.set(Gdx.input.x.toFloat(), Gdx.input.y.toFloat())
         viewport.unproject(pointerCoordinates)
 
@@ -159,6 +185,7 @@ class PrototypeScreen(
         )
 
         if (Gdx.input.justTouched()) {
+            buildState.retainOrSelectRoomAttachmentTarget(grid.roomAttachmentTargets)
             val roomChoicesView = RoomChoicesView.from(buildState)
             val roomRotationView = RoomRotationView.from(
                 buildState,
@@ -178,6 +205,11 @@ class PrototypeScreen(
                 grid = grid,
                 buildState = buildState,
                 clickedPosition = hoveredPosition,
+                clickedAttachmentTarget = gridRenderer.roomAttachmentTargetAt(
+                    grid = grid,
+                    worldX = pointerCoordinates.x,
+                    worldY = pointerCoordinates.y,
+                ),
                 worldX = pointerCoordinates.x,
                 worldY = pointerCoordinates.y,
                 startButtonBounds = panelLayout.startBounds,
@@ -202,6 +234,23 @@ class PrototypeScreen(
             ) {
                 selectedPosition = hoveredPosition
             }
+        }
+    }
+
+    private fun updateKeyboardShortcuts() {
+        when {
+            Gdx.input.isKeyJustPressed(Input.Keys.Q) ->
+                applyBuildShortcut(
+                    buildState,
+                    BuildShortcut.ROTATE_COUNTER_CLOCKWISE,
+                    runController.phase,
+                )
+            Gdx.input.isKeyJustPressed(Input.Keys.E) ->
+                applyBuildShortcut(
+                    buildState,
+                    BuildShortcut.ROTATE_CLOCKWISE,
+                    runController.phase,
+                )
         }
     }
 
@@ -253,7 +302,19 @@ class PrototypeScreen(
                 return false
             }
 
-            return placementPreview(grid, buildState, clickedPosition)
+            val target = buildState.selectedRoomAttachmentTarget
+            val preview = if (target != null) {
+                grid.targetedPlacementPreview(
+                    blueprint = buildState.selectedRoomBlueprint,
+                    target = target,
+                    orientation = buildState.selectedRoomOrientation,
+                )?.takeIf { candidate ->
+                    clickedPosition in candidate.room.gridPositions
+                }
+            } else {
+                placementPreview(grid, buildState, clickedPosition)
+            }
+            return preview
                 ?.let { preview -> grid.place(preview.room) }
                 ?: false
         }
@@ -335,6 +396,23 @@ class PrototypeScreen(
             return true
         }
 
+        internal fun applyBuildShortcut(
+            buildState: BuildState,
+            shortcut: BuildShortcut,
+            runPhase: PrototypeRunPhase,
+        ): Boolean = when (shortcut) {
+            BuildShortcut.ROTATE_COUNTER_CLOCKWISE -> rotateSelectedRoom(
+                buildState,
+                RoomRotationDirection.COUNTER_CLOCKWISE,
+                runPhase,
+            )
+            BuildShortcut.ROTATE_CLOCKWISE -> rotateSelectedRoom(
+                buildState,
+                RoomRotationDirection.CLOCKWISE,
+                runPhase,
+            )
+        }
+
         internal fun loadUpcomingWave(
             readInternalText: (String) -> String,
         ): UpcomingHeroWave =
@@ -378,6 +456,7 @@ class PrototypeScreen(
             grid: DungeonGrid,
             buildState: BuildState,
             clickedPosition: GridPosition?,
+            clickedAttachmentTarget: RoomAttachmentTarget? = null,
             worldX: Float,
             worldY: Float,
             startButtonBounds: ControlBounds,
@@ -451,7 +530,6 @@ class PrototypeScreen(
                     PrototypeClickResult.IGNORED
                 }
             }
-
             if (buildState.isHeartPlacementModeActive) {
                 return when (
                     commitHeartPlacement(
@@ -483,6 +561,11 @@ class PrototypeScreen(
                 TrapPlacementCommitResult.NON_SOCKET -> Unit
             }
 
+            if (clickedAttachmentTarget != null) {
+                buildState.selectRoomAttachmentTarget(clickedAttachmentTarget)
+                return PrototypeClickResult.ROOM_ATTACHMENT_SELECTED
+            }
+
             val wasPlaced = commitPlacement(
                 grid = grid,
                 buildState = buildState,
@@ -503,6 +586,7 @@ internal enum class PrototypeClickResult {
     WAVE_START_REJECTED,
     RUN_RESTARTED,
     ROOM_CHOICE_SELECTED,
+    ROOM_ATTACHMENT_SELECTED,
     ROOM_PLACED,
     ROOM_CANCELED,
     CANCEL_REJECTED,
@@ -515,6 +599,11 @@ internal enum class PrototypeClickResult {
     HEART_PLACEMENT_REJECTED,
     TRAP_PLACED,
     IGNORED,
+}
+
+internal enum class BuildShortcut {
+    ROTATE_COUNTER_CLOCKWISE,
+    ROTATE_CLOCKWISE,
 }
 
 internal enum class HeartPlacementCommitResult {
