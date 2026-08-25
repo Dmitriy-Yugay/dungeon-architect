@@ -36,6 +36,14 @@ internal data class HeartPlacementControl(
 internal object HeartPlacementLayout {
     fun control(
         view: HeartPlacementControlView,
+        layout: BottomPanelLayout,
+    ): HeartPlacementControl = HeartPlacementControl(
+        view = view,
+        bounds = layout.heartPlacementBounds,
+    )
+
+    fun control(
+        view: HeartPlacementControlView,
         worldWidth: Float,
         panelBottom: Float,
     ): HeartPlacementControl = HeartPlacementControl(
@@ -46,19 +54,8 @@ internal object HeartPlacementLayout {
     fun bounds(
         worldWidth: Float,
         panelBottom: Float,
-    ): ControlBounds {
-        val cancel = WavePanelLayout.cancelButtonBounds(worldWidth, panelBottom)
-        return ControlBounds(
-            x = cancel.x - CONTROL_GAP - CONTROL_WIDTH,
-            y = panelBottom + WavePanelLayout.VERTICAL_PADDING,
-            width = CONTROL_WIDTH,
-            height = CONTROL_HEIGHT,
-        )
-    }
-
-    private const val CONTROL_WIDTH = 112f
-    private const val CONTROL_HEIGHT = 48f
-    private const val CONTROL_GAP = 16f
+    ): ControlBounds = WavePanelLayout.defaultLayout(worldWidth, panelBottom)
+        .heartPlacementBounds
 }
 
 internal class HeartPlacementControlRenderer : Disposable {
@@ -70,13 +67,11 @@ internal class HeartPlacementControlRenderer : Disposable {
     fun render(
         view: HeartPlacementControlView,
         projection: Matrix4,
-        worldWidth: Float,
-        panelBottom: Float,
+        layout: BottomPanelLayout,
     ) {
         val bounds = HeartPlacementLayout.control(
             view,
-            worldWidth,
-            panelBottom,
+            layout,
         ).bounds
         shapes.projectionMatrix = projection
         shapes.begin(ShapeRenderer.ShapeType.Filled)

@@ -108,9 +108,9 @@ class WavePanelRendererTest {
             panelBottom = 576f,
         )
 
-        assertEquals(624f, cancel.x)
+        assertEquals(676f, cancel.x)
         assertEquals(592f, cancel.y)
-        assertEquals(112f, cancel.width)
+        assertEquals(96f, cancel.width)
         assertEquals(48f, cancel.height)
         assertTrue(cancel.x + cancel.width < start.x)
     }

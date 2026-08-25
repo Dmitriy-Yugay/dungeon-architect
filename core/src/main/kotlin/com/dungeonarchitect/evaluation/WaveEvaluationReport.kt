@@ -1,6 +1,12 @@
 package com.dungeonarchitect.evaluation
 
+import com.dungeonarchitect.simulation.HeroArrived
+import com.dungeonarchitect.simulation.HeroDamaged
+import com.dungeonarchitect.simulation.HeroDied
+import com.dungeonarchitect.simulation.SimulationEvent
+import com.dungeonarchitect.simulation.TrapActivated
 import com.dungeonarchitect.simulation.WaveOutcome
+import com.dungeonarchitect.simulation.WaveResolved
 
 data class WaveEvaluationReport(
     val outcome: WaveOutcome,
@@ -38,6 +44,31 @@ data class WaveEvaluationReport(
                 (outcome == WaveOutcome.DEFEAT && heartHealth == 0),
         ) {
             "Wave report outcome must agree with the remaining heart health."
+        }
+    }
+
+    companion object {
+        fun fromEvents(
+            events: Iterable<SimulationEvent>,
+            elapsedSimulationSeconds: Double,
+        ): WaveEvaluationReport {
+            val eventSnapshot = events.toList()
+            val resolutions = eventSnapshot.filterIsInstance<WaveResolved>()
+            require(resolutions.size == 1) {
+                "A wave report requires exactly one resolution event."
+            }
+            val resolution = resolutions.single()
+            return WaveEvaluationReport(
+                outcome = resolution.outcome,
+                heartHealth = resolution.heartHealth,
+                heroKills = eventSnapshot.count { it is HeroDied },
+                heroArrivals = eventSnapshot.count { it is HeroArrived },
+                elapsedSimulationSeconds = elapsedSimulationSeconds,
+                trapActivations = eventSnapshot.count { it is TrapActivated },
+                trapDamage = eventSnapshot
+                    .filterIsInstance<HeroDamaged>()
+                    .sumOf(HeroDamaged::damage),
+            )
         }
     }
 }

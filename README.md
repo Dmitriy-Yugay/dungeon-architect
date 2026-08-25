@@ -6,20 +6,30 @@ heroes.
 
 ## Status
 
-The first end-to-end prototype is complete. The desktop application supports
-connected room placement, route validation, an authored hero wave, deterministic
-trap combat, objective damage, victory, defeat, and restart. Visuals remain
-placeholder shapes.
+The flexible-construction prototype is complete. The desktop application
+supports room choice, persistent attachment previews, snapped and rotated room
+placement, build-phase undo, a player-placed dungeon heart, route-aware trap
+placement, an authored hero wave, deterministic combat and evaluation, victory,
+defeat, and layout-preserving restart. Hero health, combat events, and the final
+wave result are visible in the playable screen. Visuals remain placeholder
+shapes.
 
 ## Prototype controls
 
-- Move the pointer over the grid to preview the prototype room.
-- Click a green preview to place the room; red previews are invalid.
-- Connect rooms from the entrance to the objective to enable the wave.
-- Click **START WAVE** to run the authored wave.
-- Click **RESTART** after victory or defeat.
-
-The current trap is installed automatically in the starter room.
+- Choose one of the three room cards in the bottom panel. Each card previews its
+  footprint, doors, sockets, and heart anchor.
+- Click the entrance or a highlighted open door to choose an attachment target.
+  An exact room ghost remains visible at the active target.
+- Rotate the ghost with **Q**/**E** or the **< Q**/**E >** controls. Green
+  previews can be placed; red previews show why that orientation is invalid.
+- Click the room ghost to place it.
+- Click **CANCEL** to undo the most recently placed room during the build phase.
+- Click two well-spaced, on-route sockets to place spike traps. The authored
+  wave is balanced so one trap is insufficient and deliberate coverage wins.
+- Click **PLACE HEART**, then a placed room, to select or relocate the dungeon
+  heart.
+- Connect the entrance to the heart to enable **START WAVE**.
+- Click **RESTART** after victory or defeat; the built layout is preserved.
 
 ## Requirements
 

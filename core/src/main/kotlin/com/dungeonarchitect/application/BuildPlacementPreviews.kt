@@ -5,6 +5,7 @@ import com.dungeonarchitect.domain.DungeonGrid
 import com.dungeonarchitect.domain.GridPosition
 import com.dungeonarchitect.domain.HeartPlacementPreview
 import com.dungeonarchitect.domain.PrototypeRunPhase
+import com.dungeonarchitect.domain.RoomAttachmentTarget
 import com.dungeonarchitect.domain.RoomPlacementPreview
 import com.dungeonarchitect.presentation.TrapPlacementPreview
 import com.dungeonarchitect.presentation.trapPlacementPreviewFor
@@ -26,38 +27,47 @@ internal fun buildPlacementPreviews(
     buildState: BuildState,
     hoveredPosition: GridPosition?,
     runPhase: PrototypeRunPhase = PrototypeRunPhase.BUILDING,
+    attachmentTarget: RoomAttachmentTarget? = null,
 ): BuildPlacementPreviews {
-    if (hoveredPosition == null) {
+    if (runPhase != PrototypeRunPhase.BUILDING) {
         return BuildPlacementPreviews(room = null, trap = null, heart = null)
     }
     if (buildState.isHeartPlacementModeActive) {
         return BuildPlacementPreviews(
             room = null,
             trap = null,
-            heart = if (runPhase == PrototypeRunPhase.BUILDING) {
-                grid.heartPlacementPreview(hoveredPosition)
-            } else {
-                null
-            },
+            heart = hoveredPosition?.let(grid::heartPlacementPreview),
         )
     }
 
-    val trapPreview = trapPlacementPreviewFor(
-        hoverResult = grid.trapSocketHoverResult(
-            hoveredPosition = hoveredPosition,
-            definition = buildState.selectedTrapDefinition,
-        ),
-        hoveredPosition = hoveredPosition,
-    )
+    val trapPreview = hoveredPosition?.let { position ->
+        trapPlacementPreviewFor(
+            hoverResult = grid.trapSocketHoverResult(
+                hoveredPosition = position,
+                definition = buildState.selectedTrapDefinition,
+            ),
+            hoveredPosition = position,
+        )
+    }
     return if (trapPreview != null) {
         BuildPlacementPreviews(room = null, trap = trapPreview, heart = null)
     } else {
         BuildPlacementPreviews(
-            room = grid.snappedPlacementPreview(
-                blueprint = buildState.selectedRoomBlueprint,
-                hoveredPosition = hoveredPosition,
-                orientation = buildState.selectedRoomOrientation,
-            ),
+            room = if (attachmentTarget != null) {
+                grid.targetedPlacementPreview(
+                    blueprint = buildState.selectedRoomBlueprint,
+                    target = attachmentTarget,
+                    orientation = buildState.selectedRoomOrientation,
+                )
+            } else {
+                hoveredPosition?.let { position ->
+                    grid.snappedPlacementPreview(
+                        blueprint = buildState.selectedRoomBlueprint,
+                        hoveredPosition = position,
+                        orientation = buildState.selectedRoomOrientation,
+                    )
+                }
+            },
             trap = null,
             heart = null,
         )

@@ -16,6 +16,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
+import kotlin.test.assertNotNull
 
 class BuildPlacementPreviewsTest {
     @Test
@@ -124,6 +125,49 @@ class BuildPlacementPreviewsTest {
         assertNull(previews.room)
         assertNull(previews.trap)
         assertNull(previews.heart)
+    }
+
+    @Test
+    fun `selected attachment keeps room ghost visible without a hovered cell`() {
+        val grid = DungeonGrid(
+            width = 8,
+            height = 5,
+            entrance = position(0, 2),
+            entranceFacing = CardinalDirection.EAST,
+        )
+        val blueprint = RoomBlueprint(
+            id = "corridor",
+            displayName = "Corridor",
+            footprint = setOf(position(0, 0), position(1, 0)),
+            heartAnchor = position(1, 0),
+            doors = listOf(
+                RoomDoor(position(0, 0), CardinalDirection.WEST),
+                RoomDoor(position(1, 0), CardinalDirection.EAST),
+            ),
+        )
+        val buildState = BuildState(
+            availableRoomBlueprints = listOf(blueprint),
+            selectedRoomBlueprint = blueprint,
+            selectedTrapDefinition = TrapDefinition(
+                id = "trap",
+                displayName = "Trap",
+                damage = 1,
+                cooldownSeconds = 1f,
+                compatibleSocketTypes = setOf(RoomSocketType.FLOOR),
+            ),
+        )
+        val target = grid.roomAttachmentTargets.single()
+
+        val previews = buildPlacementPreviews(
+            grid = grid,
+            buildState = buildState,
+            hoveredPosition = null,
+            attachmentTarget = target,
+        )
+
+        val roomPreview = assertNotNull(previews.room)
+        assertTrue(roomPreview.isValid)
+        assertEquals(target, roomPreview.attachmentTarget)
     }
 
     private fun fixture(): Fixture {

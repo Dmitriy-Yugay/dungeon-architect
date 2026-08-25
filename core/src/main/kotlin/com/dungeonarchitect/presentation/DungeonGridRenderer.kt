@@ -10,6 +10,7 @@ import com.dungeonarchitect.domain.GridPosition
 import com.dungeonarchitect.domain.HeartPlacementPreview
 import com.dungeonarchitect.domain.PrototypeHeroState
 import com.dungeonarchitect.domain.RoomPlacementPreview
+import com.dungeonarchitect.domain.RoomAttachmentTarget
 import com.dungeonarchitect.domain.RoomSocketType
 import com.dungeonarchitect.domain.TileType
 import kotlin.math.floor
@@ -32,6 +33,18 @@ class DungeonGridRenderer : Disposable {
         return GridPosition(column, row).takeIf(grid::contains)
     }
 
+    fun roomAttachmentTargetAt(
+        grid: DungeonGrid,
+        worldX: Float,
+        worldY: Float,
+    ): RoomAttachmentTarget? = roomAttachmentTargetAt(
+        grid = grid,
+        worldX = worldX,
+        worldY = worldY,
+        tileSize = TILE_SIZE,
+        clickRadius = ATTACHMENT_CLICK_RADIUS,
+    )
+
     fun render(
         grid: DungeonGrid,
         projection: Matrix4,
@@ -41,17 +54,29 @@ class DungeonGridRenderer : Disposable {
         heroState: PrototypeHeroState?,
         hoveredPosition: GridPosition?,
         selectedPosition: GridPosition?,
+        roomAttachmentTargets: List<RoomAttachmentTargetMarker> = emptyList(),
+        combatFeedback: CombatFeedbackView = CombatFeedbackView.NONE,
     ) {
         shapes.projectionMatrix = projection
         renderTiles(grid)
-        placementPreview?.let(::renderPlacementPreview)
+        placementPreview?.let(::renderPlacementPreviewFootprint)
         renderDoorMarkers(roomDoorGridMarkers(grid))
+        renderRoomAttachmentTargets(roomAttachmentTargets)
+        placementPreview?.let(::renderPlacementPreviewDetails)
         renderSocketMarkers(roomSocketGridMarkers(grid.placedRooms))
         renderTrapMarkers(placedTrapGridMarkers(grid))
+        renderTrapActivationPulses(combatFeedback.trapPulses)
         trapPlacementPreview?.let(::renderTrapPlacementPreview)
         placedDungeonHeartGridMarker(grid)?.let(::renderHeartMarker)
         heartPlacementPreview?.let(::renderHeartPlacementPreview)
-        heroWorldMarker(heroState, TILE_SIZE)?.let(::renderHero)
+        val heroMarker = heroWorldMarker(heroState, TILE_SIZE)
+        heroMarker?.let(::renderHero)
+        combatFeedback.heroDamageFlash?.let { flash ->
+            heroMarker?.let { marker -> renderHeroDamageFlash(marker, flash) }
+        }
+        heroHealthBar(heroState, TILE_SIZE)?.let { bar ->
+            renderHeroHealthBar(bar, combatFeedback.heroDamageFlash)
+        }
         renderHighlights(hoveredPosition, selectedPosition)
     }
 
@@ -77,7 +102,7 @@ class DungeonGridRenderer : Disposable {
         shapes.end()
     }
 
-    private fun renderPlacementPreview(preview: RoomPlacementPreview) {
+    private fun renderPlacementPreviewFootprint(preview: RoomPlacementPreview) {
         shapes.begin(ShapeRenderer.ShapeType.Filled)
         shapes.color = if (preview.isValid) VALID_PREVIEW_COLOR else INVALID_PREVIEW_COLOR
 
@@ -93,10 +118,151 @@ class DungeonGridRenderer : Disposable {
         shapes.end()
     }
 
+    private fun renderPlacementPreviewDetails(preview: RoomPlacementPreview) {
+        val ghost = roomPlacementGhost(preview)
+        shapes.begin(ShapeRenderer.ShapeType.Filled)
+        ghost.doors.forEach { marker ->
+            shapes.color = when {
+                marker.isConnecting && ghost.isValid -> GHOST_CONNECTING_DOOR_COLOR
+                marker.isConnecting -> INVALID_PREVIEW_COLOR
+                else -> GHOST_DOOR_COLOR
+            }
+            val (offsetX, offsetY) = doorMarkerOffset(marker.facing)
+            val isHorizontalEdge = marker.facing == CardinalDirection.NORTH ||
+                marker.facing == CardinalDirection.SOUTH
+            shapes.rect(
+                marker.position.column * TILE_SIZE + offsetX,
+                marker.position.row * TILE_SIZE + offsetY,
+                if (isHorizontalEdge) DOOR_MARKER_LENGTH else DOOR_MARKER_THICKNESS,
+                if (isHorizontalEdge) DOOR_MARKER_THICKNESS else DOOR_MARKER_LENGTH,
+            )
+        }
+        ghost.sockets.forEach { (position, type) ->
+            shapes.color = when (type) {
+                RoomSocketType.FLOOR -> GHOST_FLOOR_SOCKET_COLOR
+                RoomSocketType.WALL -> GHOST_WALL_SOCKET_COLOR
+            }
+            shapes.circle(
+                (position.column + HALF_TILE) * TILE_SIZE,
+                (position.row + HALF_TILE) * TILE_SIZE,
+                GHOST_SOCKET_RADIUS,
+            )
+        }
+        val heartX = (ghost.heartAnchor.column + HALF_TILE) * TILE_SIZE
+        val heartY = (ghost.heartAnchor.row + HALF_TILE) * TILE_SIZE
+        shapes.color = GHOST_HEART_ANCHOR_COLOR
+        shapes.triangle(
+            heartX,
+            heartY + GHOST_HEART_RADIUS,
+            heartX + GHOST_HEART_RADIUS,
+            heartY,
+            heartX,
+            heartY - GHOST_HEART_RADIUS,
+        )
+        shapes.triangle(
+            heartX,
+            heartY + GHOST_HEART_RADIUS,
+            heartX,
+            heartY - GHOST_HEART_RADIUS,
+            heartX - GHOST_HEART_RADIUS,
+            heartY,
+        )
+        shapes.end()
+    }
+
+    private fun renderRoomAttachmentTargets(
+        markers: List<RoomAttachmentTargetMarker>,
+    ) {
+        shapes.begin(ShapeRenderer.ShapeType.Line)
+        markers.forEach { marker ->
+            shapes.color = if (marker.isActive) {
+                ACTIVE_ATTACHMENT_COLOR
+            } else {
+                AVAILABLE_ATTACHMENT_COLOR
+            }
+            val (centerX, centerY) = roomAttachmentMarkerCenter(marker, TILE_SIZE)
+            shapes.circle(
+                centerX,
+                centerY,
+                if (marker.isActive) ACTIVE_ATTACHMENT_RADIUS else ATTACHMENT_RADIUS,
+            )
+            val outsideCenter = marker.facing.move(marker.position)
+            shapes.line(
+                centerX,
+                centerY,
+                (outsideCenter.column + HALF_TILE) * TILE_SIZE,
+                (outsideCenter.row + HALF_TILE) * TILE_SIZE,
+            )
+        }
+        shapes.end()
+    }
+
     private fun renderHero(marker: HeroWorldMarker) {
         shapes.begin(ShapeRenderer.ShapeType.Filled)
         shapes.color = HERO_COLOR
         shapes.circle(marker.centerX, marker.centerY, marker.radius)
+        shapes.end()
+    }
+
+    private fun renderHeroDamageFlash(
+        marker: HeroWorldMarker,
+        flash: HeroDamageFlash,
+    ) {
+        shapes.begin(ShapeRenderer.ShapeType.Line)
+        shapes.color = HERO_DAMAGE_FLASH_COLOR
+        shapes.circle(
+            marker.centerX,
+            marker.centerY,
+            marker.radius + HERO_DAMAGE_FLASH_EXPANSION * (1f - flash.intensity),
+        )
+        shapes.end()
+    }
+
+    private fun renderHeroHealthBar(
+        bar: HeroHealthBar,
+        damageFlash: HeroDamageFlash?,
+    ) {
+        shapes.begin(ShapeRenderer.ShapeType.Filled)
+        shapes.color = if (damageFlash == null) {
+            HERO_HEALTH_BORDER_COLOR
+        } else {
+            HERO_DAMAGE_FLASH_COLOR
+        }
+        shapes.rect(bar.left, bar.bottom, bar.width, bar.height)
+
+        val innerLeft = bar.left + HERO_HEALTH_BAR_BORDER
+        val innerBottom = bar.bottom + HERO_HEALTH_BAR_BORDER
+        val innerWidth = bar.width - HERO_HEALTH_BAR_BORDER * 2f
+        val innerHeight = bar.height - HERO_HEALTH_BAR_BORDER * 2f
+        shapes.color = HERO_HEALTH_BACKGROUND_COLOR
+        shapes.rect(innerLeft, innerBottom, innerWidth, innerHeight)
+        shapes.color = HERO_HEALTH_FILL_COLOR
+        shapes.rect(
+            innerLeft,
+            innerBottom,
+            innerWidth * bar.fillFraction,
+            innerHeight,
+        )
+        shapes.end()
+    }
+
+    private fun renderTrapActivationPulses(
+        pulses: List<TrapActivationPulse>,
+    ) {
+        if (pulses.isEmpty()) {
+            return
+        }
+
+        shapes.begin(ShapeRenderer.ShapeType.Line)
+        shapes.color = TRAP_ACTIVATION_PULSE_COLOR
+        pulses.forEach { pulse ->
+            shapes.circle(
+                (pulse.position.column + HALF_TILE) * TILE_SIZE,
+                (pulse.position.row + HALF_TILE) * TILE_SIZE,
+                TRAP_MARKER_RADIUS +
+                    TRAP_PULSE_EXPANSION * pulse.progress,
+            )
+        }
         shapes.end()
     }
 
@@ -290,12 +456,27 @@ class DungeonGridRenderer : Disposable {
         const val HEART_LOBE_RADIUS = 10f
         const val HEART_MARKER_RADIUS = 16f
         const val HEART_PREVIEW_INSET = 12f
+        const val HERO_HEALTH_BAR_BORDER = 2f
+        const val HERO_DAMAGE_FLASH_EXPANSION = 10f
+        const val TRAP_PULSE_EXPANSION = 16f
+        const val ATTACHMENT_RADIUS = 20f
+        const val ACTIVE_ATTACHMENT_RADIUS = 25f
+        const val ATTACHMENT_CLICK_RADIUS = 26f
+        const val GHOST_SOCKET_RADIUS = 6f
+        const val GHOST_HEART_RADIUS = 9f
 
         val EMPTY_TILE_COLOR = Color.valueOf("252B33")
         val ROOM_COLOR = Color.valueOf("5D6D7E")
         val ENTRANCE_COLOR = Color.valueOf("3A9D5D")
         val VALID_PREVIEW_COLOR = Color.valueOf("4EA86B")
         val INVALID_PREVIEW_COLOR = Color.valueOf("D85C5C")
+        val AVAILABLE_ATTACHMENT_COLOR = Color.valueOf("F0C15B")
+        val ACTIVE_ATTACHMENT_COLOR = Color.valueOf("FFF1A8")
+        val GHOST_CONNECTING_DOOR_COLOR = Color.valueOf("FFF1A8")
+        val GHOST_DOOR_COLOR = Color.valueOf("DCA75A")
+        val GHOST_FLOOR_SOCKET_COLOR = Color.valueOf("82E4D5")
+        val GHOST_WALL_SOCKET_COLOR = Color.valueOf("D4A0E5")
+        val GHOST_HEART_ANCHOR_COLOR = Color.valueOf("FF9BCB")
         val OPEN_DOOR_MARKER_COLOR = Color.valueOf("F0A44B")
         val CONNECTED_DOOR_MARKER_COLOR = Color.valueOf("8A6A45")
         val FLOOR_SOCKET_MARKER_COLOR = Color.valueOf("47C6B5")
@@ -303,6 +484,11 @@ class DungeonGridRenderer : Disposable {
         val TRAP_MARKER_COLOR = Color.valueOf("E84A5F")
         val HEART_MARKER_COLOR = Color.valueOf("EF6FAE")
         val HERO_COLOR = Color.valueOf("4BA3D3")
+        val HERO_HEALTH_BORDER_COLOR = Color.valueOf("F2F2F2")
+        val HERO_HEALTH_BACKGROUND_COLOR = Color.valueOf("301C25")
+        val HERO_HEALTH_FILL_COLOR = Color.valueOf("63D471")
+        val HERO_DAMAGE_FLASH_COLOR = Color.valueOf("FFEC70")
+        val TRAP_ACTIVATION_PULSE_COLOR = Color.valueOf("FFEC70")
         val HOVER_COLOR = Color.valueOf("E0B84B")
         val SELECTION_COLOR = Color.valueOf("F2F2F2")
     }

@@ -143,6 +143,37 @@ class RoomRotationApplicationTest {
         }
     }
 
+    @Test
+    fun `Q and E shortcuts rotate in building and are ignored during a wave`() {
+        val buildState = buildState(horizontalBlueprint())
+
+        assertTrue(
+            PrototypeScreen.applyBuildShortcut(
+                buildState,
+                BuildShortcut.ROTATE_CLOCKWISE,
+                PrototypeRunPhase.BUILDING,
+            ),
+        )
+        assertEquals(RoomOrientation.CLOCKWISE_90, buildState.selectedRoomOrientation)
+        assertTrue(
+            PrototypeScreen.applyBuildShortcut(
+                buildState,
+                BuildShortcut.ROTATE_COUNTER_CLOCKWISE,
+                PrototypeRunPhase.BUILDING,
+            ),
+        )
+        assertEquals(RoomOrientation.UNROTATED, buildState.selectedRoomOrientation)
+        assertEquals(
+            false,
+            PrototypeScreen.applyBuildShortcut(
+                buildState,
+                BuildShortcut.ROTATE_CLOCKWISE,
+                PrototypeRunPhase.RUNNING,
+            ),
+        )
+        assertEquals(RoomOrientation.UNROTATED, buildState.selectedRoomOrientation)
+    }
+
     private fun clickRotation(
         grid: DungeonGrid,
         buildState: BuildState,

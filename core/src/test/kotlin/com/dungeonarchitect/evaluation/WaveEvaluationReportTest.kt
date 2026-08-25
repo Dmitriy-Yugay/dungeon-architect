@@ -1,6 +1,13 @@
 package com.dungeonarchitect.evaluation
 
 import com.dungeonarchitect.simulation.WaveOutcome
+import com.dungeonarchitect.domain.GridPosition
+import com.dungeonarchitect.domain.HeroGridPosition
+import com.dungeonarchitect.simulation.HeroArrived
+import com.dungeonarchitect.simulation.HeroDamaged
+import com.dungeonarchitect.simulation.HeroDied
+import com.dungeonarchitect.simulation.TrapActivated
+import com.dungeonarchitect.simulation.WaveResolved
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -66,6 +73,49 @@ class WaveEvaluationReportTest {
             report(
                 outcome = WaveOutcome.DEFEAT,
                 heartHealth = 1,
+            )
+        }
+    }
+
+    @Test
+    fun `factory derives every metric from resolved event history`() {
+        assertEquals(
+            WaveEvaluationReport(
+                outcome = WaveOutcome.VICTORY,
+                heartHealth = 6,
+                heroKills = 1,
+                heroArrivals = 1,
+                elapsedSimulationSeconds = 1.5,
+                trapActivations = 2,
+                trapDamage = 7,
+            ),
+            WaveEvaluationReport.fromEvents(
+                events = listOf(
+                    TrapActivated(1, "spikes", GridPosition(1, 0)),
+                    HeroDamaged(1, "spikes", damage = 4, remainingHealth = 6),
+                    TrapActivated(1, "spikes", GridPosition(1, 0)),
+                    HeroDamaged(1, "spikes", damage = 3, remainingHealth = 3),
+                    HeroDied(1, HeroGridPosition(2f, 0f)),
+                    HeroArrived(2, HeroGridPosition(3f, 0f)),
+                    WaveResolved(WaveOutcome.VICTORY, heartHealth = 6),
+                ),
+                elapsedSimulationSeconds = 1.5,
+            ),
+        )
+    }
+
+    @Test
+    fun `factory requires exactly one resolution event`() {
+        assertFailsWith<IllegalArgumentException> {
+            WaveEvaluationReport.fromEvents(emptyList(), 0.0)
+        }
+        assertFailsWith<IllegalArgumentException> {
+            WaveEvaluationReport.fromEvents(
+                listOf(
+                    WaveResolved(WaveOutcome.VICTORY, 10),
+                    WaveResolved(WaveOutcome.VICTORY, 10),
+                ),
+                0.0,
             )
         }
     }

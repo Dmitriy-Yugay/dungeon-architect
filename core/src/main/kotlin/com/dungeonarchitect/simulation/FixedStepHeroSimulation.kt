@@ -30,6 +30,7 @@ class FixedStepHeroSimulation internal constructor(
     private val finalPosition = startedWave.route.last().toHeroPosition()
     private val routeLength = routeSegments.sumOf(RouteSegment::length)
     private val speed = startedWave.wave.movementSpeedTilesPerSecond.toDouble()
+    private val maxHealth = startedWave.wave.heroHealth
     private var simulatedDistance = 0.0
     private var accumulatedSeconds = 0.0
     private var health = startedWave.wave.heroHealth
@@ -158,6 +159,7 @@ class FixedStepHeroSimulation internal constructor(
             },
             hasArrived = hasArrived,
             health = health,
+            maxHealth = maxHealth,
         )
     }
 

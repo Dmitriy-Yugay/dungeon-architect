@@ -14,6 +14,7 @@ data class WavePanelView(
     val summary: String,
     val traitDescription: String,
     val heartStatus: String,
+    val buildGuidance: String,
     val controlLabel: String,
     val isControlEnabled: Boolean,
     val cancelLabel: String,
@@ -27,6 +28,7 @@ data class WavePanelView(
             heartMaxHealth: Int,
             isStartEnabled: Boolean,
             isCancelEnabled: Boolean,
+            buildGuidance: String = "",
         ) = WavePanelView(
             summary = when (phase) {
                 PrototypeRunPhase.BUILDING ->
@@ -39,6 +41,7 @@ data class WavePanelView(
             traitDescription = wave.traitDescription,
             heartStatus =
                 "Heart health: $heartHealth / $heartMaxHealth",
+            buildGuidance = buildGuidance,
             controlLabel = when (phase) {
                 PrototypeRunPhase.BUILDING ->
                     if (isStartEnabled) {
@@ -76,40 +79,170 @@ data class ControlBounds(
             worldX < x + width &&
             worldY >= y &&
             worldY < y + height
+
+    val right: Float
+        get() = x + width
+
+    val top: Float
+        get() = y + height
+
+    fun overlaps(other: ControlBounds): Boolean =
+        x < other.right && right > other.x &&
+            y < other.top && top > other.y
 }
+
+data class BottomPanelLayout(
+    val panelBounds: ControlBounds,
+    val statusRegion: ControlBounds,
+    val waveStatusSafeArea: ControlBounds,
+    val heartStatusSafeArea: ControlBounds,
+    val controlsRegion: ControlBounds,
+    val roomChoiceBounds: List<ControlBounds>,
+    val roomRotationBounds: List<ControlBounds>,
+    val heartPlacementBounds: ControlBounds,
+    val cancelBounds: ControlBounds,
+    val startBounds: ControlBounds,
+)
 
 object WavePanelLayout {
     const val HEIGHT = 128f
 
+    internal fun create(
+        worldWidth: Float,
+        panelBottom: Float,
+        roomChoiceCount: Int,
+        roomRotationControlCount: Int,
+    ): BottomPanelLayout {
+        require(worldWidth > HORIZONTAL_PADDING * 2f) {
+            "Panel width must leave room for horizontal padding."
+        }
+        require(roomChoiceCount >= 0) { "Room choice count cannot be negative." }
+        require(roomRotationControlCount >= 0) {
+            "Room rotation control count cannot be negative."
+        }
+
+        val controlsRegion = ControlBounds(
+            x = HORIZONTAL_PADDING,
+            y = panelBottom + ROW_PADDING,
+            width = worldWidth - HORIZONTAL_PADDING * 2f,
+            height = CONTROL_HEIGHT,
+        )
+        val statusRegion = ControlBounds(
+            x = HORIZONTAL_PADDING,
+            y = controlsRegion.y + controlsRegion.height + ROW_GAP,
+            width = controlsRegion.width,
+            height = STATUS_HEIGHT,
+        )
+        val heartStatusSafeArea = ControlBounds(
+            x = statusRegion.x + statusRegion.width - HEART_STATUS_WIDTH,
+            y = statusRegion.y,
+            width = HEART_STATUS_WIDTH,
+            height = statusRegion.height,
+        )
+        val waveStatusSafeArea = ControlBounds(
+            x = statusRegion.x,
+            y = statusRegion.y,
+            width = heartStatusSafeArea.x - STATUS_GAP - statusRegion.x,
+            height = statusRegion.height,
+        )
+
+        val roomChoiceBounds = List(roomChoiceCount) { index ->
+            ControlBounds(
+                x = controlsRegion.x + index * (ROOM_CHOICE_WIDTH + CONTROL_GAP),
+                y = controlsRegion.y,
+                width = ROOM_CHOICE_WIDTH,
+                height = controlsRegion.height,
+            )
+        }
+        val rotationGroupLeft = roomChoiceBounds.lastOrNull()
+            ?.let { it.right + SECTION_GAP }
+            ?: controlsRegion.x
+        val roomRotationBounds = List(roomRotationControlCount) { index ->
+            ControlBounds(
+                x = rotationGroupLeft + index * (ROTATION_CONTROL_SIZE + CONTROL_GAP),
+                y = controlsRegion.y,
+                width = ROTATION_CONTROL_SIZE,
+                height = controlsRegion.height,
+            )
+        }
+        val heartControlLeft = roomRotationBounds.lastOrNull()
+            ?.let { it.right + SECTION_GAP }
+            ?: roomChoiceBounds.lastOrNull()
+                ?.let { it.right + SECTION_GAP }
+            ?: controlsRegion.x
+        val heartPlacementBounds = ControlBounds(
+            x = heartControlLeft,
+            y = controlsRegion.y,
+            width = HEART_CONTROL_WIDTH,
+            height = controlsRegion.height,
+        )
+
+        val startBounds = ControlBounds(
+            x = controlsRegion.x + controlsRegion.width - START_BUTTON_WIDTH,
+            y = controlsRegion.y,
+            width = START_BUTTON_WIDTH,
+            height = controlsRegion.height,
+        )
+        val cancelBounds = ControlBounds(
+            x = startBounds.x - SECTION_GAP - CANCEL_BUTTON_WIDTH,
+            y = controlsRegion.y,
+            width = CANCEL_BUTTON_WIDTH,
+            height = controlsRegion.height,
+        )
+        require(heartPlacementBounds.right + SECTION_GAP <= cancelBounds.x) {
+            "Build and run controls do not fit in a $worldWidth-unit panel."
+        }
+
+        return BottomPanelLayout(
+            panelBounds = ControlBounds(0f, panelBottom, worldWidth, HEIGHT),
+            statusRegion = statusRegion,
+            waveStatusSafeArea = waveStatusSafeArea,
+            heartStatusSafeArea = heartStatusSafeArea,
+            controlsRegion = controlsRegion,
+            roomChoiceBounds = roomChoiceBounds,
+            roomRotationBounds = roomRotationBounds,
+            heartPlacementBounds = heartPlacementBounds,
+            cancelBounds = cancelBounds,
+            startBounds = startBounds,
+        )
+    }
+
     fun startButtonBounds(
         worldWidth: Float,
         panelBottom: Float,
-    ) = ControlBounds(
-        x = worldWidth - HORIZONTAL_PADDING - START_BUTTON_WIDTH,
-        y = panelBottom + VERTICAL_PADDING,
-        width = START_BUTTON_WIDTH,
-        height = START_BUTTON_HEIGHT,
-    )
+    ) = defaultLayout(worldWidth, panelBottom).startBounds
 
     fun cancelButtonBounds(
         worldWidth: Float,
         panelBottom: Float,
-    ): ControlBounds {
-        val startButton = startButtonBounds(worldWidth, panelBottom)
-        return ControlBounds(
-            x = startButton.x - CONTROL_GAP - CANCEL_BUTTON_WIDTH,
-            y = panelBottom + VERTICAL_PADDING,
-            width = CANCEL_BUTTON_WIDTH,
-            height = START_BUTTON_HEIGHT,
-        )
-    }
+    ): ControlBounds = defaultLayout(worldWidth, panelBottom).cancelBounds
+
+    internal fun defaultLayout(
+        worldWidth: Float,
+        panelBottom: Float,
+    ) = create(
+        worldWidth = worldWidth,
+        panelBottom = panelBottom,
+        roomChoiceCount = DEFAULT_ROOM_CHOICE_COUNT,
+        roomRotationControlCount = DEFAULT_ROTATION_CONTROL_COUNT,
+    )
 
     internal const val HORIZONTAL_PADDING = 16f
-    internal const val VERTICAL_PADDING = 16f
-    internal const val START_BUTTON_WIDTH = 256f
-    internal const val START_BUTTON_HEIGHT = 48f
-    internal const val CONTROL_GAP = 16f
-    internal const val CANCEL_BUTTON_WIDTH = 112f
+    private const val ROW_PADDING = 16f
+    private const val ROW_GAP = 8f
+    private const val STATUS_HEIGHT = 48f
+    private const val HEART_STATUS_WIDTH = 224f
+    private const val STATUS_GAP = 16f
+    private const val CONTROL_HEIGHT = 48f
+    private const val ROOM_CHOICE_WIDTH = 96f
+    private const val ROTATION_CONTROL_SIZE = 48f
+    private const val HEART_CONTROL_WIDTH = 112f
+    private const val START_BUTTON_WIDTH = 224f
+    private const val CANCEL_BUTTON_WIDTH = 96f
+    private const val CONTROL_GAP = 8f
+    private const val SECTION_GAP = 12f
+    private const val DEFAULT_ROOM_CHOICE_COUNT = 3
+    private const val DEFAULT_ROTATION_CONTROL_COUNT = 2
 }
 
 class WavePanelRenderer : Disposable {
@@ -121,16 +254,20 @@ class WavePanelRenderer : Disposable {
     fun render(
         view: WavePanelView,
         projection: Matrix4,
-        worldWidth: Float,
-        panelBottom: Float,
+        layout: BottomPanelLayout,
     ) {
-        val startBounds = WavePanelLayout.startButtonBounds(worldWidth, panelBottom)
-        val cancelBounds = WavePanelLayout.cancelButtonBounds(worldWidth, panelBottom)
+        val startBounds = layout.startBounds
+        val cancelBounds = layout.cancelBounds
 
         shapes.projectionMatrix = projection
         shapes.begin(ShapeRenderer.ShapeType.Filled)
         shapes.color = PANEL_COLOR
-        shapes.rect(0f, panelBottom, worldWidth, WavePanelLayout.HEIGHT)
+        shapes.rect(
+            layout.panelBounds.x,
+            layout.panelBounds.y,
+            layout.panelBounds.width,
+            layout.panelBounds.height,
+        )
         shapes.color =
             if (view.isControlEnabled) ENABLED_BUTTON_COLOR else DISABLED_BUTTON_COLOR
         shapes.rect(startBounds.x, startBounds.y, startBounds.width, startBounds.height)
@@ -150,21 +287,27 @@ class WavePanelRenderer : Disposable {
         font.draw(
             batch,
             view.summary,
-            WavePanelLayout.HORIZONTAL_PADDING,
-            panelBottom + WavePanelLayout.HEIGHT - WavePanelLayout.VERTICAL_PADDING,
+            layout.waveStatusSafeArea.x,
+            layout.waveStatusSafeArea.y + SUMMARY_BASELINE_OFFSET,
         )
         font.color = SECONDARY_TEXT_COLOR
         font.draw(
             batch,
             view.traitDescription,
-            WavePanelLayout.HORIZONTAL_PADDING,
-            panelBottom + WavePanelLayout.HEIGHT - DESCRIPTION_OFFSET,
+            layout.waveStatusSafeArea.x,
+            layout.waveStatusSafeArea.y + DESCRIPTION_BASELINE_OFFSET,
         )
         font.draw(
             batch,
             view.heartStatus,
-            WavePanelLayout.HORIZONTAL_PADDING,
-            panelBottom + WavePanelLayout.HEIGHT - HEART_STATUS_OFFSET,
+            layout.heartStatusSafeArea.x,
+            layout.heartStatusSafeArea.y + HEART_STATUS_BASELINE_OFFSET,
+        )
+        font.draw(
+            batch,
+            view.buildGuidance,
+            layout.heartStatusSafeArea.x,
+            layout.heartStatusSafeArea.y + GUIDANCE_BASELINE_OFFSET,
         )
 
         font.color =
@@ -195,8 +338,10 @@ class WavePanelRenderer : Disposable {
     }
 
     private companion object {
-        const val DESCRIPTION_OFFSET = 48f
-        const val HEART_STATUS_OFFSET = 80f
+        const val SUMMARY_BASELINE_OFFSET = 40f
+        const val DESCRIPTION_BASELINE_OFFSET = 16f
+        const val HEART_STATUS_BASELINE_OFFSET = 40f
+        const val GUIDANCE_BASELINE_OFFSET = 16f
 
         val PANEL_COLOR = Color.valueOf("171B20")
         val ENABLED_BUTTON_COLOR = Color.valueOf("3A9D5D")

@@ -48,6 +48,31 @@ class DungeonGrid(
             return mutablePlacedRooms
                 .flatMapTo(mutableSetOf(), PlacedRoom::doors) - connectedDoors
         }
+    val roomAttachmentTargets: List<RoomAttachmentTarget>
+        get() = buildList {
+            if (entranceDoor == null) {
+                add(
+                    RoomAttachmentTarget(
+                        position = entrance,
+                        facing = entranceFacing,
+                        type = RoomAttachmentTargetType.ENTRANCE,
+                    ),
+                )
+            }
+            openRoomDoors
+                .sortedWith(
+                    compareBy<PlacedRoomDoor> { it.gridPosition.row }
+                        .thenBy { it.gridPosition.column }
+                        .thenBy { it.door.facing.ordinal },
+                )
+                .mapTo(this) { door ->
+                    RoomAttachmentTarget(
+                        position = door.gridPosition,
+                        facing = door.door.facing,
+                        type = RoomAttachmentTargetType.OPEN_DOOR,
+                    )
+                }
+        }
     val entranceToHeartRoute: List<GridPosition>?
         get() {
             val heart = placedHeart ?: return null
@@ -224,6 +249,60 @@ class DungeonGrid(
         return RoomPlacementPreview(room, canPlace(room))
     }
 
+    fun targetedPlacementPreview(
+        blueprint: RoomBlueprint,
+        target: RoomAttachmentTarget,
+        orientation: RoomOrientation = RoomOrientation.UNROTATED,
+    ): RoomPlacementPreview? {
+        if (target !in roomAttachmentTargets) {
+            return null
+        }
+
+        val geometry = blueprint.geometry(orientation)
+        val facingDoors = geometry.doors.filter { door ->
+            door.facing == target.facing.opposite
+        }
+        val candidateDoors = facingDoors.ifEmpty {
+            geometry.doors.sortedWith(
+                compareBy<RoomDoor> { it.position.row }
+                    .thenBy { it.position.column }
+                    .thenBy { it.facing.ordinal },
+            )
+        }
+        return candidateDoors
+            .map { door ->
+                val room = PlacedRoom(
+                    blueprint = blueprint,
+                    origin = originForDoor(
+                        targetDoorPosition = target.roomPosition,
+                        localDoorPosition = door.position,
+                    ),
+                    orientation = orientation,
+                )
+                val connectingDoor = room.doors.single { placedDoor ->
+                    placedDoor.door == door
+                }
+                val invalidReason = if (facingDoors.isEmpty()) {
+                    RoomPlacementInvalidReason.DOOR_FACES_AWAY
+                } else {
+                    placementInvalidReason(room)
+                }
+                RoomPlacementPreview(
+                    room = room,
+                    isValid = invalidReason == null,
+                    attachmentTarget = target,
+                    connectingDoor = connectingDoor,
+                    invalidReason = invalidReason,
+                )
+            }
+            .sortedWith(
+                compareByDescending<RoomPlacementPreview>(RoomPlacementPreview::isValid)
+                    .thenBy { it.room.origin.row }
+                    .thenBy { it.room.origin.column },
+            )
+            .firstOrNull()
+    }
+
     fun snappedPlacementPreview(
         blueprint: RoomBlueprint,
         hoveredPosition: GridPosition,
@@ -268,6 +347,20 @@ class DungeonGrid(
             }
         }
         return connections.size == 1 && connections.single().second in openRoomDoors
+    }
+
+    private fun placementInvalidReason(
+        room: PlacedRoom,
+    ): RoomPlacementInvalidReason? = when {
+        !room.fitsInside(this) -> RoomPlacementInvalidReason.OUTSIDE_GRID
+        entrance in room.gridPositions -> RoomPlacementInvalidReason.COVERS_ENTRANCE
+        mutablePlacedRooms.any(room::overlaps) ->
+            RoomPlacementInvalidReason.OVERLAPS_ROOM
+        !hasOneFrontierConnection(room) ->
+            RoomPlacementInvalidReason.INVALID_CONNECTION
+        !portRemainsAvailable(room, entrance, entranceFacing) ->
+            RoomPlacementInvalidReason.ENTRANCE_UNAVAILABLE
+        else -> null
     }
 
     private fun portRemainsAvailable(

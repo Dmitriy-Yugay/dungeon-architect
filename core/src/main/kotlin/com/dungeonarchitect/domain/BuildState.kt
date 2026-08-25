@@ -18,6 +18,9 @@ class BuildState(
     var isHeartPlacementModeActive: Boolean = false
         private set
 
+    var selectedRoomAttachmentTarget: RoomAttachmentTarget? = null
+        private set
+
     init {
         require(this.availableRoomBlueprints.isNotEmpty()) {
             "Build state must contain at least one available room blueprint."
@@ -41,14 +44,37 @@ class BuildState(
             ?: return false
 
         selectedRoomBlueprint = blueprint
+        deactivateHeartPlacementMode()
         return true
     }
 
+    fun selectRoomAttachmentTarget(target: RoomAttachmentTarget): Boolean {
+        if (selectedRoomAttachmentTarget == target) {
+            return false
+        }
+        selectedRoomAttachmentTarget = target
+        return true
+    }
+
+    fun retainOrSelectRoomAttachmentTarget(
+        availableTargets: List<RoomAttachmentTarget>,
+    ): RoomAttachmentTarget? {
+        val current = selectedRoomAttachmentTarget
+        if (current in availableTargets) {
+            return current
+        }
+
+        selectedRoomAttachmentTarget = availableTargets.firstOrNull()
+        return selectedRoomAttachmentTarget
+    }
+
     fun rotateSelectedRoomClockwise() {
+        deactivateHeartPlacementMode()
         selectedRoomOrientation = selectedRoomOrientation.rotateClockwise()
     }
 
     fun rotateSelectedRoomCounterClockwise() {
+        deactivateHeartPlacementMode()
         selectedRoomOrientation = selectedRoomOrientation.rotateCounterClockwise()
     }
 

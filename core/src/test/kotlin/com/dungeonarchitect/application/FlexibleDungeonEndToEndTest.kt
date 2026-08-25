@@ -105,21 +105,30 @@ class FlexibleDungeonEndToEndTest {
             PrototypeClickResult.TRAP_PLACED,
             clickGrid(fixture, position(3, 4)),
         )
-        val selectedTrap = fixture.grid.placedTraps.single()
-        assertSame(firstRoom, selectedTrap.room)
+        val cornerRoom = fixture.grid.placedRooms[1]
+        val cornerSocket = cornerRoom.geometry.sockets.keys.single()
+        val cornerTrapPosition = cornerRoom.toGridPosition(cornerSocket)
+        assertEquals(
+            PrototypeClickResult.TRAP_PLACED,
+            clickGrid(fixture, cornerTrapPosition),
+        )
+        val selectedTraps = fixture.grid.placedTraps
+        assertEquals(2, selectedTraps.size)
+        assertSame(firstRoom, selectedTraps.first().room)
+        assertSame(cornerRoom, selectedTraps.last().room)
 
         assertEquals(PrototypeClickResult.WAVE_STARTED, clickRunControl(fixture))
         val startedWave = requireNotNull(fixture.controller.startedWave)
         assertEquals(fixture.grid.entrance, startedWave.route.first())
         assertEquals(selectedHeart.gridPosition, startedWave.route.last())
-        assertTrue(selectedTrap.gridPosition in startedWave.route)
+        assertTrue(selectedTraps.all { trap -> trap.gridPosition in startedWave.route })
         assertTrue(startedWave.route.zipWithNext().any { (first, second) ->
             first.row == second.row && first.column != second.column
         })
         assertTrue(startedWave.route.zipWithNext().any { (first, second) ->
             first.column == second.column && first.row != second.row
         })
-        assertEquals(listOf(selectedTrap), startedWave.traps)
+        assertEquals(selectedTraps, startedWave.traps)
 
         completeWave(fixture)
 
@@ -132,7 +141,7 @@ class FlexibleDungeonEndToEndTest {
         assertEquals(4, fixture.controller.events.count { it is HeroDied })
         assertEquals(0, fixture.controller.events.count { it is HeroArrived })
         assertEquals(0, fixture.controller.events.count { it is HeartDamaged })
-        assertEquals(8, fixture.controller.events.count { it is TrapActivated })
+        assertEquals(12, fixture.controller.events.count { it is TrapActivated })
         assertEquals(
             40,
             fixture.controller.events
