@@ -14,46 +14,31 @@ internal data class RoomChoiceControl(
 )
 
 internal object RoomChoicesLayout {
-    fun leftEdge(
+    fun controls(
         view: RoomChoicesView,
-        worldWidth: Float,
-        panelBottom: Float,
-    ): Float = controls(view, worldWidth, panelBottom)
-        .firstOrNull()
-        ?.bounds
-        ?.x
-        ?: WavePanelLayout.cancelButtonBounds(worldWidth, panelBottom).x
+        layout: BottomPanelLayout,
+    ): List<RoomChoiceControl> {
+        require(view.choices.size == layout.roomChoiceBounds.size) {
+            "Room choice view and panel layout must contain the same number of controls."
+        }
+        return view.choices.zip(layout.roomChoiceBounds) { choice, bounds ->
+            RoomChoiceControl(choice = choice, bounds = bounds)
+        }
+    }
 
     fun controls(
         view: RoomChoicesView,
         worldWidth: Float,
         panelBottom: Float,
-    ): List<RoomChoiceControl> {
-        val groupWidth = view.choices.size * CONTROL_WIDTH +
-            (view.choices.size - 1).coerceAtLeast(0) * CONTROL_GAP
-        val heartControlBounds = HeartPlacementLayout.bounds(
+    ): List<RoomChoiceControl> = controls(
+        view = view,
+        layout = WavePanelLayout.create(
             worldWidth = worldWidth,
             panelBottom = panelBottom,
-        )
-        val groupLeft = heartControlBounds.x - WAVE_CONTROL_GAP - groupWidth
-
-        return view.choices.mapIndexed { index, choice ->
-            RoomChoiceControl(
-                choice = choice,
-                bounds = ControlBounds(
-                    x = groupLeft + index * (CONTROL_WIDTH + CONTROL_GAP),
-                    y = panelBottom + WavePanelLayout.VERTICAL_PADDING,
-                    width = CONTROL_WIDTH,
-                    height = CONTROL_HEIGHT,
-                ),
-            )
-        }
-    }
-
-    private const val CONTROL_WIDTH = 112f
-    private const val CONTROL_HEIGHT = 48f
-    private const val CONTROL_GAP = 8f
-    private const val WAVE_CONTROL_GAP = 16f
+            roomChoiceCount = view.choices.size,
+            roomRotationControlCount = 2,
+        ),
+    )
 }
 
 class RoomChoicesRenderer : Disposable {
@@ -65,13 +50,11 @@ class RoomChoicesRenderer : Disposable {
     fun render(
         view: RoomChoicesView,
         projection: Matrix4,
-        worldWidth: Float,
-        panelBottom: Float,
+        layout: BottomPanelLayout,
     ) {
         val controls = RoomChoicesLayout.controls(
             view = view,
-            worldWidth = worldWidth,
-            panelBottom = panelBottom,
+            layout = layout,
         )
 
         shapes.projectionMatrix = projection

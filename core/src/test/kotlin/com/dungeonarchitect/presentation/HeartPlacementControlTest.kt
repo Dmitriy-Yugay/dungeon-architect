@@ -62,8 +62,8 @@ class HeartPlacementControlTest {
         val allBounds = rotationControls.map { it.bounds } +
             roomControls.map { it.bounds } + heart.bounds + cancel + start
 
-        assertEquals(ControlBounds(496f, 592f, 112f, 48f), heart.bounds)
-        assertTrue(roomControls.last().bounds.right < heart.bounds.x)
+        assertEquals(ControlBounds(448f, 592f, 112f, 48f), heart.bounds)
+        assertTrue(rotationControls.last().bounds.right < heart.bounds.x)
         assertTrue(heart.bounds.right < cancel.x)
         assertTrue(cancel.right < start.x)
         assertTrue(allBounds.all { it.x >= 0f && it.right <= WORLD_WIDTH })
@@ -76,13 +76,6 @@ class HeartPlacementControlTest {
             )
         }
     }
-
-    private val ControlBounds.right: Float
-        get() = x + width
-
-    private fun ControlBounds.overlaps(other: ControlBounds): Boolean =
-        x < other.right && right > other.x &&
-            y < other.y + other.height && y + height > other.y
 
     private fun buildState(): BuildState {
         val rooms = listOf("prototype", "gallery", "corner").map(::blueprint)

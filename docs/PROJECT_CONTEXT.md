@@ -292,7 +292,7 @@ while retaining deterministic, data-driven values.
     high-contrast HP bar above the active hero. Derive its maximum from authored
     wave content, clamp the displayed fraction, hide it with the dead hero, and
     test full, damaged, zero, and invalid-boundary cases without starting libGDX.
-65. [ ] Replace the bottom panel's independent coordinate calculations with one
+65. [x] Replace the bottom panel's independent coordinate calculations with one
     layout model containing separate status and control regions. Use a clear
     two-row hierarchy for wave information, room selection, placement actions,
     and run actions; verify that text safe areas and controls do not overlap at

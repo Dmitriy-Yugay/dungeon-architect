@@ -67,35 +67,30 @@ internal data class RoomRotationControl(
 internal object RoomRotationLayout {
     fun controls(
         rotationView: RoomRotationView,
-        roomChoicesView: RoomChoicesView,
-        worldWidth: Float,
-        panelBottom: Float,
+        layout: BottomPanelLayout,
     ): List<RoomRotationControl> {
-        val groupWidth = rotationView.controls.size * CONTROL_SIZE +
-            (rotationView.controls.size - 1).coerceAtLeast(0) * CONTROL_GAP
-        val groupRight = RoomChoicesLayout.leftEdge(
-            view = roomChoicesView,
-            worldWidth = worldWidth,
-            panelBottom = panelBottom,
-        ) - ROOM_CHOICES_GAP
-        val groupLeft = groupRight - groupWidth
-
-        return rotationView.controls.mapIndexed { index, control ->
-            RoomRotationControl(
-                view = control,
-                bounds = ControlBounds(
-                    x = groupLeft + index * (CONTROL_SIZE + CONTROL_GAP),
-                    y = panelBottom + WavePanelLayout.VERTICAL_PADDING,
-                    width = CONTROL_SIZE,
-                    height = CONTROL_SIZE,
-                ),
-            )
+        require(rotationView.controls.size == layout.roomRotationBounds.size) {
+            "Rotation view and panel layout must contain the same number of controls."
+        }
+        return rotationView.controls.zip(layout.roomRotationBounds) { view, bounds ->
+            RoomRotationControl(view = view, bounds = bounds)
         }
     }
 
-    private const val CONTROL_SIZE = 48f
-    private const val CONTROL_GAP = 8f
-    private const val ROOM_CHOICES_GAP = 16f
+    fun controls(
+        rotationView: RoomRotationView,
+        roomChoicesView: RoomChoicesView,
+        worldWidth: Float,
+        panelBottom: Float,
+    ): List<RoomRotationControl> = controls(
+        rotationView = rotationView,
+        layout = WavePanelLayout.create(
+            worldWidth = worldWidth,
+            panelBottom = panelBottom,
+            roomChoiceCount = roomChoicesView.choices.size,
+            roomRotationControlCount = rotationView.controls.size,
+        ),
+    )
 }
 
 internal class RoomRotationRenderer : Disposable {
@@ -106,16 +101,12 @@ internal class RoomRotationRenderer : Disposable {
 
     fun render(
         rotationView: RoomRotationView,
-        roomChoicesView: RoomChoicesView,
         projection: Matrix4,
-        worldWidth: Float,
-        panelBottom: Float,
+        layout: BottomPanelLayout,
     ) {
         val controls = RoomRotationLayout.controls(
             rotationView = rotationView,
-            roomChoicesView = roomChoicesView,
-            worldWidth = worldWidth,
-            panelBottom = panelBottom,
+            layout = layout,
         )
 
         shapes.projectionMatrix = projection
@@ -159,7 +150,7 @@ internal class RoomRotationRenderer : Disposable {
             batch,
             rotationView.orientationLabel,
             left + (right - left - labelLayout.width) / 2f,
-            panelBottom + ORIENTATION_LABEL_BASELINE,
+            layout.controlsRegion.y + ORIENTATION_LABEL_BASELINE,
         )
         batch.end()
     }

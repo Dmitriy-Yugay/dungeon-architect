@@ -95,6 +95,18 @@ class PrototypeScreen(
             hoveredPosition = hoveredPosition,
             selectedPosition = selectedPosition,
         )
+        val roomChoicesView = RoomChoicesView.from(buildState)
+        val roomRotationView = RoomRotationView.from(buildState, runController.phase)
+        val heartPlacementView = HeartPlacementControlView.from(
+            buildState,
+            runController.phase,
+        )
+        val panelLayout = WavePanelLayout.create(
+            worldWidth = worldWidth,
+            panelBottom = gridWorldHeight,
+            roomChoiceCount = roomChoicesView.choices.size,
+            roomRotationControlCount = roomRotationView.controls.size,
+        )
         wavePanelRenderer.render(
             view = WavePanelView.from(
                 wave = upcomingWave,
@@ -105,28 +117,22 @@ class PrototypeScreen(
                 isCancelEnabled = runController.isCancelEnabled,
             ),
             projection = camera.combined,
-            worldWidth = worldWidth,
-            panelBottom = gridWorldHeight,
+            layout = panelLayout,
         )
-        val roomChoicesView = RoomChoicesView.from(buildState)
         roomChoicesRenderer.render(
             view = roomChoicesView,
             projection = camera.combined,
-            worldWidth = worldWidth,
-            panelBottom = gridWorldHeight,
+            layout = panelLayout,
         )
         roomRotationRenderer.render(
-            rotationView = RoomRotationView.from(buildState, runController.phase),
-            roomChoicesView = roomChoicesView,
+            rotationView = roomRotationView,
             projection = camera.combined,
-            worldWidth = worldWidth,
-            panelBottom = gridWorldHeight,
+            layout = panelLayout,
         )
         heartPlacementControlRenderer.render(
-            view = HeartPlacementControlView.from(buildState, runController.phase),
+            view = heartPlacementView,
             projection = camera.combined,
-            worldWidth = worldWidth,
-            panelBottom = gridWorldHeight,
+            layout = panelLayout,
         )
     }
 
@@ -154,41 +160,39 @@ class PrototypeScreen(
 
         if (Gdx.input.justTouched()) {
             val roomChoicesView = RoomChoicesView.from(buildState)
+            val roomRotationView = RoomRotationView.from(
+                buildState,
+                runController.phase,
+            )
+            val heartPlacementView = HeartPlacementControlView.from(
+                buildState,
+                runController.phase,
+            )
+            val panelLayout = WavePanelLayout.create(
+                worldWidth = worldWidth,
+                panelBottom = gridWorldHeight,
+                roomChoiceCount = roomChoicesView.choices.size,
+                roomRotationControlCount = roomRotationView.controls.size,
+            )
             val result = handleClick(
                 grid = grid,
                 buildState = buildState,
                 clickedPosition = hoveredPosition,
                 worldX = pointerCoordinates.x,
                 worldY = pointerCoordinates.y,
-                startButtonBounds = WavePanelLayout.startButtonBounds(
-                    worldWidth = worldWidth,
-                    panelBottom = gridWorldHeight,
-                ),
-                cancelButtonBounds = WavePanelLayout.cancelButtonBounds(
-                    worldWidth = worldWidth,
-                    panelBottom = gridWorldHeight,
-                ),
+                startButtonBounds = panelLayout.startBounds,
+                cancelButtonBounds = panelLayout.cancelBounds,
                 heartPlacementControl = HeartPlacementLayout.control(
-                    view = HeartPlacementControlView.from(
-                        buildState,
-                        runController.phase,
-                    ),
-                    worldWidth = worldWidth,
-                    panelBottom = gridWorldHeight,
+                    view = heartPlacementView,
+                    layout = panelLayout,
                 ),
                 roomChoiceControls = RoomChoicesLayout.controls(
                     view = roomChoicesView,
-                    worldWidth = worldWidth,
-                    panelBottom = gridWorldHeight,
+                    layout = panelLayout,
                 ),
                 roomRotationControls = RoomRotationLayout.controls(
-                    rotationView = RoomRotationView.from(
-                        buildState,
-                        runController.phase,
-                    ),
-                    roomChoicesView = roomChoicesView,
-                    worldWidth = worldWidth,
-                    panelBottom = gridWorldHeight,
+                    rotationView = roomRotationView,
+                    layout = panelLayout,
                 ),
                 runController = runController,
             )
