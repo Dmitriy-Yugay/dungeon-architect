@@ -55,6 +55,7 @@ class DungeonGridRenderer : Disposable {
         hoveredPosition: GridPosition?,
         selectedPosition: GridPosition?,
         roomAttachmentTargets: List<RoomAttachmentTargetMarker> = emptyList(),
+        combatFeedback: CombatFeedbackView = CombatFeedbackView.NONE,
     ) {
         shapes.projectionMatrix = projection
         renderTiles(grid)
@@ -64,11 +65,18 @@ class DungeonGridRenderer : Disposable {
         placementPreview?.let(::renderPlacementPreviewDetails)
         renderSocketMarkers(roomSocketGridMarkers(grid.placedRooms))
         renderTrapMarkers(placedTrapGridMarkers(grid))
+        renderTrapActivationPulses(combatFeedback.trapPulses)
         trapPlacementPreview?.let(::renderTrapPlacementPreview)
         placedDungeonHeartGridMarker(grid)?.let(::renderHeartMarker)
         heartPlacementPreview?.let(::renderHeartPlacementPreview)
-        heroWorldMarker(heroState, TILE_SIZE)?.let(::renderHero)
-        heroHealthBar(heroState, TILE_SIZE)?.let(::renderHeroHealthBar)
+        val heroMarker = heroWorldMarker(heroState, TILE_SIZE)
+        heroMarker?.let(::renderHero)
+        combatFeedback.heroDamageFlash?.let { flash ->
+            heroMarker?.let { marker -> renderHeroDamageFlash(marker, flash) }
+        }
+        heroHealthBar(heroState, TILE_SIZE)?.let { bar ->
+            renderHeroHealthBar(bar, combatFeedback.heroDamageFlash)
+        }
         renderHighlights(hoveredPosition, selectedPosition)
     }
 
@@ -196,9 +204,30 @@ class DungeonGridRenderer : Disposable {
         shapes.end()
     }
 
-    private fun renderHeroHealthBar(bar: HeroHealthBar) {
+    private fun renderHeroDamageFlash(
+        marker: HeroWorldMarker,
+        flash: HeroDamageFlash,
+    ) {
+        shapes.begin(ShapeRenderer.ShapeType.Line)
+        shapes.color = HERO_DAMAGE_FLASH_COLOR
+        shapes.circle(
+            marker.centerX,
+            marker.centerY,
+            marker.radius + HERO_DAMAGE_FLASH_EXPANSION * (1f - flash.intensity),
+        )
+        shapes.end()
+    }
+
+    private fun renderHeroHealthBar(
+        bar: HeroHealthBar,
+        damageFlash: HeroDamageFlash?,
+    ) {
         shapes.begin(ShapeRenderer.ShapeType.Filled)
-        shapes.color = HERO_HEALTH_BORDER_COLOR
+        shapes.color = if (damageFlash == null) {
+            HERO_HEALTH_BORDER_COLOR
+        } else {
+            HERO_DAMAGE_FLASH_COLOR
+        }
         shapes.rect(bar.left, bar.bottom, bar.width, bar.height)
 
         val innerLeft = bar.left + HERO_HEALTH_BAR_BORDER
@@ -214,6 +243,26 @@ class DungeonGridRenderer : Disposable {
             innerWidth * bar.fillFraction,
             innerHeight,
         )
+        shapes.end()
+    }
+
+    private fun renderTrapActivationPulses(
+        pulses: List<TrapActivationPulse>,
+    ) {
+        if (pulses.isEmpty()) {
+            return
+        }
+
+        shapes.begin(ShapeRenderer.ShapeType.Line)
+        shapes.color = TRAP_ACTIVATION_PULSE_COLOR
+        pulses.forEach { pulse ->
+            shapes.circle(
+                (pulse.position.column + HALF_TILE) * TILE_SIZE,
+                (pulse.position.row + HALF_TILE) * TILE_SIZE,
+                TRAP_MARKER_RADIUS +
+                    TRAP_PULSE_EXPANSION * pulse.progress,
+            )
+        }
         shapes.end()
     }
 
@@ -408,6 +457,8 @@ class DungeonGridRenderer : Disposable {
         const val HEART_MARKER_RADIUS = 16f
         const val HEART_PREVIEW_INSET = 12f
         const val HERO_HEALTH_BAR_BORDER = 2f
+        const val HERO_DAMAGE_FLASH_EXPANSION = 10f
+        const val TRAP_PULSE_EXPANSION = 16f
         const val ATTACHMENT_RADIUS = 20f
         const val ACTIVE_ATTACHMENT_RADIUS = 25f
         const val ATTACHMENT_CLICK_RADIUS = 26f
@@ -436,6 +487,8 @@ class DungeonGridRenderer : Disposable {
         val HERO_HEALTH_BORDER_COLOR = Color.valueOf("F2F2F2")
         val HERO_HEALTH_BACKGROUND_COLOR = Color.valueOf("301C25")
         val HERO_HEALTH_FILL_COLOR = Color.valueOf("63D471")
+        val HERO_DAMAGE_FLASH_COLOR = Color.valueOf("FFEC70")
+        val TRAP_ACTIVATION_PULSE_COLOR = Color.valueOf("FFEC70")
         val HOVER_COLOR = Color.valueOf("E0B84B")
         val SELECTION_COLOR = Color.valueOf("F2F2F2")
     }

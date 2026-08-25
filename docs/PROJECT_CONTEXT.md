@@ -316,7 +316,7 @@ while retaining deterministic, data-driven values.
     cooldown only in JSON so zero traps loses, one trap no longer perfect-clears
     the wave, and deliberate multi-trap coverage can win; lock the chosen reports
     in regression tests and record the design rationale in `game-design.md`.
-70. [ ] Add readable live combat feedback for trap activation and hero damage,
+70. [x] Add readable live combat feedback for trap activation and hero damage,
     such as a brief trap pulse and HP-bar change, derived from simulation state
     or events without moving gameplay rules into rendering.
 71. [ ] Render the existing post-wave explanation model in the playable screen

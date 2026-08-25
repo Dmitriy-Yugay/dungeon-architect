@@ -23,6 +23,7 @@ import com.dungeonarchitect.domain.RoomPlacementPreview
 import com.dungeonarchitect.domain.TrapDefinition
 import com.dungeonarchitect.domain.TrapSocketHoverResult
 import com.dungeonarchitect.domain.UpcomingHeroWave
+import com.dungeonarchitect.presentation.CombatFeedbackTracker
 import com.dungeonarchitect.presentation.ControlBounds
 import com.dungeonarchitect.presentation.DungeonGridRenderer
 import com.dungeonarchitect.presentation.HeartPlacementControl
@@ -57,6 +58,7 @@ class PrototypeScreen(
     },
 ) : ScreenAdapter() {
     private val camera = OrthographicCamera()
+    private val combatFeedbackTracker = CombatFeedbackTracker()
     private val gridRenderer = DungeonGridRenderer()
     private val roomChoicesRenderer = RoomChoicesRenderer()
     private val roomRotationRenderer = RoomRotationRenderer()
@@ -82,6 +84,10 @@ class PrototypeScreen(
     override fun render(delta: Float) {
         updatePointerState()
         runController.advance(delta)
+        val combatFeedback = combatFeedbackTracker.update(
+            events = runController.events,
+            elapsedSeconds = delta,
+        )
         ScreenUtils.clear(BACKGROUND_RED, BACKGROUND_GREEN, BACKGROUND_BLUE, BACKGROUND_ALPHA)
         val attachmentTargets = if (runController.phase == PrototypeRunPhase.BUILDING) {
             grid.roomAttachmentTargets
@@ -112,6 +118,7 @@ class PrototypeScreen(
                 activeTarget = activeAttachmentTarget,
             ).takeIf { runController.phase == PrototypeRunPhase.BUILDING }
                 ?: emptyList(),
+            combatFeedback = combatFeedback,
         )
         val roomChoicesView = RoomChoicesView.from(buildState)
         val roomRotationView = RoomRotationView.from(buildState, runController.phase)
