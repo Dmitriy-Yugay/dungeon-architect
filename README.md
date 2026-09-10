@@ -31,9 +31,10 @@ restart. Visuals remain placeholder shapes.
   cost, and the upcoming wave reward. If a hovered trap cannot be afforded, the
   panel states how much more Gold is needed.
 - After each non-final wave, click **CLAIM +N GOLD**, then **CONTINUE**. Review
-  the next-wave intelligence, click **REVIEW ROOM OFFER**, choose one of the
-  three authored room cards, and place that room. Room construction locks after
-  this single placement, while trap and heart preparation remain available.
+  the next-wave count, visible role, traits, and defense implication, then click
+  **REVIEW ROOM OFFER**, choose one of the three authored room cards, and place
+  that room. Room construction locks after this single placement, while trap
+  and heart preparation remain available.
 - After a defeat report, click **END RUN**.
 - Click **RESTART** after victory or defeat; the built layout is preserved.
 

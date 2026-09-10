@@ -150,6 +150,8 @@ class WaveStartControllerTest {
         heroHealth = 10,
         heartDamage = 10,
         movementSpeedTilesPerSecond = 2f,
+        heroRole = "Frontline attacker",
+        defenseImplication = "Cover multiple on-route sockets.",
         traitDescription = "A straightforward melee fighter.",
     )
 }

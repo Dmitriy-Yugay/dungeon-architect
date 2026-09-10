@@ -373,7 +373,7 @@ can be judged without offer variance.
     intelligence -> room choice and placement -> defense preparation -> wave ->
     causal report -> reward, with visible resource totals, costs, and disabled
     reasons.
-79. [ ] Expand wave intelligence to show hero count, role, relevant traits, and
+79. [x] Expand wave intelligence to show hero count, role, relevant traits, and
     the practical defense implication before the room decision; keep hidden
     information from becoming a required counter.
 80. [ ] Extend the headless evaluator to execute a complete authored run and

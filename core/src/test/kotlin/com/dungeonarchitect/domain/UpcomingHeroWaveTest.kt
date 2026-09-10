@@ -14,6 +14,8 @@ class UpcomingHeroWaveTest {
             heroHealth = 10,
             heartDamage = 10,
             movementSpeedTilesPerSecond = 2f,
+            heroRole = "Frontline attacker",
+            defenseImplication = "Cover multiple on-route sockets.",
             traitDescription = "A straightforward melee fighter.",
         )
 
@@ -23,7 +25,12 @@ class UpcomingHeroWaveTest {
         assertEquals(10, wave.heroHealth)
         assertEquals(10, wave.heartDamage)
         assertEquals(2f, wave.movementSpeedTilesPerSecond)
+        assertEquals("Frontline attacker", wave.heroRole)
         assertEquals("A straightforward melee fighter.", wave.traitDescription)
+        assertEquals(
+            "Cover multiple on-route sockets.",
+            wave.defenseImplication,
+        )
     }
 
     @Test
@@ -57,6 +64,12 @@ class UpcomingHeroWaveTest {
         assertFailsWith<IllegalArgumentException> {
             wave(traitDescription = "\t")
         }
+        assertFailsWith<IllegalArgumentException> {
+            wave(heroRole = " ")
+        }
+        assertFailsWith<IllegalArgumentException> {
+            wave(defenseImplication = "\n")
+        }
     }
 
     @Test
@@ -85,7 +98,9 @@ class UpcomingHeroWaveTest {
         heroHealth: Int = 10,
         heartDamage: Int = 10,
         movementSpeedTilesPerSecond: Float = 2f,
+        heroRole: String = "Frontline attacker",
         traitDescription: String = "A straightforward melee fighter.",
+        defenseImplication: String = "Cover multiple on-route sockets.",
     ) = UpcomingHeroWave(
         heroType = heroType,
         heroDisplayName = heroDisplayName,
@@ -93,6 +108,8 @@ class UpcomingHeroWaveTest {
         heroHealth = heroHealth,
         heartDamage = heartDamage,
         movementSpeedTilesPerSecond = movementSpeedTilesPerSecond,
+        heroRole = heroRole,
+        defenseImplication = defenseImplication,
         traitDescription = traitDescription,
     )
 }

@@ -20,10 +20,26 @@ class UpcomingHeroWaveParserTest {
                 heroHealth = 10,
                 heartDamage = 10,
                 movementSpeedTilesPerSecond = 2f,
-                traitDescription = "A straightforward melee fighter with no special defenses.",
+                heroRole = "Frontline attacker",
+                defenseImplication = "Cover multiple on-route sockets.",
+                traitDescription = "No special defenses.",
             ),
             wave,
         )
+    }
+
+    @Test
+    fun `parser rejects missing malformed and blank intelligence guidance`() {
+        listOf(
+            validIntelligenceJson(heroRole = "null"),
+            validIntelligenceJson(heroRole = "\" \""),
+            validIntelligenceJson(defenseImplication = "42"),
+            validIntelligenceJson(defenseImplication = "\"\t\""),
+        ).forEach { json ->
+            assertFailsWith<IllegalArgumentException> {
+                UpcomingHeroWaveParser.parse(json)
+            }
+        }
     }
 
     @Test
@@ -149,4 +165,21 @@ class UpcomingHeroWaveParserTest {
 
         return Files.readString(config)
     }
+
+    private fun validIntelligenceJson(
+        heroRole: String = "\"Frontline attacker\"",
+        defenseImplication: String = "\"Cover multiple on-route sockets.\"",
+    ) = """
+        {
+          "heroType": "militia_recruit",
+          "heroDisplayName": "Militia Recruit",
+          "count": 4,
+          "heroHealth": 10,
+          "heartDamage": 10,
+          "movementSpeedTilesPerSecond": 2.0,
+          "heroRole": $heroRole,
+          "traitDescription": "No special defenses.",
+          "defenseImplication": $defenseImplication
+        }
+    """.trimIndent()
 }

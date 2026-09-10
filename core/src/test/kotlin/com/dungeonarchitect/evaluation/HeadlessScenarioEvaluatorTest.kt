@@ -203,6 +203,8 @@ class HeadlessScenarioEvaluatorTest {
         heroHealth = heroHealth,
         heartDamage = heartDamage,
         movementSpeedTilesPerSecond = speed,
+        heroRole = "Frontline attacker",
+        defenseImplication = "Cover multiple on-route sockets.",
         traitDescription = "A straightforward melee fighter.",
     )
 

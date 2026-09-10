@@ -39,7 +39,9 @@ data class WavePanelView(
             buildGuidance: String = "",
         ) = WavePanelView(
             summary = when (phase) {
-                PrototypeRunPhase.INTELLIGENCE,
+                PrototypeRunPhase.INTELLIGENCE ->
+                    "INTELLIGENCE: ${wave.count} x ${wave.heroDisplayName} | " +
+                        "Role: ${wave.heroRole}"
                 PrototypeRunPhase.DEFENSE_PREPARATION ->
                     "Upcoming wave: ${wave.count} x ${wave.heroDisplayName}"
                 PrototypeRunPhase.ROOM_DRAFT ->
@@ -54,7 +56,12 @@ data class WavePanelView(
                 PrototypeRunPhase.RUN_VICTORY -> "VICTORY - Heart secured"
                 PrototypeRunPhase.RUN_DEFEAT -> "DEFEAT - Heart destroyed"
             },
-            traitDescription = wave.traitDescription,
+            traitDescription = if (phase == PrototypeRunPhase.INTELLIGENCE) {
+                "Traits: ${wave.traitDescription} | " +
+                    "Defense: ${wave.defenseImplication}"
+            } else {
+                wave.traitDescription
+            },
             runStatus = "Heart: $heartHealth/$heartMaxHealth | Gold: $gold",
             economyStatus =
                 "$defenseName: ${defenseCostGold}G | Reward: +${upcomingRewardGold}G",

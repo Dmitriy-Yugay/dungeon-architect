@@ -23,7 +23,9 @@ object UpcomingHeroWaveParser {
             heartDamage = root.requiredInt("heartDamage"),
             movementSpeedTilesPerSecond =
                 root.requiredFloat("movementSpeedTilesPerSecond"),
+            heroRole = root.requiredString("heroRole"),
             traitDescription = root.requiredString("traitDescription"),
+            defenseImplication = root.requiredString("defenseImplication"),
         )
     }
 

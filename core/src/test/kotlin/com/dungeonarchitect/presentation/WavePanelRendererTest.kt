@@ -19,6 +19,8 @@ class WavePanelRendererTest {
                 heroHealth = 10,
                 heartDamage = 10,
                 movementSpeedTilesPerSecond = 2f,
+                heroRole = "Frontline attacker",
+                defenseImplication = "Cover multiple on-route sockets.",
                 traitDescription = "A straightforward melee fighter.",
             ),
             phase = PrototypeRunPhase.DEFENSE_PREPARATION,
@@ -54,6 +56,8 @@ class WavePanelRendererTest {
                 heroHealth = 10,
                 heartDamage = 10,
                 movementSpeedTilesPerSecond = 2f,
+                heroRole = "Frontline attacker",
+                defenseImplication = "Cover multiple on-route sockets.",
                 traitDescription = "A straightforward melee fighter.",
             ),
             phase = PrototypeRunPhase.DEFENSE_PREPARATION,
@@ -128,6 +132,25 @@ class WavePanelRendererTest {
     }
 
     @Test
+    fun `intelligence briefing shows only authored visible decision guidance`() {
+        val intelligence = view(PrototypeRunPhase.INTELLIGENCE, 10)
+        val briefing = intelligence.summary + " " + intelligence.traitDescription
+
+        assertEquals(
+            "INTELLIGENCE: 4 x Militia Recruit | Role: Frontline attacker",
+            intelligence.summary,
+        )
+        assertEquals(
+            "Traits: A straightforward melee fighter. | " +
+                "Defense: Cover multiple on-route sockets.",
+            intelligence.traitDescription,
+        )
+        assertFalse(briefing.contains("health", ignoreCase = true))
+        assertFalse(briefing.contains("heart damage", ignoreCase = true))
+        assertFalse(briefing.contains("tiles per second", ignoreCase = true))
+    }
+
+    @Test
     fun `start button bounds include lower edge and exclude upper and right edges`() {
         val bounds = WavePanelLayout.startButtonBounds(
             worldWidth = 1_024f,
@@ -176,6 +199,8 @@ class WavePanelRendererTest {
             heroHealth = 10,
             heartDamage = 10,
             movementSpeedTilesPerSecond = 2f,
+            heroRole = "Frontline attacker",
+            defenseImplication = "Cover multiple on-route sockets.",
             traitDescription = "A straightforward melee fighter.",
         ),
         phase = phase,

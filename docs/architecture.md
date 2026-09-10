@@ -153,6 +153,15 @@ This creates the current non-visual flow:
   intermission commits its single room. Trap and heart interactions remain during
   that later DEFENSE_PREPARATION, and unaffordable trap hover guidance states
   the missing Gold amount.
+- Keep decision-facing wave intelligence in authored wave content. Each wave
+  requires a stable visible `heroRole`, concise `traitDescription`, and
+  practical `defenseImplication` in addition to its visible hero name and
+  count. During INTELLIGENCE, the panel's first line shows count, name, and
+  role; its second line shows the trait and defense implication before the room
+  draft opens. Combat-only health, heart-damage, movement-speed, spawn timing,
+  and route details are not interpolated into this briefing. These fields
+  explain the current baseline recruit only; additional roles and mechanics
+  remain part of the later counterplay package.
 - Run prototype hero movement at a fixed 60 Hz simulation step. Hero movement
   speed remains authored wave content, while presentation-facing grid position
   interpolates the remainder between simulation steps.

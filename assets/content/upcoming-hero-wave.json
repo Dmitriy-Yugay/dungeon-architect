@@ -5,5 +5,7 @@
   "heroHealth": 10,
   "heartDamage": 10,
   "movementSpeedTilesPerSecond": 2.0,
-  "traitDescription": "A straightforward melee fighter with no special defenses."
+  "heroRole": "Frontline attacker",
+  "traitDescription": "No special defenses.",
+  "defenseImplication": "Cover multiple on-route sockets."
 }

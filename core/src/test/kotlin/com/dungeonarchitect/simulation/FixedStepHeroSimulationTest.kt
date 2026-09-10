@@ -180,6 +180,8 @@ class FixedStepHeroSimulationTest {
                 heroHealth = 10,
                 heartDamage = 10,
                 movementSpeedTilesPerSecond = speed,
+                heroRole = "Frontline attacker",
+                defenseImplication = "Cover multiple on-route sockets.",
                 traitDescription = "A straightforward melee fighter.",
             ),
             route = route,

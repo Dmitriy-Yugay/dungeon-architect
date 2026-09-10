@@ -134,6 +134,15 @@ its important traits. Later waves may mix roles, introduce uncertainty, and
 reward rooms that solve more than one problem. Room selection should not become
 a simple one-to-one counter puzzle.
 
+The authored run now briefs each intermission with the next wave's hero count,
+visible role, relevant trait, and a practical defense implication. The baseline
+Militia Recruit is described as a frontline attacker with no special defenses,
+so the advice is to cover multiple on-route sockets. Exact health, heart damage,
+movement speed, spawn timing, and route script stay out of the briefing: the
+player chooses a room from readable strategic guidance rather than a hidden
+numeric counter. Additional hero roles remain reserved for the later
+counterplay package.
+
 ## Combat
 
 Heroes enter in waves and follow the valid route to the selected dungeon heart.

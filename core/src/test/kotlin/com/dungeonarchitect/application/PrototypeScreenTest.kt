@@ -259,13 +259,21 @@ class PrototypeScreenTest {
                   "heroHealth": 10,
                   "heartDamage": 10,
                   "movementSpeedTilesPerSecond": 2.0,
-                  "traitDescription": "A straightforward melee fighter."
+                  "heroRole": "Frontline attacker",
+                  "traitDescription": "No special defenses.",
+                  "defenseImplication": "Cover multiple on-route sockets."
                 }
             """.trimIndent()
         }
 
         assertEquals("content/upcoming-hero-wave.json", requestedPath)
         assertEquals("Militia Recruit", wave.heroDisplayName)
+        assertEquals("Frontline attacker", wave.heroRole)
+        assertEquals("No special defenses.", wave.traitDescription)
+        assertEquals(
+            "Cover multiple on-route sockets.",
+            wave.defenseImplication,
+        )
     }
 
     @Test
@@ -682,6 +690,8 @@ class PrototypeScreenTest {
         heroHealth = 10,
         heartDamage = 10,
         movementSpeedTilesPerSecond = 2f,
+        heroRole = "Frontline attacker",
+        defenseImplication = "Cover multiple on-route sockets.",
         traitDescription = "A straightforward melee fighter.",
     )
 

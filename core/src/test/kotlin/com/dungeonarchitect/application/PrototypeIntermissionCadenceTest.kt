@@ -240,6 +240,8 @@ class PrototypeIntermissionCadenceTest {
         heroHealth = 5,
         heartDamage = 1,
         movementSpeedTilesPerSecond = 60f,
+        heroRole = "Frontline attacker",
+        defenseImplication = "Cover multiple on-route sockets.",
         traitDescription = "A straightforward fighter.",
     )
 

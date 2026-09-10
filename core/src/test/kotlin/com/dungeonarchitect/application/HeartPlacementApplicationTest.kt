@@ -254,6 +254,8 @@ class HeartPlacementApplicationTest {
                     heroHealth = 1,
                     heartDamage = 10,
                     movementSpeedTilesPerSecond = 60f,
+                    heroRole = "Frontline attacker",
+                    defenseImplication = "Cover multiple on-route sockets.",
                     traitDescription = "Test hero.",
                 ),
                 runDefinition = PrototypeRunDefinition.singleWave(

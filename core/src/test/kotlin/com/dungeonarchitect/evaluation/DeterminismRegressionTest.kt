@@ -137,6 +137,8 @@ class DeterminismRegressionTest {
                 heroHealth = 5,
                 heartDamage = 4,
                 movementSpeedTilesPerSecond = 60f,
+                heroRole = "Frontline attacker",
+                defenseImplication = "Cover multiple on-route sockets.",
                 traitDescription = "A straightforward melee fighter.",
             ),
             runDefinition = PrototypeRunDefinition.singleWave(

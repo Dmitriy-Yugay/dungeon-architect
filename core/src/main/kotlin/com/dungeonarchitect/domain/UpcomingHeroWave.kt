@@ -7,7 +7,9 @@ data class UpcomingHeroWave(
     val heroHealth: Int,
     val heartDamage: Int,
     val movementSpeedTilesPerSecond: Float,
+    val heroRole: String,
     val traitDescription: String,
+    val defenseImplication: String,
 ) {
     init {
         require(heroType.isNotBlank()) {
@@ -30,8 +32,14 @@ data class UpcomingHeroWave(
         ) {
             "A hero wave's movement speed must be finite and positive."
         }
+        require(heroRole.isNotBlank()) {
+            "A hero wave must provide a visible hero role."
+        }
         require(traitDescription.isNotBlank()) {
             "A hero wave must describe the hero's important trait."
+        }
+        require(defenseImplication.isNotBlank()) {
+            "A hero wave must provide a practical defense implication."
         }
     }
 }
