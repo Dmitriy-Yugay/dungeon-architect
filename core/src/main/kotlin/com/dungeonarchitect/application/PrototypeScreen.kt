@@ -15,6 +15,7 @@ import com.dungeonarchitect.domain.BuildState
 import com.dungeonarchitect.domain.CardinalDirection
 import com.dungeonarchitect.domain.DungeonGrid
 import com.dungeonarchitect.domain.GridPosition
+import com.dungeonarchitect.domain.PlacedRoom
 import com.dungeonarchitect.domain.PrototypeRunDefinition
 import com.dungeonarchitect.domain.PrototypeRunPhase
 import com.dungeonarchitect.domain.RoomAttachmentTarget
@@ -286,6 +287,11 @@ class PrototypeScreen(
             LONG_GALLERY_PATH,
             CORNER_ROOM_PATH,
         )
+        private val AVAILABLE_ROOM_BLUEPRINT_IDS = setOf(
+            "prototype-room",
+            "long-gallery",
+            "corner-room",
+        )
 
         private const val BACKGROUND_RED = 0.04f
         private const val BACKGROUND_GREEN = 0.05f
@@ -317,6 +323,7 @@ class PrototypeScreen(
             buildState: BuildState,
             clickedPosition: GridPosition?,
             runPhase: PrototypeRunPhase,
+            placeRoom: (PlacedRoom) -> Boolean = grid::place,
         ): Boolean {
             if (runPhase != PrototypeRunPhase.DEFENSE_PREPARATION) {
                 return false
@@ -335,7 +342,7 @@ class PrototypeScreen(
                 placementPreview(grid, buildState, clickedPosition)
             }
             return preview
-                ?.let { preview -> grid.place(preview.room) }
+                ?.let { preview -> placeRoom(preview.room) }
                 ?: false
         }
 
@@ -471,6 +478,7 @@ class PrototypeScreen(
             PrototypeRunDefinitionParser.parse(
                 readInternalText(RUN_DEFINITION_PATH),
                 availableWaveContentPaths = AVAILABLE_WAVE_CONTENT_PATHS,
+                availableRoomBlueprintIds = AVAILABLE_ROOM_BLUEPRINT_IDS,
             )
 
         internal fun handleClick(
@@ -592,6 +600,7 @@ class PrototypeScreen(
                 buildState = buildState,
                 clickedPosition = clickedPosition,
                 runPhase = runController.phase,
+                placeRoom = runController::placeRoom,
             )
             return if (wasPlaced) {
                 PrototypeClickResult.ROOM_PLACED

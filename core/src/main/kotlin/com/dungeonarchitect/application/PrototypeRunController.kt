@@ -58,6 +58,9 @@ class PrototypeRunController(
 
     val resources: Int = runDefinition.startingResources
 
+    var committedRoom: PlacedRoom? = null
+        private set
+
     var resolvedHeroCount: Int = 0
         private set
 
@@ -75,6 +78,9 @@ class PrototypeRunController(
 
     private val currentAuthoredWave: AuthoredWave
         get() = authoredWaves[currentWaveIndex]
+
+    val offeredRoomBlueprintIds: List<String>
+        get() = currentWaveDefinition.roomOfferBlueprintIds
 
     constructor(
         grid: DungeonGrid,
@@ -95,6 +101,7 @@ class PrototypeRunController(
 
     val isCancelEnabled: Boolean
         get() = phase == PrototypeRunPhase.DEFENSE_PREPARATION &&
+            offeredRoomBlueprintIds.isEmpty() &&
             grid.placedRooms.isNotEmpty()
 
     val isControlEnabled: Boolean
@@ -120,7 +127,9 @@ class PrototypeRunController(
     }
 
     fun cancelLastPlacedRoom(): Boolean {
-        if (phase != PrototypeRunPhase.DEFENSE_PREPARATION) {
+        if (phase != PrototypeRunPhase.DEFENSE_PREPARATION ||
+            offeredRoomBlueprintIds.isNotEmpty()
+        ) {
             return false
         }
 
@@ -133,6 +142,25 @@ class PrototypeRunController(
         }
 
         return grid.placeOrRelocateHeart(room)
+    }
+
+    fun placeRoom(room: PlacedRoom): Boolean {
+        if (phase == PrototypeRunPhase.DEFENSE_PREPARATION &&
+            offeredRoomBlueprintIds.isEmpty()
+        ) {
+            return grid.place(room)
+        }
+        if (phase != PrototypeRunPhase.ROOM_DRAFT ||
+            committedRoom != null ||
+            room.blueprint.id !in offeredRoomBlueprintIds ||
+            !grid.place(room)
+        ) {
+            return false
+        }
+
+        committedRoom = room
+        transitionTo(PrototypeRunPhase.DEFENSE_PREPARATION)
+        return true
     }
 
     fun acknowledgeWaveReport(): Boolean {
@@ -161,14 +189,6 @@ class PrototypeRunController(
             return false
         }
         transitionTo(PrototypeRunPhase.ROOM_DRAFT)
-        return true
-    }
-
-    fun completeRoomDraft(): Boolean {
-        if (phase != PrototypeRunPhase.ROOM_DRAFT) {
-            return false
-        }
-        transitionTo(PrototypeRunPhase.DEFENSE_PREPARATION)
         return true
     }
 
@@ -219,6 +239,7 @@ class PrototypeRunController(
         completedHeroElapsedSeconds = 0.0
         evaluationReport = null
         mutableEvents.clear()
+        committedRoom = null
         resetToDefensePreparation()
         return true
     }
@@ -309,6 +330,7 @@ class PrototypeRunController(
         completedHeroElapsedSeconds = 0.0
         evaluationReport = null
         mutableEvents.clear()
+        committedRoom = null
     }
 
     private fun newWaveStartController() =

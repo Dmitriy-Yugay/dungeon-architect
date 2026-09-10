@@ -470,7 +470,14 @@ class PrototypeRunControllerTest {
 
         assertTrue(controller.acknowledgeIntelligence())
         assertEquals(PrototypeRunPhase.ROOM_DRAFT, controller.phase)
-        assertTrue(controller.completeRoomDraft())
+        assertTrue(
+            controller.placeRoom(
+                PlacedRoom(
+                    blueprint = draftRoom(),
+                    origin = GridPosition(column = 3, row = 0),
+                ),
+            ),
+        )
         assertEquals(PrototypeRunPhase.DEFENSE_PREPARATION, controller.phase)
         assertTrue(controller.start())
         assertSame(finale, controller.startedWave?.wave)
@@ -508,6 +515,75 @@ class PrototypeRunControllerTest {
         assertEquals(PrototypeRunPhase.RUN_DEFEAT, controller.phase)
         assertEquals(0, controller.currentWaveIndex)
         assertFalse(controller.acknowledgeWaveReport())
+    }
+
+    @Test
+    fun `three-wave run accepts one committed room in each intermission`() {
+        val grid = gridWithPersistentTrap()
+        val wave = wave()
+        val controller = PrototypeRunController(
+            grid = grid,
+            waveContentByPath = mapOf(
+                "content/opening.json" to wave,
+                "content/middle.json" to wave,
+                "content/finale.json" to wave,
+            ),
+            runDefinition = threeWaveRunDefinition(),
+        )
+
+        assertTrue(controller.start())
+        controller.advance(fixedSteps(2))
+        assertTrue(controller.acknowledgeWaveReport())
+        assertTrue(controller.acknowledgeIntelligence())
+        assertEquals(roomOffer(), controller.offeredRoomBlueprintIds)
+        assertFalse(
+            controller.placeRoom(
+                PlacedRoom(
+                    blueprint = draftRoom(id = "not-offered"),
+                    origin = GridPosition(3, 0),
+                ),
+            ),
+        )
+        assertFalse(
+            controller.placeRoom(
+                PlacedRoom(
+                    blueprint = draftRoom(),
+                    origin = GridPosition(1, 0),
+                ),
+            ),
+        )
+        assertEquals(1, grid.placedRooms.size)
+        assertEquals(PrototypeRunPhase.ROOM_DRAFT, controller.phase)
+        val middleRoom = PlacedRoom(
+            blueprint = draftRoom(),
+            origin = GridPosition(3, 0),
+        )
+        assertTrue(controller.placeRoom(middleRoom))
+        assertSame(middleRoom, controller.committedRoom)
+        assertFalse(
+            controller.placeRoom(
+                PlacedRoom(
+                    blueprint = draftRoom(id = "alternate-room"),
+                    origin = GridPosition(4, 0),
+                ),
+            ),
+        )
+        assertFalse(controller.cancelLastPlacedRoom())
+        assertFalse(controller.isCancelEnabled)
+        assertEquals(listOf(middleRoom), grid.placedRooms.takeLast(1))
+
+        assertTrue(controller.start())
+        controller.advance(fixedSteps(2))
+        assertTrue(controller.acknowledgeWaveReport())
+        assertNull(controller.committedRoom)
+        assertTrue(controller.acknowledgeIntelligence())
+        val finalRoom = PlacedRoom(
+            blueprint = draftRoom(id = "alternate-room"),
+            origin = GridPosition(4, 0),
+        )
+        assertTrue(controller.placeRoom(finalRoom))
+        assertSame(finalRoom, controller.committedRoom)
+        assertEquals(listOf(middleRoom, finalRoom), grid.placedRooms.takeLast(2))
     }
 
     @Test
@@ -589,7 +665,7 @@ class PrototypeRunControllerTest {
     }
 
     private fun gridWithPersistentTrap(): DungeonGrid {
-        val grid = gridWithRoute(hasSocket = true)
+        val grid = gridWithRoute(hasSocket = true, width = 5)
         assertTrue(
             grid.placeTrap(
                 room = grid.placedRooms.single(),
@@ -622,6 +698,32 @@ class PrototypeRunControllerTest {
                 id = "finale",
                 contentPath = "content/finale.json",
                 rewardResources = 0,
+                roomOfferBlueprintIds = roomOffer(),
+            ),
+        ),
+        completionCondition = RunCompletionCondition.CLEAR_ALL_WAVES,
+    )
+
+    private fun threeWaveRunDefinition() = PrototypeRunDefinition(
+        heartHealth = 10,
+        startingResources = 0,
+        waves = listOf(
+            RunWaveDefinition(
+                id = "opening",
+                contentPath = "content/opening.json",
+                rewardResources = 0,
+            ),
+            RunWaveDefinition(
+                id = "middle",
+                contentPath = "content/middle.json",
+                rewardResources = 0,
+                roomOfferBlueprintIds = roomOffer(),
+            ),
+            RunWaveDefinition(
+                id = "finale",
+                contentPath = "content/finale.json",
+                rewardResources = 0,
+                roomOfferBlueprintIds = roomOffer(),
             ),
         ),
         completionCondition = RunCompletionCondition.CLEAR_ALL_WAVES,
@@ -638,6 +740,23 @@ class PrototypeRunControllerTest {
         heartDamage = heartDamage,
         movementSpeedTilesPerSecond = 60f,
         traitDescription = "A straightforward melee fighter.",
+    )
+
+    private fun draftRoom(id: String = "draft-room") = RoomBlueprint(
+        id = id,
+        displayName = "Draft Room",
+        footprint = setOf(GridPosition(0, 0)),
+        heartAnchor = GridPosition(0, 0),
+        doors = listOf(
+            RoomDoor(GridPosition(0, 0), CardinalDirection.WEST),
+            RoomDoor(GridPosition(0, 0), CardinalDirection.EAST),
+        ),
+    )
+
+    private fun roomOffer() = listOf(
+        "draft-room",
+        "alternate-room",
+        "corner-room",
     )
 
     private fun gridWithSeparateHeartAndLethalTrap(): DungeonGrid {
@@ -688,6 +807,7 @@ class PrototypeRunControllerTest {
 
     private fun gridWithRoute(
         hasSocket: Boolean = false,
+        width: Int = 3,
     ): DungeonGrid {
         val trapSocket = GridPosition(column = 0, row = 0)
         val heartAnchor = GridPosition(column = 1, row = 0)
@@ -710,7 +830,7 @@ class PrototypeRunControllerTest {
             origin = GridPosition(column = 1, row = 0),
         )
         return DungeonGrid(
-            width = 3,
+            width = width,
             height = 1,
             entrance = GridPosition(column = 0, row = 0),
             placedRooms = listOf(room),

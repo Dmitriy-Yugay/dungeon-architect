@@ -362,7 +362,7 @@ can be judged without offer variance.
     and remaining heart health persist between waves while wave-local hero,
     cooldown, event, and report state resets deterministically; test every
     persistence boundary.
-76. [ ] Add an authored three-room offer for each intermission, allow exactly one
+76. [x] Add an authored three-room offer for each intermission, allow exactly one
     choice and one committed room placement, reject incompatible or additional
     placements, and prove that every authored offer has a legal attachment in
     its intended state.

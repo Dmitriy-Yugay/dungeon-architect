@@ -11,12 +11,22 @@
     {
       "id": "reinforcement-recruits",
       "contentPath": "content/upcoming-hero-wave.json",
-      "rewardResources": 1
+      "rewardResources": 1,
+      "roomOfferBlueprintIds": [
+        "prototype-room",
+        "long-gallery",
+        "corner-room"
+      ]
     },
     {
       "id": "final-recruits",
       "contentPath": "content/upcoming-hero-wave.json",
-      "rewardResources": 0
+      "rewardResources": 0,
+      "roomOfferBlueprintIds": [
+        "corner-room",
+        "prototype-room",
+        "long-gallery"
+      ]
     }
   ]
 }

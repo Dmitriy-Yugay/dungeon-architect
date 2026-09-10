@@ -19,9 +19,17 @@ data class PrototypeRunDefinition(
         require(waves.map(RunWaveDefinition::id).distinct().size == waves.size) {
             "A run's wave IDs must be distinct."
         }
+        require(waves.first().roomOfferBlueprintIds.isEmpty()) {
+            "The opening wave must not have a preceding room offer."
+        }
+        require(waves.drop(1).all { it.roomOfferBlueprintIds.size == ROOM_OFFER_SIZE }) {
+            "Every intermission must offer exactly $ROOM_OFFER_SIZE rooms."
+        }
     }
 
     companion object {
+        const val ROOM_OFFER_SIZE = 3
+
         fun singleWave(
             heartHealth: Int,
             contentPath: String,
@@ -46,6 +54,7 @@ data class RunWaveDefinition(
     val id: String,
     val contentPath: String,
     val rewardResources: Int,
+    val roomOfferBlueprintIds: List<String> = emptyList(),
 ) {
     init {
         require(id.isNotBlank()) {
@@ -56,6 +65,12 @@ data class RunWaveDefinition(
         }
         require(rewardResources >= 0) {
             "A run wave's resource reward must not be negative."
+        }
+        require(roomOfferBlueprintIds.none(String::isBlank)) {
+            "A room offer must not contain a blank blueprint ID."
+        }
+        require(roomOfferBlueprintIds.distinct().size == roomOfferBlueprintIds.size) {
+            "A room offer's blueprint IDs must be distinct."
         }
     }
 }

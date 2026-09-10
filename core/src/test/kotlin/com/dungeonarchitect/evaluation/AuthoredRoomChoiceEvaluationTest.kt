@@ -78,6 +78,11 @@ class AuthoredRoomChoiceEvaluationTest {
                 availableWaveContentPaths = setOf(
                     "content/upcoming-hero-wave.json",
                 ),
+                availableRoomBlueprintIds = setOf(
+                    "prototype-room",
+                    "long-gallery",
+                    "corner-room",
+                ),
             ),
         )
     }

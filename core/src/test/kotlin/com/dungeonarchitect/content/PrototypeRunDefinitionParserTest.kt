@@ -19,8 +19,24 @@ class PrototypeRunDefinitionParserTest {
                 completionCondition = RunCompletionCondition.CLEAR_ALL_WAVES,
                 waves = listOf(
                     wave("opening-recruits", rewardResources = 1),
-                    wave("reinforcement-recruits", rewardResources = 1),
-                    wave("final-recruits", rewardResources = 0),
+                    wave(
+                        "reinforcement-recruits",
+                        rewardResources = 1,
+                        roomOfferBlueprintIds = listOf(
+                            "prototype-room",
+                            "long-gallery",
+                            "corner-room",
+                        ),
+                    ),
+                    wave(
+                        "final-recruits",
+                        rewardResources = 0,
+                        roomOfferBlueprintIds = listOf(
+                            "corner-room",
+                            "prototype-room",
+                            "long-gallery",
+                        ),
+                    ),
                 ),
             ),
             parse(authoredRunJson()),
@@ -69,10 +85,43 @@ class PrototypeRunDefinitionParserTest {
         }
     }
 
+    @Test
+    fun `parser rejects malformed and unknown room offers`() {
+        listOf(
+            "[]",
+            "[\"prototype-room\", \"long-gallery\"]",
+            "[\"prototype-room\", \"prototype-room\", \"corner-room\"]",
+            "[\"prototype-room\", \"long-gallery\", \"missing-room\"]",
+            "[\"prototype-room\", 42, \"corner-room\"]",
+        ).forEach { offer ->
+            val waves = """[
+                {
+                  "id": "opening",
+                  "contentPath": "$WAVE_PATH",
+                  "rewardResources": 1
+                },
+                {
+                  "id": "finale",
+                  "contentPath": "$WAVE_PATH",
+                  "rewardResources": 0,
+                  "roomOfferBlueprintIds": $offer
+                }
+            ]""".trimIndent()
+            assertFailsWith<IllegalArgumentException> {
+                parse(validJson(waves = waves))
+            }
+        }
+    }
+
     private fun parse(json: String): PrototypeRunDefinition =
         PrototypeRunDefinitionParser.parse(
             json = json,
             availableWaveContentPaths = setOf(WAVE_PATH),
+            availableRoomBlueprintIds = setOf(
+                "prototype-room",
+                "long-gallery",
+                "corner-room",
+            ),
         )
 
     private fun validJson(
@@ -99,10 +148,12 @@ class PrototypeRunDefinitionParserTest {
     private fun wave(
         id: String,
         rewardResources: Int,
+        roomOfferBlueprintIds: List<String> = emptyList(),
     ) = RunWaveDefinition(
         id = id,
         contentPath = WAVE_PATH,
         rewardResources = rewardResources,
+        roomOfferBlueprintIds = roomOfferBlueprintIds,
     )
 
     private fun authoredRunJson(): String {

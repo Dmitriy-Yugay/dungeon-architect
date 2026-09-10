@@ -10,6 +10,7 @@ object PrototypeRunDefinitionParser {
     fun parse(
         json: String,
         availableWaveContentPaths: Set<String>,
+        availableRoomBlueprintIds: Set<String>,
     ): PrototypeRunDefinition {
         require(json.isNotBlank()) {
             "Prototype run JSON must not be blank."
@@ -27,6 +28,14 @@ object PrototypeRunDefinitionParser {
             .distinct()
         require(unknownPaths.isEmpty()) {
             "Prototype run references unknown wave content: ${unknownPaths.joinToString()}."
+        }
+        val unknownRoomBlueprintIds = waves
+            .flatMap(RunWaveDefinition::roomOfferBlueprintIds)
+            .filterNot(availableRoomBlueprintIds::contains)
+            .distinct()
+        require(unknownRoomBlueprintIds.isEmpty()) {
+            "Prototype run references unknown room blueprints: " +
+                "${unknownRoomBlueprintIds.joinToString()}."
         }
 
         return PrototypeRunDefinition(
@@ -58,7 +67,27 @@ object PrototypeRunDefinitionParser {
                     "rewardResources",
                     "Prototype run wave $index",
                 ),
+                roomOfferBlueprintIds = item.optionalStringList(
+                    "roomOfferBlueprintIds",
+                    "Prototype run wave $index",
+                ),
             )
+        }
+    }
+
+    private fun JsonValue.optionalStringList(
+        name: String,
+        owner: String,
+    ): List<String> {
+        val value = get(name) ?: return emptyList()
+        require(value.isArray) {
+            "$owner field '$name' must be an array."
+        }
+        return value.mapIndexed { index, item ->
+            require(item.isString) {
+                "$owner field '$name' item $index must be a string."
+            }
+            item.asString()
         }
     }
 

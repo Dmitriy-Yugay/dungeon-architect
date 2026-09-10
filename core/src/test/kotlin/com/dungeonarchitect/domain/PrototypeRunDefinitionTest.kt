@@ -17,6 +17,7 @@ class PrototypeRunDefinitionTest {
                 id = "finale",
                 contentPath = "content/finale.json",
                 rewardResources = 0,
+                roomOfferBlueprintIds = offer(),
             ),
         )
         val definition = PrototypeRunDefinition(
@@ -64,6 +65,32 @@ class PrototypeRunDefinitionTest {
         assertFailsWith<IllegalArgumentException> {
             wave(rewardResources = -1)
         }
+        assertFailsWith<IllegalArgumentException> {
+            wave(roomOfferBlueprintIds = listOf("room", " ", "corner"))
+        }
+        assertFailsWith<IllegalArgumentException> {
+            wave(roomOfferBlueprintIds = listOf("room", "room", "corner"))
+        }
+    }
+
+    @Test
+    fun `run requires one three-room offer before every wave after opening`() {
+        listOf(
+            listOf(wave(roomOfferBlueprintIds = offer())),
+            listOf(wave(), wave("finale")),
+            listOf(wave(), wave("finale", roomOfferBlueprintIds = listOf("a", "b"))),
+        ).forEach { waves ->
+            assertFailsWith<IllegalArgumentException> {
+                definition(waves = waves)
+            }
+        }
+
+        definition(
+            waves = listOf(
+                wave(),
+                wave("finale", roomOfferBlueprintIds = offer()),
+            ),
+        )
     }
 
     private fun definition(
@@ -81,9 +108,13 @@ class PrototypeRunDefinitionTest {
         id: String = "test-wave",
         contentPath: String = "content/test-wave.json",
         rewardResources: Int = 0,
+        roomOfferBlueprintIds: List<String> = emptyList(),
     ) = RunWaveDefinition(
         id = id,
         contentPath = contentPath,
         rewardResources = rewardResources,
+        roomOfferBlueprintIds = roomOfferBlueprintIds,
     )
+
+    private fun offer() = listOf("prototype", "gallery", "corner")
 }

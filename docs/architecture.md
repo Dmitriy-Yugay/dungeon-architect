@@ -109,10 +109,22 @@ This creates the current non-visual flow:
   phases have no successors. The first authored wave begins directly in
   DEFENSE_PREPARATION to preserve the accepted demo entry point. A non-final
   successful report selects the next authored wave and enters INTELLIGENCE;
-  explicit non-rendering acknowledgements then advance through ROOM_DRAFT to
-  DEFENSE_PREPARATION. Single-wave definitions still advance a resolved report
-  directly to the terminal result. Restart is a lifecycle reset rather than a
-  transition within a completed run.
+  acknowledging that briefing enters ROOM_DRAFT. Committing one compatible
+  offered room advances to DEFENSE_PREPARATION. Single-wave definitions still
+  advance a resolved report directly to the terminal result. Restart is a
+  lifecycle reset rather than a transition within a completed run.
+- Author no room offer before the opening wave, then author exactly three
+  distinct room blueprint IDs on every later wave entry as the offer in its
+  preceding intermission. Parsing checks those IDs against the available room
+  catalog. During ROOM_DRAFT, the run controller accepts only a room whose ID is
+  in the active offer and whose placement passes the existing grid topology
+  rules. A successful placement commits the choice, closes the draft, and
+  rejects cancellation or additional room placement during defense preparation.
+  The initial no-offer preparation retains unrestricted construction for the
+  accepted demo. A deterministic 16 x 9 fixture verifies both authored offers:
+  it begins with two connected Long Galleries and chooses a Prototype Room in
+  the first intermission, leaving every offered blueprint legally attachable in
+  each intended state.
 - Run prototype hero movement at a fixed 60 Hz simulation step. Hero movement
   speed remains authored wave content, while presentation-facing grid position
   interpolates the remainder between simulation steps.
@@ -177,9 +189,10 @@ and traps persist as future construction capacity but do not attract heroes,
 split the wave, grant bonuses, or contribute to evaluation. The prototype also
 lacks an authored three-door junction, so branch invariants are covered in the
 domain while the checked-in room catalog currently builds straight and turned
-chains. The controller now advances through ordered authored waves and retains
-the starting resource total, but reward grants, defense spending, room offers,
-and a one-room-per-wave drafting rule remain absent.
+chains. The controller now advances through ordered authored waves, retains the
+starting resource total, and enforces authored one-room intermission drafts.
+Reward grants, defense spending, and the playable intermission interface remain
+absent.
 
 Central asset management, saves, additional platforms, and richer content are
 deferred until their workflows justify the added infrastructure.
