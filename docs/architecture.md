@@ -106,10 +106,12 @@ This creates the current non-visual flow:
   The domain phase type owns the legal transition table: preparation advances
   in that order, every combat result passes through WAVE_REPORT, and the report
   either opens the next wave's intelligence or resolves the run. Terminal
-  phases have no successors. The current single-wave controller begins directly
-  in DEFENSE_PREPARATION and immediately advances a resolved WAVE_REPORT to the
-  terminal result, preserving the accepted demo until multi-wave persistence is
-  implemented. Restart is a lifecycle reset to that initial phase rather than a
+  phases have no successors. The first authored wave begins directly in
+  DEFENSE_PREPARATION to preserve the accepted demo entry point. A non-final
+  successful report selects the next authored wave and enters INTELLIGENCE;
+  explicit non-rendering acknowledgements then advance through ROOM_DRAFT to
+  DEFENSE_PREPARATION. Single-wave definitions still advance a resolved report
+  directly to the terminal result. Restart is a lifecycle reset rather than a
   transition within a completed run.
 - Run prototype hero movement at a fixed 60 Hz simulation step. Hero movement
   speed remains authored wave content, while presentation-facing grid position
@@ -117,10 +119,19 @@ This creates the current non-visual flow:
 - Resolve trap targeting and cooldown on that same fixed step. A trap targets
   the hero occupying its socket's grid cell; hero health, trap damage, and trap
   cooldown remain authored content.
-- Coordinate the prototype run in plain Kotlin. Heroes of the single authored
-  type traverse the route one at a time up to the wave's configured count and
-  share trap cooldown state. Arrivals apply authored heart damage; resolving
-  the wave with heart health remaining is victory, while zero health is defeat.
+- Coordinate the prototype run in plain Kotlin. Resolve the run definition's
+  ordered content references before simulation, and expose the active wave and
+  its stable authored entry from the controller. Heroes traverse each wave one
+  at a time up to its configured count and share trap cooldown state within that
+  wave. Arrivals apply authored heart damage; resolving the final wave with
+  heart health remaining is run victory, while zero health is run defeat.
+- Keep the dungeon grid, placed rooms and traps, selected heart, remaining heart
+  health, and run resource total as persistent run state. Advancing from a
+  successful non-final wave report resets the started-wave snapshot, hero,
+  runtime trap system and cooldowns, event history, evaluation report, resolved
+  hero count, and elapsed-wave counters before presenting the next wave. The
+  next combat snapshots the same persistent dungeon into fresh wave-local
+  runtime state.
 - Restart resets transient wave progress, heart health, hero state, event
   history, and trap cooldowns while preserving the player's room layout, traps,
   and exact selected heart. A restarted wave snapshots a fresh route and trap
@@ -166,8 +177,9 @@ and traps persist as future construction capacity but do not attract heroes,
 split the wave, grant bonuses, or contribute to evaluation. The prototype also
 lacks an authored three-door junction, so branch invariants are covered in the
 domain while the checked-in room catalog currently builds straight and turned
-chains. Multiple waves, rewards, resources, and a one-room-per-wave drafting
-rule are also absent.
+chains. The controller now advances through ordered authored waves and retains
+the starting resource total, but reward grants, defense spending, room offers,
+and a one-room-per-wave drafting rule remain absent.
 
 Central asset management, saves, additional platforms, and richer content are
 deferred until their workflows justify the added infrastructure.

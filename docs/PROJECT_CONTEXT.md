@@ -358,7 +358,7 @@ can be judged without offer variance.
 74. [x] Extend the run phase model with explicit intelligence, room-draft,
     defense-preparation, combat, wave-report, run-victory, and run-defeat states;
     define and test the legal transition table without rendering.
-75. [ ] Make dungeon topology, placed traps, the selected heart, run resources,
+75. [x] Make dungeon topology, placed traps, the selected heart, run resources,
     and remaining heart health persist between waves while wave-local hero,
     cooldown, event, and report state resets deterministically; test every
     persistence boundary.

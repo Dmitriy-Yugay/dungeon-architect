@@ -9,6 +9,8 @@ import com.dungeonarchitect.domain.PrototypeRunPhase
 import com.dungeonarchitect.domain.RoomBlueprint
 import com.dungeonarchitect.domain.RoomDoor
 import com.dungeonarchitect.domain.RoomSocketType
+import com.dungeonarchitect.domain.RunCompletionCondition
+import com.dungeonarchitect.domain.RunWaveDefinition
 import com.dungeonarchitect.domain.TrapDefinition
 import com.dungeonarchitect.domain.UpcomingHeroWave
 import com.dungeonarchitect.evaluation.WaveEvaluationReport
@@ -412,6 +414,127 @@ class PrototypeRunControllerTest {
     }
 
     @Test
+    fun `next authored wave preserves run state and resets every wave-local boundary`() {
+        val grid = gridWithPersistentTrap()
+        val rooms = grid.placedRooms
+        val traps = grid.placedTraps
+        val heart = requireNotNull(grid.placedHeart)
+        val opening = wave(
+            heroType = "opening_recruit",
+            heartDamage = 3,
+        )
+        val finale = wave(
+            heroType = "final_recruit",
+            heartDamage = 3,
+        )
+        val controller = PrototypeRunController(
+            grid = grid,
+            waveContentByPath = mapOf(
+                "content/opening.json" to opening,
+                "content/finale.json" to finale,
+            ),
+            runDefinition = multiWaveRunDefinition(startingResources = 4),
+        )
+
+        assertEquals("opening", controller.currentWaveDefinition.id)
+        assertSame(opening, controller.upcomingWave)
+        assertEquals(4, controller.resources)
+        assertTrue(controller.start())
+        controller.advance(elapsedSeconds = fixedSteps(2))
+
+        assertEquals(PrototypeRunPhase.WAVE_REPORT, controller.phase)
+        assertEquals(7, controller.heartHealth)
+        assertEquals(1, controller.resolvedHeroCount)
+        assertTrue(controller.events.isNotEmpty())
+        assertTrue(controller.events.any { it is TrapActivated })
+        assertTrue(controller.evaluationReport != null)
+        assertTrue(controller.heroState?.hasArrived == true)
+
+        assertTrue(controller.acknowledgeWaveReport())
+
+        assertEquals(PrototypeRunPhase.INTELLIGENCE, controller.phase)
+        assertEquals(1, controller.currentWaveIndex)
+        assertEquals("finale", controller.currentWaveDefinition.id)
+        assertSame(finale, controller.upcomingWave)
+        assertEquals(rooms, grid.placedRooms)
+        assertEquals(traps, grid.placedTraps)
+        assertSame(heart, grid.placedHeart)
+        assertEquals(7, controller.heartHealth)
+        assertEquals(4, controller.resources)
+        assertEquals(0, controller.resolvedHeroCount)
+        assertNull(controller.startedWave)
+        assertNull(controller.heroState)
+        assertEquals(emptyList(), controller.events)
+        assertNull(controller.evaluationReport)
+        assertFalse(controller.isStartEnabled)
+
+        assertTrue(controller.acknowledgeIntelligence())
+        assertEquals(PrototypeRunPhase.ROOM_DRAFT, controller.phase)
+        assertTrue(controller.completeRoomDraft())
+        assertEquals(PrototypeRunPhase.DEFENSE_PREPARATION, controller.phase)
+        assertTrue(controller.start())
+        assertSame(finale, controller.startedWave?.wave)
+        controller.advance(elapsedSeconds = fixedSteps(2))
+
+        assertEquals(PrototypeRunPhase.WAVE_REPORT, controller.phase)
+        assertEquals(4, controller.heartHealth)
+        assertTrue(controller.events.any { it is TrapActivated })
+        assertEquals(
+            2 * FixedStepHeroSimulation.FIXED_STEP_SECONDS,
+            controller.evaluationReport?.elapsedSimulationSeconds,
+        )
+        assertTrue(controller.acknowledgeWaveReport())
+        assertEquals(PrototypeRunPhase.RUN_VICTORY, controller.phase)
+    }
+
+    @Test
+    fun `defeated authored wave reports before ending run without advancing`() {
+        val controller = PrototypeRunController(
+            grid = gridWithRoute(),
+            waveContentByPath = mapOf(
+                "content/opening.json" to wave(heartDamage = 3),
+                "content/finale.json" to wave(heartDamage = 1),
+            ),
+            runDefinition = multiWaveRunDefinition(heartHealth = 2),
+        )
+        assertTrue(controller.start())
+
+        controller.advance(elapsedSeconds = fixedSteps(2))
+
+        assertEquals(PrototypeRunPhase.WAVE_REPORT, controller.phase)
+        assertEquals(WaveOutcome.DEFEAT, controller.evaluationReport?.outcome)
+        assertEquals(0, controller.currentWaveIndex)
+        assertTrue(controller.acknowledgeWaveReport())
+        assertEquals(PrototypeRunPhase.RUN_DEFEAT, controller.phase)
+        assertEquals(0, controller.currentWaveIndex)
+        assertFalse(controller.acknowledgeWaveReport())
+    }
+
+    @Test
+    fun `authored run rejects missing wave content before simulation`() {
+        kotlin.test.assertFailsWith<IllegalArgumentException> {
+            PrototypeRunController(
+                grid = gridWithRoute(),
+                waveContentByPath = mapOf(
+                    "content/opening.json" to wave(),
+                ),
+                runDefinition = multiWaveRunDefinition(),
+            )
+        }
+    }
+
+    @Test
+    fun `single-wave compatibility constructor rejects distinct authored content paths`() {
+        kotlin.test.assertFailsWith<IllegalArgumentException> {
+            PrototypeRunController(
+                grid = gridWithRoute(),
+                upcomingWave = wave(),
+                runDefinition = multiWaveRunDefinition(),
+            )
+        }
+    }
+
+    @Test
     fun `run rejects invalid elapsed time and restart before an outcome`() {
         val controller = controller(grid = gridWithRoute(), heroCount = 1)
 
@@ -464,6 +587,58 @@ class PrototypeRunControllerTest {
         )
         return grid
     }
+
+    private fun gridWithPersistentTrap(): DungeonGrid {
+        val grid = gridWithRoute(hasSocket = true)
+        assertTrue(
+            grid.placeTrap(
+                room = grid.placedRooms.single(),
+                localSocketPosition = GridPosition(column = 0, row = 0),
+                definition = TrapDefinition(
+                    id = "persistent_spike",
+                    displayName = "Persistent Spike",
+                    damage = 1,
+                    cooldownSeconds = 10f,
+                    compatibleSocketTypes = setOf(RoomSocketType.FLOOR),
+                ),
+            ),
+        )
+        return grid
+    }
+
+    private fun multiWaveRunDefinition(
+        heartHealth: Int = 10,
+        startingResources: Int = 0,
+    ) = PrototypeRunDefinition(
+        heartHealth = heartHealth,
+        startingResources = startingResources,
+        waves = listOf(
+            RunWaveDefinition(
+                id = "opening",
+                contentPath = "content/opening.json",
+                rewardResources = 1,
+            ),
+            RunWaveDefinition(
+                id = "finale",
+                contentPath = "content/finale.json",
+                rewardResources = 0,
+            ),
+        ),
+        completionCondition = RunCompletionCondition.CLEAR_ALL_WAVES,
+    )
+
+    private fun wave(
+        heroType: String = "militia_recruit",
+        heartDamage: Int = 1,
+    ) = UpcomingHeroWave(
+        heroType = heroType,
+        heroDisplayName = "Militia Recruit",
+        count = 1,
+        heroHealth = 5,
+        heartDamage = heartDamage,
+        movementSpeedTilesPerSecond = 60f,
+        traitDescription = "A straightforward melee fighter.",
+    )
 
     private fun gridWithSeparateHeartAndLethalTrap(): DungeonGrid {
         val trapSocket = GridPosition(column = 0, row = 0)

@@ -5,6 +5,7 @@ import com.dungeonarchitect.domain.PlacedRoom
 import com.dungeonarchitect.domain.PrototypeHeroState
 import com.dungeonarchitect.domain.PrototypeRunDefinition
 import com.dungeonarchitect.domain.PrototypeRunPhase
+import com.dungeonarchitect.domain.RunWaveDefinition
 import com.dungeonarchitect.domain.StartedHeroWave
 import com.dungeonarchitect.domain.UpcomingHeroWave
 import com.dungeonarchitect.evaluation.WaveEvaluationReport
@@ -19,10 +20,22 @@ import kotlin.math.ceil
 
 class PrototypeRunController(
     private val grid: DungeonGrid,
-    private val upcomingWave: UpcomingHeroWave,
+    waveContentByPath: Map<String, UpcomingHeroWave>,
     runDefinition: PrototypeRunDefinition,
 ) {
-    private val waveStartController = WaveStartController(grid, upcomingWave)
+    private val authoredWaves = runDefinition.waves.map { definition ->
+        AuthoredWave(
+            definition = definition,
+            wave = requireNotNull(waveContentByPath[definition.contentPath]) {
+                "Missing authored wave content '${definition.contentPath}'."
+            },
+        )
+    }
+
+    var currentWaveIndex: Int = 0
+        private set
+
+    private var waveStartController = newWaveStartController()
     private var heroSimulation: FixedStepHeroSimulation? = null
     private var trapSystem: DeterministicTrapSystem? = null
     private val mutableEvents = mutableListOf<SimulationEvent>()
@@ -31,11 +44,19 @@ class PrototypeRunController(
 
     val heartMaxHealth: Int = runDefinition.heartHealth
 
+    val currentWaveDefinition: RunWaveDefinition
+        get() = currentAuthoredWave.definition
+
+    val upcomingWave: UpcomingHeroWave
+        get() = currentAuthoredWave.wave
+
     var phase: PrototypeRunPhase = PrototypeRunPhase.DEFENSE_PREPARATION
         private set
 
     var heartHealth: Int = heartMaxHealth
         private set
+
+    val resources: Int = runDefinition.startingResources
 
     var resolvedHeroCount: Int = 0
         private set
@@ -51,6 +72,22 @@ class PrototypeRunController(
 
     var evaluationReport: WaveEvaluationReport? = null
         private set
+
+    private val currentAuthoredWave: AuthoredWave
+        get() = authoredWaves[currentWaveIndex]
+
+    constructor(
+        grid: DungeonGrid,
+        upcomingWave: UpcomingHeroWave,
+        runDefinition: PrototypeRunDefinition,
+    ) : this(
+        grid = grid,
+        waveContentByPath = singleWaveContentCatalog(
+            runDefinition = runDefinition,
+            upcomingWave = upcomingWave,
+        ),
+        runDefinition = runDefinition,
+    )
 
     val isStartEnabled: Boolean
         get() = phase == PrototypeRunPhase.DEFENSE_PREPARATION &&
@@ -96,6 +133,43 @@ class PrototypeRunController(
         }
 
         return grid.placeOrRelocateHeart(room)
+    }
+
+    fun acknowledgeWaveReport(): Boolean {
+        if (phase != PrototypeRunPhase.WAVE_REPORT) {
+            return false
+        }
+
+        val outcome = requireNotNull(evaluationReport).outcome
+        if (outcome == WaveOutcome.DEFEAT) {
+            transitionTo(PrototypeRunPhase.RUN_DEFEAT)
+            return true
+        }
+        if (currentWaveIndex == authoredWaves.lastIndex) {
+            transitionTo(PrototypeRunPhase.RUN_VICTORY)
+            return true
+        }
+
+        currentWaveIndex++
+        resetWaveLocalState()
+        transitionTo(PrototypeRunPhase.INTELLIGENCE)
+        return true
+    }
+
+    fun acknowledgeIntelligence(): Boolean {
+        if (phase != PrototypeRunPhase.INTELLIGENCE) {
+            return false
+        }
+        transitionTo(PrototypeRunPhase.ROOM_DRAFT)
+        return true
+    }
+
+    fun completeRoomDraft(): Boolean {
+        if (phase != PrototypeRunPhase.ROOM_DRAFT) {
+            return false
+        }
+        transitionTo(PrototypeRunPhase.DEFENSE_PREPARATION)
+        return true
     }
 
     fun advance(elapsedSeconds: Float) {
@@ -169,7 +243,6 @@ class PrototypeRunController(
             if (heartHealth == 0) {
                 resolveWave(
                     waveOutcome = WaveOutcome.DEFEAT,
-                    runOutcome = PrototypeRunPhase.RUN_DEFEAT,
                 )
                 return
             }
@@ -178,7 +251,6 @@ class PrototypeRunController(
         if (resolvedHeroCount == upcomingWave.count) {
             resolveWave(
                 waveOutcome = WaveOutcome.VICTORY,
-                runOutcome = PrototypeRunPhase.RUN_VICTORY,
             )
         }
     }
@@ -203,7 +275,6 @@ class PrototypeRunController(
 
     private fun resolveWave(
         waveOutcome: WaveOutcome,
-        runOutcome: PrototypeRunPhase,
     ) {
         transitionTo(PrototypeRunPhase.WAVE_REPORT)
         recordEvent(
@@ -213,7 +284,9 @@ class PrototypeRunController(
             ),
         )
         recordEvaluationReport()
-        transitionTo(runOutcome)
+        if (authoredWaves.size == 1) {
+            acknowledgeWaveReport()
+        }
     }
 
     private fun transitionTo(next: PrototypeRunPhase) {
@@ -226,6 +299,20 @@ class PrototypeRunController(
     private fun resetToDefensePreparation() {
         phase = PrototypeRunPhase.DEFENSE_PREPARATION
     }
+
+    private fun resetWaveLocalState() {
+        waveStartController = newWaveStartController()
+        heroSimulation = null
+        trapSystem = null
+        resolvedHeroCount = 0
+        currentHeroElapsedSeconds = 0.0
+        completedHeroElapsedSeconds = 0.0
+        evaluationReport = null
+        mutableEvents.clear()
+    }
+
+    private fun newWaveStartController() =
+        WaveStartController(grid, upcomingWave)
 
     private fun newHeroSimulation(
         wave: StartedHeroWave,
@@ -243,5 +330,24 @@ class PrototypeRunController(
     private companion object {
         const val TIME_TOLERANCE = 1e-12
         const val COMPLETED_STEP_TOLERANCE = 1e-4
+
+        fun singleWaveContentCatalog(
+            runDefinition: PrototypeRunDefinition,
+            upcomingWave: UpcomingHeroWave,
+        ): Map<String, UpcomingHeroWave> {
+            val contentPaths = runDefinition.waves
+                .map(RunWaveDefinition::contentPath)
+                .distinct()
+            require(contentPaths.size == 1) {
+                "The single-wave controller constructor cannot resolve " +
+                    "multiple authored wave content paths."
+            }
+            return mapOf(contentPaths.single() to upcomingWave)
+        }
     }
 }
+
+private data class AuthoredWave(
+    val definition: RunWaveDefinition,
+    val wave: UpcomingHeroWave,
+)

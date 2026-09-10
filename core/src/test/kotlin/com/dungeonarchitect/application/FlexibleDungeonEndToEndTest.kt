@@ -4,6 +4,7 @@ import com.dungeonarchitect.domain.BuildState
 import com.dungeonarchitect.domain.CardinalDirection
 import com.dungeonarchitect.domain.DungeonGrid
 import com.dungeonarchitect.domain.GridPosition
+import com.dungeonarchitect.domain.PrototypeRunDefinition
 import com.dungeonarchitect.domain.PrototypeRunPhase
 import com.dungeonarchitect.domain.RoomOrientation
 import com.dungeonarchitect.presentation.ControlBounds
@@ -258,6 +259,7 @@ class FlexibleDungeonEndToEndTest {
 
     private fun fixture(): Fixture {
         val buildState = PrototypeScreen.loadBuildState(::readInternalText)
+        val authoredRun = PrototypeScreen.loadRunDefinition(::readInternalText)
         val grid = DungeonGrid(
             width = 16,
             height = 9,
@@ -270,7 +272,12 @@ class FlexibleDungeonEndToEndTest {
             controller = PrototypeRunController(
                 grid = grid,
                 upcomingWave = PrototypeScreen.loadUpcomingWave(::readInternalText),
-                runDefinition = PrototypeScreen.loadRunDefinition(::readInternalText),
+                runDefinition = PrototypeRunDefinition.singleWave(
+                    heartHealth = authoredRun.heartHealth,
+                    contentPath = authoredRun.waves.first().contentPath,
+                    startingResources = authoredRun.startingResources,
+                    rewardResources = authoredRun.waves.first().rewardResources,
+                ),
             ),
         )
     }
