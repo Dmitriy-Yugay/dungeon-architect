@@ -15,13 +15,13 @@ class PrototypeRunDefinitionParserTest {
         assertEquals(
             PrototypeRunDefinition(
                 heartHealth = 10,
-                startingResources = 2,
+                startingGold = 2,
                 completionCondition = RunCompletionCondition.CLEAR_ALL_WAVES,
                 waves = listOf(
-                    wave("opening-recruits", rewardResources = 1),
+                    wave("opening-recruits", rewardGold = 1),
                     wave(
                         "reinforcement-recruits",
-                        rewardResources = 1,
+                        rewardGold = 1,
                         roomOfferBlueprintIds = listOf(
                             "prototype-room",
                             "long-gallery",
@@ -30,7 +30,7 @@ class PrototypeRunDefinitionParserTest {
                     ),
                     wave(
                         "final-recruits",
-                        rewardResources = 0,
+                        rewardGold = 0,
                         roomOfferBlueprintIds = listOf(
                             "corner-room",
                             "prototype-room",
@@ -50,13 +50,25 @@ class PrototypeRunDefinitionParserTest {
                 parse(validJson(heartHealth = health))
             }
         }
-        listOf("-1", "2.5", "\"many\"").forEach { resources ->
+        listOf("-1", "2.5", "\"many\"").forEach { gold ->
             assertFailsWith<IllegalArgumentException> {
-                parse(validJson(startingResources = resources))
+                parse(validJson(startingGold = gold))
             }
             assertFailsWith<IllegalArgumentException> {
-                parse(validJson(rewardResources = resources))
+                parse(validJson(rewardGold = gold))
             }
+        }
+    }
+
+    @Test
+    fun `parser rejects an authored Gold total that overflows an Int`() {
+        assertFailsWith<IllegalArgumentException> {
+            parse(
+                validJson(
+                    startingGold = Int.MAX_VALUE.toString(),
+                    rewardGold = "1",
+                ),
+            )
         }
     }
 
@@ -64,12 +76,12 @@ class PrototypeRunDefinitionParserTest {
     fun `parser rejects missing duplicate and malformed wave references`() {
         listOf(
             "[]",
-            """[{"id":" ","contentPath":"$WAVE_PATH","rewardResources":0}]""",
-            """[{"id":"wave","contentPath":" ","rewardResources":0}]""",
-            """[{"id":"wave","contentPath":"content/missing.json","rewardResources":0}]""",
+            """[{"id":" ","contentPath":"$WAVE_PATH","rewardGold":0}]""",
+            """[{"id":"wave","contentPath":" ","rewardGold":0}]""",
+            """[{"id":"wave","contentPath":"content/missing.json","rewardGold":0}]""",
             """[
-                {"id":"duplicate","contentPath":"$WAVE_PATH","rewardResources":0},
-                {"id":"duplicate","contentPath":"$WAVE_PATH","rewardResources":0}
+                {"id":"duplicate","contentPath":"$WAVE_PATH","rewardGold":0},
+                {"id":"duplicate","contentPath":"$WAVE_PATH","rewardGold":0}
             ]""".trimIndent(),
         ).forEach { waves ->
             assertFailsWith<IllegalArgumentException> {
@@ -98,12 +110,12 @@ class PrototypeRunDefinitionParserTest {
                 {
                   "id": "opening",
                   "contentPath": "$WAVE_PATH",
-                  "rewardResources": 1
+                  "rewardGold": 1
                 },
                 {
                   "id": "finale",
                   "contentPath": "$WAVE_PATH",
-                  "rewardResources": 0,
+                  "rewardGold": 0,
                   "roomOfferBlueprintIds": $offer
                 }
             ]""".trimIndent()
@@ -126,20 +138,20 @@ class PrototypeRunDefinitionParserTest {
 
     private fun validJson(
         heartHealth: String = "10",
-        startingResources: String = "2",
-        rewardResources: String = "1",
+        startingGold: String = "2",
+        rewardGold: String = "1",
         completionCondition: String = "clear_all_waves",
         waves: String = """[
             {
               "id": "opening",
               "contentPath": "$WAVE_PATH",
-              "rewardResources": $rewardResources
+              "rewardGold": $rewardGold
             }
         ]""".trimIndent(),
     ) = """
         {
           "heartHealth": $heartHealth,
-          "startingResources": $startingResources,
+          "startingGold": $startingGold,
           "completionCondition": "$completionCondition",
           "waves": $waves
         }
@@ -147,12 +159,12 @@ class PrototypeRunDefinitionParserTest {
 
     private fun wave(
         id: String,
-        rewardResources: Int,
+        rewardGold: Int,
         roomOfferBlueprintIds: List<String> = emptyList(),
     ) = RunWaveDefinition(
         id = id,
         contentPath = WAVE_PATH,
-        rewardResources = rewardResources,
+        rewardGold = rewardGold,
         roomOfferBlueprintIds = roomOfferBlueprintIds,
     )
 

@@ -352,13 +352,13 @@ schedule should be authored rather than randomized so the cadence and economy
 can be judged without offer variance.
 
 73. [x] Add a validated, data-authored multi-wave run definition containing an
-    ordered wave list, starting resources, reward values, and run-completion
+    ordered wave list, starting Gold, Gold reward values, and run-completion
     conditions; keep balancing values out of Kotlin and test invalid references
     and boundary values.
 74. [x] Extend the run phase model with explicit intelligence, room-draft,
     defense-preparation, combat, wave-report, run-victory, and run-defeat states;
     define and test the legal transition table without rendering.
-75. [x] Make dungeon topology, placed traps, the selected heart, run resources,
+75. [x] Make dungeon topology, placed traps, the selected heart, run Gold,
     and remaining heart health persist between waves while wave-local hero,
     cooldown, event, and report state resets deterministically; test every
     persistence boundary.
@@ -366,7 +366,7 @@ can be judged without offer variance.
     choice and one committed room placement, reject incompatible or additional
     placements, and prove that every authored offer has a legal attachment in
     its intended state.
-77. [ ] Add one plainly named run resource, data-authored defense costs and wave
+77. [x] Add one plainly named run resource, data-authored defense costs and wave
     rewards, and domain operations for affordable purchase and reward grants;
     test exact-cost, insufficient-funds, duplicate-spend, and phase rules.
 78. [ ] Present the full intermission cadence in the playable screen:

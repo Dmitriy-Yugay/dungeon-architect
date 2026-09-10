@@ -24,6 +24,7 @@ object TrapDefinitionParser {
             compatibleSocketTypes = root.requiredStringArray(
                 "compatibleSocketTypes",
             ).mapTo(mutableSetOf(), ::parseSocketType),
+            costGold = root.requiredInt("costGold"),
         )
     }
 

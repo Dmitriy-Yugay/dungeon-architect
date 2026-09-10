@@ -1,12 +1,14 @@
 package com.dungeonarchitect.application
 
 import com.dungeonarchitect.domain.DungeonGrid
+import com.dungeonarchitect.domain.GridPosition
 import com.dungeonarchitect.domain.PlacedRoom
 import com.dungeonarchitect.domain.PrototypeHeroState
 import com.dungeonarchitect.domain.PrototypeRunDefinition
 import com.dungeonarchitect.domain.PrototypeRunPhase
 import com.dungeonarchitect.domain.RunWaveDefinition
 import com.dungeonarchitect.domain.StartedHeroWave
+import com.dungeonarchitect.domain.TrapDefinition
 import com.dungeonarchitect.domain.UpcomingHeroWave
 import com.dungeonarchitect.evaluation.WaveEvaluationReport
 import com.dungeonarchitect.simulation.DeterministicTrapSystem
@@ -21,7 +23,7 @@ import kotlin.math.ceil
 class PrototypeRunController(
     private val grid: DungeonGrid,
     waveContentByPath: Map<String, UpcomingHeroWave>,
-    runDefinition: PrototypeRunDefinition,
+    private val runDefinition: PrototypeRunDefinition,
 ) {
     private val authoredWaves = runDefinition.waves.map { definition ->
         AuthoredWave(
@@ -56,7 +58,11 @@ class PrototypeRunController(
     var heartHealth: Int = heartMaxHealth
         private set
 
-    val resources: Int = runDefinition.startingResources
+    var gold: Int = runDefinition.startingGold
+        private set
+
+    var isWaveRewardClaimed: Boolean = false
+        private set
 
     var committedRoom: PlacedRoom? = null
         private set
@@ -133,7 +139,17 @@ class PrototypeRunController(
             return false
         }
 
-        return grid.cancelLastPlacedRoom()
+        val newestRoom = grid.placedRooms.lastOrNull() ?: return false
+        val refundableGold = grid.placedTraps
+            .asSequence()
+            .filter { it.room === newestRoom }
+            .sumOf { it.definition.costGold }
+        if (!grid.cancelLastPlacedRoom()) {
+            return false
+        }
+
+        gold += refundableGold
+        return true
     }
 
     fun placeOrRelocateHeart(room: PlacedRoom): Boolean {
@@ -163,6 +179,39 @@ class PrototypeRunController(
         return true
     }
 
+    fun purchaseDefense(
+        room: PlacedRoom,
+        localSocketPosition: GridPosition,
+        definition: TrapDefinition,
+    ): Boolean {
+        if (phase != PrototypeRunPhase.DEFENSE_PREPARATION ||
+            gold < definition.costGold ||
+            !grid.placeTrap(
+                room = room,
+                localSocketPosition = localSocketPosition,
+                definition = definition,
+            )
+        ) {
+            return false
+        }
+
+        gold -= definition.costGold
+        return true
+    }
+
+    fun claimWaveReward(): Boolean {
+        if (phase != PrototypeRunPhase.WAVE_REPORT ||
+            evaluationReport?.outcome != WaveOutcome.VICTORY ||
+            isWaveRewardClaimed
+        ) {
+            return false
+        }
+
+        gold += currentWaveDefinition.rewardGold
+        isWaveRewardClaimed = true
+        return true
+    }
+
     fun acknowledgeWaveReport(): Boolean {
         if (phase != PrototypeRunPhase.WAVE_REPORT) {
             return false
@@ -172,6 +221,9 @@ class PrototypeRunController(
         if (outcome == WaveOutcome.DEFEAT) {
             transitionTo(PrototypeRunPhase.RUN_DEFEAT)
             return true
+        }
+        if (!isWaveRewardClaimed) {
+            return false
         }
         if (currentWaveIndex == authoredWaves.lastIndex) {
             transitionTo(PrototypeRunPhase.RUN_VICTORY)
@@ -240,6 +292,8 @@ class PrototypeRunController(
         evaluationReport = null
         mutableEvents.clear()
         committedRoom = null
+        gold = runDefinition.startingGold
+        isWaveRewardClaimed = false
         resetToDefensePreparation()
         return true
     }
@@ -306,6 +360,9 @@ class PrototypeRunController(
         )
         recordEvaluationReport()
         if (authoredWaves.size == 1) {
+            if (waveOutcome == WaveOutcome.VICTORY) {
+                check(claimWaveReward())
+            }
             acknowledgeWaveReport()
         }
     }
@@ -331,6 +388,7 @@ class PrototypeRunController(
         evaluationReport = null
         mutableEvents.clear()
         committedRoom = null
+        isWaveRewardClaimed = false
     }
 
     private fun newWaveStartController() =

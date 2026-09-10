@@ -275,8 +275,8 @@ class FlexibleDungeonEndToEndTest {
                 runDefinition = PrototypeRunDefinition.singleWave(
                     heartHealth = authoredRun.heartHealth,
                     contentPath = authoredRun.waves.first().contentPath,
-                    startingResources = authoredRun.startingResources,
-                    rewardResources = authoredRun.waves.first().rewardResources,
+                    startingGold = authoredRun.startingGold,
+                    rewardGold = authoredRun.waves.first().rewardGold,
                 ),
             ),
         )

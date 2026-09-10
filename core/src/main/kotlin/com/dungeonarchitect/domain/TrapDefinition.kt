@@ -6,6 +6,7 @@ class TrapDefinition(
     val damage: Int,
     val cooldownSeconds: Float,
     compatibleSocketTypes: Set<RoomSocketType>,
+    val costGold: Int = 0,
 ) {
     val compatibleSocketTypes: Set<RoomSocketType> =
         compatibleSocketTypes.toSet()
@@ -22,6 +23,9 @@ class TrapDefinition(
         }
         require(cooldownSeconds.isFinite() && cooldownSeconds > 0f) {
             "A trap definition's cooldown must be finite and positive."
+        }
+        require(costGold >= 0) {
+            "A trap definition's Gold cost must not be negative."
         }
         require(this.compatibleSocketTypes.isNotEmpty()) {
             "A trap definition must support at least one room socket type."

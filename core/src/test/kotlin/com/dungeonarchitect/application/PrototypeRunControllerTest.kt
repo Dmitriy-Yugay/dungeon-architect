@@ -414,6 +414,120 @@ class PrototypeRunControllerTest {
     }
 
     @Test
+    fun `defense purchase succeeds at exact cost and spends Gold once`() {
+        val grid = gridWithRoute(hasSocket = true)
+        val room = grid.placedRooms.single()
+        val controller = controllerWithGold(grid, startingGold = 2)
+        val trap = defense(costGold = 2)
+
+        assertTrue(
+            controller.purchaseDefense(room, GridPosition(0, 0), trap),
+        )
+        assertEquals(0, controller.gold)
+        assertEquals(1, grid.placedTraps.size)
+
+        assertFalse(
+            controller.purchaseDefense(room, GridPosition(0, 0), trap),
+        )
+        assertEquals(0, controller.gold)
+        assertEquals(1, grid.placedTraps.size)
+
+        assertTrue(controller.cancelLastPlacedRoom())
+        assertEquals(2, controller.gold)
+        assertEquals(emptyList(), grid.placedTraps)
+    }
+
+    @Test
+    fun `unaffordable and wrong-phase defense purchases are atomic`() {
+        val unaffordableGrid = gridWithRoute(hasSocket = true)
+        val unaffordable = controllerWithGold(
+            grid = unaffordableGrid,
+            startingGold = 1,
+        )
+        assertFalse(
+            unaffordable.purchaseDefense(
+                unaffordableGrid.placedRooms.single(),
+                GridPosition(0, 0),
+                defense(costGold = 2),
+            ),
+        )
+        assertEquals(1, unaffordable.gold)
+        assertEquals(emptyList(), unaffordableGrid.placedTraps)
+
+        val combatGrid = gridWithRoute(hasSocket = true)
+        val combat = controllerWithGold(combatGrid, startingGold = 2)
+        assertTrue(combat.start())
+        assertFalse(
+            combat.purchaseDefense(
+                combatGrid.placedRooms.single(),
+                GridPosition(0, 0),
+                defense(costGold = 2),
+            ),
+        )
+        assertEquals(2, combat.gold)
+        assertEquals(emptyList(), combatGrid.placedTraps)
+    }
+
+    @Test
+    fun `victory reward is claimable once only from its wave report`() {
+        val grid = gridWithPersistentTrap()
+        val controller = PrototypeRunController(
+            grid = grid,
+            waveContentByPath = mapOf(
+                "content/opening.json" to wave(),
+                "content/finale.json" to wave(),
+            ),
+            runDefinition = multiWaveRunDefinition(startingGold = 4),
+        )
+
+        assertFalse(controller.claimWaveReward())
+        assertTrue(controller.start())
+        assertFalse(controller.claimWaveReward())
+        controller.advance(fixedSteps(2))
+        assertEquals(PrototypeRunPhase.WAVE_REPORT, controller.phase)
+        assertFalse(controller.acknowledgeWaveReport())
+        assertEquals(4, controller.gold)
+
+        assertTrue(controller.claimWaveReward())
+        assertEquals(5, controller.gold)
+        assertTrue(controller.isWaveRewardClaimed)
+        assertFalse(controller.claimWaveReward())
+        assertEquals(5, controller.gold)
+
+        assertTrue(controller.acknowledgeWaveReport())
+        assertEquals(PrototypeRunPhase.INTELLIGENCE, controller.phase)
+        assertFalse(controller.isWaveRewardClaimed)
+        assertFalse(controller.claimWaveReward())
+        assertEquals(5, controller.gold)
+    }
+
+    @Test
+    fun `defeat report cannot grant a wave reward`() {
+        val grid = gridWithRoute()
+        val controller = PrototypeRunController(
+            grid = grid,
+            waveContentByPath = mapOf(
+                "content/opening.json" to wave(heartDamage = 3),
+                "content/finale.json" to wave(),
+            ),
+            runDefinition = multiWaveRunDefinition(
+                heartHealth = 2,
+                startingGold = 4,
+            ),
+        )
+        assertTrue(controller.start())
+        controller.advance(fixedSteps(2))
+
+        assertEquals(PrototypeRunPhase.WAVE_REPORT, controller.phase)
+        assertEquals(WaveOutcome.DEFEAT, controller.evaluationReport?.outcome)
+        assertFalse(controller.claimWaveReward())
+        assertEquals(4, controller.gold)
+        assertTrue(controller.acknowledgeWaveReport())
+        assertEquals(PrototypeRunPhase.RUN_DEFEAT, controller.phase)
+        assertFalse(controller.claimWaveReward())
+    }
+
+    @Test
     fun `next authored wave preserves run state and resets every wave-local boundary`() {
         val grid = gridWithPersistentTrap()
         val rooms = grid.placedRooms
@@ -433,12 +547,12 @@ class PrototypeRunControllerTest {
                 "content/opening.json" to opening,
                 "content/finale.json" to finale,
             ),
-            runDefinition = multiWaveRunDefinition(startingResources = 4),
+            runDefinition = multiWaveRunDefinition(startingGold = 4),
         )
 
         assertEquals("opening", controller.currentWaveDefinition.id)
         assertSame(opening, controller.upcomingWave)
-        assertEquals(4, controller.resources)
+        assertEquals(4, controller.gold)
         assertTrue(controller.start())
         controller.advance(elapsedSeconds = fixedSteps(2))
 
@@ -450,6 +564,7 @@ class PrototypeRunControllerTest {
         assertTrue(controller.evaluationReport != null)
         assertTrue(controller.heroState?.hasArrived == true)
 
+        assertTrue(controller.claimWaveReward())
         assertTrue(controller.acknowledgeWaveReport())
 
         assertEquals(PrototypeRunPhase.INTELLIGENCE, controller.phase)
@@ -460,7 +575,7 @@ class PrototypeRunControllerTest {
         assertEquals(traps, grid.placedTraps)
         assertSame(heart, grid.placedHeart)
         assertEquals(7, controller.heartHealth)
-        assertEquals(4, controller.resources)
+        assertEquals(5, controller.gold)
         assertEquals(0, controller.resolvedHeroCount)
         assertNull(controller.startedWave)
         assertNull(controller.heroState)
@@ -490,6 +605,7 @@ class PrototypeRunControllerTest {
             2 * FixedStepHeroSimulation.FIXED_STEP_SECONDS,
             controller.evaluationReport?.elapsedSimulationSeconds,
         )
+        assertTrue(controller.claimWaveReward())
         assertTrue(controller.acknowledgeWaveReport())
         assertEquals(PrototypeRunPhase.RUN_VICTORY, controller.phase)
     }
@@ -533,6 +649,7 @@ class PrototypeRunControllerTest {
 
         assertTrue(controller.start())
         controller.advance(fixedSteps(2))
+        assertTrue(controller.claimWaveReward())
         assertTrue(controller.acknowledgeWaveReport())
         assertTrue(controller.acknowledgeIntelligence())
         assertEquals(roomOffer(), controller.offeredRoomBlueprintIds)
@@ -574,6 +691,7 @@ class PrototypeRunControllerTest {
 
         assertTrue(controller.start())
         controller.advance(fixedSteps(2))
+        assertTrue(controller.claimWaveReward())
         assertTrue(controller.acknowledgeWaveReport())
         assertNull(controller.committedRoom)
         assertTrue(controller.acknowledgeIntelligence())
@@ -646,6 +764,28 @@ class PrototypeRunControllerTest {
         ),
     )
 
+    private fun controllerWithGold(
+        grid: DungeonGrid,
+        startingGold: Int,
+    ) = PrototypeRunController(
+        grid = grid,
+        upcomingWave = wave(),
+        runDefinition = PrototypeRunDefinition.singleWave(
+            heartHealth = 10,
+            contentPath = "test-wave.json",
+            startingGold = startingGold,
+        ),
+    )
+
+    private fun defense(costGold: Int) = TrapDefinition(
+        id = "purchased_spike",
+        displayName = "Purchased Spike",
+        damage = 5,
+        cooldownSeconds = 0.25f,
+        compatibleSocketTypes = setOf(RoomSocketType.FLOOR),
+        costGold = costGold,
+    )
+
     private fun gridWithLethalTrap(): DungeonGrid {
         val grid = gridWithRoute(hasSocket = true)
         assertTrue(
@@ -684,20 +824,20 @@ class PrototypeRunControllerTest {
 
     private fun multiWaveRunDefinition(
         heartHealth: Int = 10,
-        startingResources: Int = 0,
+        startingGold: Int = 0,
     ) = PrototypeRunDefinition(
         heartHealth = heartHealth,
-        startingResources = startingResources,
+        startingGold = startingGold,
         waves = listOf(
             RunWaveDefinition(
                 id = "opening",
                 contentPath = "content/opening.json",
-                rewardResources = 1,
+                rewardGold = 1,
             ),
             RunWaveDefinition(
                 id = "finale",
                 contentPath = "content/finale.json",
-                rewardResources = 0,
+                rewardGold = 0,
                 roomOfferBlueprintIds = roomOffer(),
             ),
         ),
@@ -706,23 +846,23 @@ class PrototypeRunControllerTest {
 
     private fun threeWaveRunDefinition() = PrototypeRunDefinition(
         heartHealth = 10,
-        startingResources = 0,
+        startingGold = 0,
         waves = listOf(
             RunWaveDefinition(
                 id = "opening",
                 contentPath = "content/opening.json",
-                rewardResources = 0,
+                rewardGold = 0,
             ),
             RunWaveDefinition(
                 id = "middle",
                 contentPath = "content/middle.json",
-                rewardResources = 0,
+                rewardGold = 0,
                 roomOfferBlueprintIds = roomOffer(),
             ),
             RunWaveDefinition(
                 id = "finale",
                 contentPath = "content/finale.json",
-                rewardResources = 0,
+                rewardGold = 0,
                 roomOfferBlueprintIds = roomOffer(),
             ),
         ),

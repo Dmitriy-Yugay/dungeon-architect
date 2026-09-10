@@ -320,7 +320,8 @@ class PrototypeScreenTest {
                   "displayName": "Spike Trap",
                   "damage": 5,
                   "cooldownSeconds": 0.25,
-                  "compatibleSocketTypes": ["floor"]
+                  "compatibleSocketTypes": ["floor"],
+                  "costGold": 1
                 }
             """.trimIndent()
         }
@@ -339,13 +340,13 @@ class PrototypeScreenTest {
             """
                 {
                   "heartHealth": 10,
-                  "startingResources": 2,
+                  "startingGold": 2,
                   "completionCondition": "clear_all_waves",
                   "waves": [
                     {
                       "id": "opening",
                       "contentPath": "content/upcoming-hero-wave.json",
-                      "rewardResources": 1
+                      "rewardGold": 1
                     }
                   ]
                 }
@@ -354,7 +355,7 @@ class PrototypeScreenTest {
 
         assertEquals("content/prototype-run.json", requestedPath)
         assertEquals(10, runDefinition.heartHealth)
-        assertEquals(2, runDefinition.startingResources)
+        assertEquals(2, runDefinition.startingGold)
         assertEquals(listOf("opening"), runDefinition.waves.map { it.id })
     }
 

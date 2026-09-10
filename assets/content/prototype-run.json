@@ -1,17 +1,17 @@
 {
   "heartHealth": 10,
-  "startingResources": 2,
+  "startingGold": 2,
   "completionCondition": "clear_all_waves",
   "waves": [
     {
       "id": "opening-recruits",
       "contentPath": "content/upcoming-hero-wave.json",
-      "rewardResources": 1
+      "rewardGold": 1
     },
     {
       "id": "reinforcement-recruits",
       "contentPath": "content/upcoming-hero-wave.json",
-      "rewardResources": 1,
+      "rewardGold": 1,
       "roomOfferBlueprintIds": [
         "prototype-room",
         "long-gallery",
@@ -21,7 +21,7 @@
     {
       "id": "final-recruits",
       "contentPath": "content/upcoming-hero-wave.json",
-      "rewardResources": 0,
+      "rewardGold": 0,
       "roomOfferBlueprintIds": [
         "corner-room",
         "prototype-room",

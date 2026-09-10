@@ -2,7 +2,7 @@ package com.dungeonarchitect.domain
 
 data class PrototypeRunDefinition(
     val heartHealth: Int,
-    val startingResources: Int,
+    val startingGold: Int,
     val waves: List<RunWaveDefinition>,
     val completionCondition: RunCompletionCondition,
 ) {
@@ -10,14 +10,20 @@ data class PrototypeRunDefinition(
         require(heartHealth > 0) {
             "The prototype heart's health must be positive."
         }
-        require(startingResources >= 0) {
-            "A run's starting resources must not be negative."
+        require(startingGold >= 0) {
+            "A run's starting Gold must not be negative."
         }
         require(waves.isNotEmpty()) {
             "A run must contain at least one wave."
         }
         require(waves.map(RunWaveDefinition::id).distinct().size == waves.size) {
             "A run's wave IDs must be distinct."
+        }
+        require(
+            startingGold.toLong() + waves.sumOf { it.rewardGold.toLong() } <=
+                Int.MAX_VALUE,
+        ) {
+            "A run's maximum authored Gold must fit in a 32-bit integer."
         }
         require(waves.first().roomOfferBlueprintIds.isEmpty()) {
             "The opening wave must not have a preceding room offer."
@@ -33,16 +39,16 @@ data class PrototypeRunDefinition(
         fun singleWave(
             heartHealth: Int,
             contentPath: String,
-            startingResources: Int = 0,
-            rewardResources: Int = 0,
+            startingGold: Int = 0,
+            rewardGold: Int = 0,
         ) = PrototypeRunDefinition(
             heartHealth = heartHealth,
-            startingResources = startingResources,
+            startingGold = startingGold,
             waves = listOf(
                 RunWaveDefinition(
                     id = "single-wave",
                     contentPath = contentPath,
-                    rewardResources = rewardResources,
+                    rewardGold = rewardGold,
                 ),
             ),
             completionCondition = RunCompletionCondition.CLEAR_ALL_WAVES,
@@ -53,7 +59,7 @@ data class PrototypeRunDefinition(
 data class RunWaveDefinition(
     val id: String,
     val contentPath: String,
-    val rewardResources: Int,
+    val rewardGold: Int,
     val roomOfferBlueprintIds: List<String> = emptyList(),
 ) {
     init {
@@ -63,8 +69,8 @@ data class RunWaveDefinition(
         require(contentPath.isNotBlank()) {
             "A run wave must reference a non-blank content path."
         }
-        require(rewardResources >= 0) {
-            "A run wave's resource reward must not be negative."
+        require(rewardGold >= 0) {
+            "A run wave's Gold reward must not be negative."
         }
         require(roomOfferBlueprintIds.none(String::isBlank)) {
             "A room offer must not contain a blank blueprint ID."

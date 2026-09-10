@@ -40,7 +40,7 @@ object PrototypeRunDefinitionParser {
 
         return PrototypeRunDefinition(
             heartHealth = root.requiredInt("heartHealth"),
-            startingResources = root.requiredInt("startingResources"),
+            startingGold = root.requiredInt("startingGold"),
             waves = waves,
             completionCondition = parseCompletionCondition(
                 root.requiredString("completionCondition"),
@@ -63,8 +63,8 @@ object PrototypeRunDefinitionParser {
                     "contentPath",
                     "Prototype run wave $index",
                 ),
-                rewardResources = item.requiredInt(
-                    "rewardResources",
+                rewardGold = item.requiredInt(
+                    "rewardGold",
                     "Prototype run wave $index",
                 ),
                 roomOfferBlueprintIds = item.optionalStringList(

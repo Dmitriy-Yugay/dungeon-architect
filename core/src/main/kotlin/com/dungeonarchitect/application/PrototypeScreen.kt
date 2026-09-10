@@ -351,6 +351,11 @@ class PrototypeScreen(
             buildState: BuildState,
             clickedPosition: GridPosition?,
             runPhase: PrototypeRunPhase,
+            purchaseDefense: (
+                PlacedRoom,
+                GridPosition,
+                TrapDefinition,
+            ) -> Boolean = grid::placeTrap,
         ): TrapPlacementCommitResult {
             val hoverResult = clickedPosition?.let { position ->
                 grid.trapSocketHoverResult(
@@ -362,10 +367,10 @@ class PrototypeScreen(
             return when (hoverResult) {
                 is TrapSocketHoverResult.Valid ->
                     if (runPhase == PrototypeRunPhase.DEFENSE_PREPARATION &&
-                        grid.placeTrap(
-                            room = hoverResult.room,
-                            localSocketPosition = hoverResult.localSocketPosition,
-                            definition = buildState.selectedTrapDefinition,
+                        purchaseDefense(
+                            hoverResult.room,
+                            hoverResult.localSocketPosition,
+                            buildState.selectedTrapDefinition,
                         )
                     ) {
                         TrapPlacementCommitResult.PLACED
@@ -581,6 +586,7 @@ class PrototypeScreen(
                     buildState = buildState,
                     clickedPosition = clickedPosition,
                     runPhase = runController.phase,
+                    purchaseDefense = runController::purchaseDefense,
                 )
             ) {
                 TrapPlacementCommitResult.PLACED ->

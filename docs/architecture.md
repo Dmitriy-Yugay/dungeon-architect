@@ -98,9 +98,11 @@ This creates the current non-visual flow:
 - Parse authored content from supplied text; the application layer owns file
   loading so content validation does not depend on libGDX global state.
 - Author the expanded run as an ordered list of stable wave entries. Run JSON
-  owns starting resources, per-wave rewards, and the explicit completion rule;
+  owns starting Gold, per-wave Gold rewards, and the explicit completion rule;
   each entry references a wave-content path that is checked against the
-  application's available wave catalog during parsing.
+  application's available wave catalog during parsing. Content validation also
+  requires the maximum authored Gold envelope (starting Gold plus every reward)
+  to fit in a 32-bit integer.
 - Represent run cadence with explicit INTELLIGENCE, ROOM_DRAFT,
   DEFENSE_PREPARATION, COMBAT, WAVE_REPORT, RUN_VICTORY, and RUN_DEFEAT phases.
   The domain phase type owns the legal transition table: preparation advances
@@ -113,6 +115,18 @@ This creates the current non-visual flow:
   offered room advances to DEFENSE_PREPARATION. Single-wave definitions still
   advance a resolved report directly to the terminal result. Restart is a
   lifecycle reset rather than a transition within a completed run.
+- Use Gold as the run's single defense resource. Trap JSON owns each defense's
+  `costGold`, while run JSON owns starting Gold and each wave's `rewardGold`.
+  The run controller permits purchases only during DEFENSE_PREPARATION and
+  debits Gold only after the grid accepts the trap, so insufficient funds,
+  occupied sockets, and repeated clicks leave both Gold and topology unchanged.
+  Canceling the newest opening-build room refunds the authored costs of traps
+  removed with that room, keeping the existing correction workflow affordable.
+  A victorious WAVE_REPORT exposes one explicit reward claim; it may succeed
+  once, and the report cannot advance until it has been claimed. Defeats never
+  grant rewards, and the per-wave claim marker resets when the next authored
+  wave is selected. The legacy single-wave completion path claims its reward
+  before advancing directly to the terminal result.
 - Author no room offer before the opening wave, then author exactly three
   distinct room blueprint IDs on every later wave entry as the offer in its
   preceding intermission. Parsing checks those IDs against the available room

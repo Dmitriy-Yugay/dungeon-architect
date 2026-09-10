@@ -88,14 +88,23 @@ class TrapDefinitionTest {
         }
     }
 
+    @Test
+    fun `trap rejects a negative Gold cost`() {
+        assertFailsWith<IllegalArgumentException> {
+            trap(costGold = -1)
+        }
+    }
+
     private fun trap(
         damage: Int = 5,
         cooldownSeconds: Float = 0.25f,
+        costGold: Int = 0,
     ) = TrapDefinition(
         id = "spike_trap",
         displayName = "Spike Trap",
         damage = damage,
         cooldownSeconds = cooldownSeconds,
         compatibleSocketTypes = setOf(RoomSocketType.FLOOR),
+        costGold = costGold,
     )
 }

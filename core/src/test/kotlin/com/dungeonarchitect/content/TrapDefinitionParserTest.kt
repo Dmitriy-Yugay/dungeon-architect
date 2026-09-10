@@ -16,6 +16,7 @@ class TrapDefinitionParserTest {
         assertEquals("Spike Trap", trap.displayName)
         assertEquals(4, trap.damage)
         assertEquals(0.25f, trap.cooldownSeconds)
+        assertEquals(1, trap.costGold)
         assertEquals(setOf(RoomSocketType.FLOOR), trap.compatibleSocketTypes)
     }
 
@@ -27,7 +28,8 @@ class TrapDefinitionParserTest {
               "displayName": "Spike Trap",
               "damage": 5,
               "cooldownSeconds": 0.25,
-              "compatibleSocketTypes": ["ceiling"]
+              "compatibleSocketTypes": ["ceiling"],
+              "costGold": 1
             }
         """.trimIndent()
 
@@ -49,7 +51,28 @@ class TrapDefinitionParserTest {
                   "id": "spike_trap",
                   "displayName": "Spike Trap",
                   $combatFields,
-                  "compatibleSocketTypes": ["floor"]
+                  "compatibleSocketTypes": ["floor"],
+                  "costGold": 1
+                }
+            """.trimIndent()
+
+            assertFailsWith<IllegalArgumentException> {
+                TrapDefinitionParser.parse(json)
+            }
+        }
+    }
+
+    @Test
+    fun `parser rejects invalid Gold cost data`() {
+        listOf("-1", "2.5", "\"expensive\"").forEach { costGold ->
+            val json = """
+                {
+                  "id": "spike_trap",
+                  "displayName": "Spike Trap",
+                  "damage": 5,
+                  "cooldownSeconds": 0.25,
+                  "compatibleSocketTypes": ["floor"],
+                  "costGold": $costGold
                 }
             """.trimIndent()
 
