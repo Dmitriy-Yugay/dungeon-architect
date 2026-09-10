@@ -72,7 +72,7 @@ class FlexibleDungeonEndToEndTest {
         )
         assertEquals(
             PrototypeClickResult.ROOM_CHOICE_SELECTED,
-            clickRoomChoice(fixture, "long-gallery"),
+            clickRoomChoice(fixture, "prototype-room"),
         )
         assertEquals(
             PrototypeClickResult.ROOM_ROTATED,
@@ -85,7 +85,7 @@ class FlexibleDungeonEndToEndTest {
         val heartRoom = fixture.grid.placedRooms.last()
         assertEquals(RoomOrientation.CLOCKWISE_270, heartRoom.orientation)
         assertEquals(
-            listOf("long-gallery", "corner-room", "long-gallery"),
+            listOf("long-gallery", "corner-room", "prototype-room"),
             fixture.grid.placedRooms.map { room -> room.blueprint.id },
         )
 
@@ -99,7 +99,7 @@ class FlexibleDungeonEndToEndTest {
         )
         val selectedHeart = requireNotNull(fixture.grid.placedHeart)
         assertSame(heartRoom, selectedHeart.room)
-        assertEquals(position(7, 9), selectedHeart.gridPosition)
+        assertEquals(position(5, 7), selectedHeart.gridPosition)
 
         assertEquals(
             PrototypeClickResult.TRAP_PLACED,
@@ -260,7 +260,7 @@ class FlexibleDungeonEndToEndTest {
         val buildState = PrototypeScreen.loadBuildState(::readInternalText)
         val grid = DungeonGrid(
             width = 16,
-            height = 12,
+            height = 9,
             entrance = position(0, 4),
             entranceFacing = CardinalDirection.EAST,
         )

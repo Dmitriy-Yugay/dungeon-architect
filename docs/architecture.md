@@ -97,6 +97,12 @@ This creates the current non-visual flow:
 - Load disposable game content from JSON or another simple text format.
 - Parse authored content from supplied text; the application layer owns file
   loading so content validation does not depend on libGDX global state.
+- Author the expanded run as an ordered list of stable wave entries. Run JSON
+  owns starting resources, per-wave rewards, and the explicit completion rule;
+  each entry references a wave-content path that is checked against the
+  application's available wave catalog during parsing. The schema is in place
+  before the controller adopts multi-wave phases, so the current one-wave
+  behavior remains unchanged until its state-transition task is implemented.
 - Run prototype hero movement at a fixed 60 Hz simulation step. Hero movement
   speed remains authored wave content, while presentation-facing grid position
   interpolates the remainder between simulation steps.

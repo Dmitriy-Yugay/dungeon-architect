@@ -322,14 +322,201 @@ while retaining deterministic, data-driven values.
 71. [x] Render the existing post-wave explanation model in the playable screen
     so kills, arrivals, trap activations, damage, heart health, and elapsed time
     explain the result before restart.
-72. [ ] Run a focused keyboard-and-mouse playtest of first-room placement, a
+72. [x] Run a focused keyboard-and-mouse playtest of first-room placement, a
     turned multi-room route, heart and trap placement, wave resolution, and
     restart. Fix discovered demo-blocking usability defects, update the control
     guide, and capture the accepted layout and balance expectations in tests.
 
-After item 72, reassess whether the next product milestone should add the
-multi-wave/resource loop or first deepen room and defense variety. Do not add
-those systems during this polish milestone.
+The accepted 1280 x 720 desktop playtest builds a Long Gallery from the
+entrance, attaches a Corner Room, rotates a Prototype Room counter-clockwise at
+the north-facing door, and places the heart in that final room. Spike traps in
+the Gallery and Corner produce a victory with all four recruits defeated,
+10 heart health, 12 activations, and 40 recorded damage. The post-wave report
+shows those causes and restart preserves the rooms, traps, orientation, and
+heart. No demo-blocking usability defect was found. The exact 16 x 9 layout and
+outcome are covered by the flexible-dungeon end-to-end test and the README
+control guide.
+
+After item 72, proceed with the multi-wave room-draft loop. The competitive
+review in `competitive-gameplay-plan.md` selected this direction because it
+exercises the game's distinctive room construction, advance intelligence,
+persistent consequences, deterministic evaluation, and readable outcomes
+before broadening the content catalog.
+
+### Authored multi-wave room-draft loop — after demo acceptance
+
+The first expanded run should remain authored and reproducible. Each
+intermission gives the player one consequential room choice, while the dungeon,
+traps, selected heart, and heart damage persist across waves. The initial offer
+schedule should be authored rather than randomized so the cadence and economy
+can be judged without offer variance.
+
+73. [x] Add a validated, data-authored multi-wave run definition containing an
+    ordered wave list, starting resources, reward values, and run-completion
+    conditions; keep balancing values out of Kotlin and test invalid references
+    and boundary values.
+74. [ ] Extend the run phase model with explicit intelligence, room-draft,
+    defense-preparation, combat, wave-report, run-victory, and run-defeat states;
+    define and test the legal transition table without rendering.
+75. [ ] Make dungeon topology, placed traps, the selected heart, run resources,
+    and remaining heart health persist between waves while wave-local hero,
+    cooldown, event, and report state resets deterministically; test every
+    persistence boundary.
+76. [ ] Add an authored three-room offer for each intermission, allow exactly one
+    choice and one committed room placement, reject incompatible or additional
+    placements, and prove that every authored offer has a legal attachment in
+    its intended state.
+77. [ ] Add one plainly named run resource, data-authored defense costs and wave
+    rewards, and domain operations for affordable purchase and reward grants;
+    test exact-cost, insufficient-funds, duplicate-spend, and phase rules.
+78. [ ] Present the full intermission cadence in the playable screen:
+    intelligence -> room choice and placement -> defense preparation -> wave ->
+    causal report -> reward, with visible resource totals, costs, and disabled
+    reasons.
+79. [ ] Expand wave intelligence to show hero count, role, relevant traits, and
+    the practical defense implication before the room decision; keep hidden
+    information from becoming a required counter.
+80. [ ] Extend the headless evaluator to execute a complete authored run and
+    return per-wave plus aggregate reports; add deterministic regression tests
+    and compare at least two legal complete-run strategies.
+81. [ ] Separate retrying the current authored test from starting a new run, with
+    explicit and tested rules for which layout, heart, trap, health, resource,
+    and offer state is retained or reset.
+82. [ ] Add an end-to-end non-rendering application test for the complete run
+    cadence, then playtest the multi-wave loop and record whether room choices
+    change later defense plans. Update the design documents with the accepted
+    run length, resource envelope, and persistence rules.
+
+Do not add random offers, rerolls, meta-progression, saves, or procedural runs
+during this milestone. Its gate is an authored short run with at least two
+understandable winning strategies and reproducible evaluator results.
+
+### First strategic counterplay package — after the run loop
+
+Add hero, defense, and room variety as one evaluated package. The purpose is to
+create several readable plans from a small catalog, not to accumulate content.
+The initial target roles are a baseline recruit, a fast scout, a tough
+vanguard, a repeating spike trap, a slowing trap, and a heavy long-cooldown
+trap. Exact names and values remain authored content decisions.
+
+83. [ ] Extend authored hero content with stable role and visible defense-trait
+    data, then add Scout and Vanguard definitions whose speed, durability, and
+    counterplay remain explainable; test parsing, validation, and wave preview
+    mapping.
+84. [ ] Add the smallest deterministic status-effect model required for one
+    visible slowing defense, including duration, refresh behavior, movement
+    impact, simulation events, and fixed-step tests; do not create a general
+    effect framework beyond the accepted behavior.
+85. [ ] Add an authored slow defense compatible with an explicit socket type;
+    preview its affected tile and status rule, render its activation, and report
+    the additional exposure time it creates for other defenses.
+86. [ ] Add an authored heavy defense with high impact and a long visible
+    cooldown; make its targeting, compatible socket, damage, cooldown gaps, and
+    strengths against the Vanguard readable and evaluator-verifiable.
+87. [ ] Author a compact Gallery, Guard Post, and one Workshop or Alchemy room
+    experiment with distinct geometry, sockets, future attachment value, and a
+    visible disadvantage; validate that every blueprint remains placeable and
+    route-safe in all supported orientations.
+88. [ ] Compare candidate behavioral effects for the Workshop or Alchemy room
+    using focused evaluator fixtures, select one effect that changes a defense
+    relationship rather than adding a generic percentage bonus, and record the
+    rejected alternatives and rationale before implementation.
+89. [ ] Implement only the selected room effect behind the room/content layer
+    that needs it, with pre-commit previews, simulation events, focused tests,
+    and no general room-effect framework for hypothetical later rules.
+90. [ ] Build an evaluator matrix across the three hero roles, three defense
+    roles, and strategic room geometries; tune values only in content so every
+    option has a useful context and no option dominates the authored run.
+91. [ ] Expand live feedback and the causal post-wave explanation for status,
+    effective damage, cooldown gaps, room exposure, and the first decisive
+    breach or winning combination.
+92. [ ] Run focused comprehension and strategy playtests for the counterplay
+    package, capture accepted counter relationships in tests and documents, and
+    defer healers, summoners, flying heroes, and alternative objectives unless
+    the playtest establishes a concrete need.
+
+### Persistent room identity and meaningful branches — after counterplay
+
+Only add topology or room-rule machinery together with a player-visible
+purpose. A junction is not useful content while off-route branches have no
+opportunity cost or benefit.
+
+93. [ ] Compare the smallest branch-value rules against explicit criteria and
+    evaluator fixtures, beginning with an off-route Treasury that trades the
+    current room choice and build space for later run resources; record the
+    decision before implementation.
+94. [ ] If accepted, add one three-door junction and one Treasury blueprint,
+    validate their rotation and attachment behavior, and keep Treasury values
+    data-authored.
+95. [ ] Implement the accepted branch-value rule with visible projected rewards,
+    exact trigger timing, deterministic events, and tests proving that an
+    off-route room is neither free value nor an invisible routing trap.
+96. [ ] Test one local adjacency rule, such as a Workshop affecting defenses in
+    directly connected rooms, through a narrow experiment; implement it only if
+    players can preview and explain it more easily than an equivalent room-local
+    rule.
+97. [ ] Compare one secondary-objective hero concept, such as a greedy hero
+    visiting a Treasury, against leaving branches economy-only; do not implement
+    destination choice until every possible target and route can be previewed
+    deterministically.
+98. [ ] Decide and implement when heart relocation is allowed and what it costs
+    once changing the active branch has combat value; test affordability,
+    phase, route, trap-occupancy, and report consequences.
+99. [ ] Add an end-to-end branched-run scenario and playtest whether early rooms
+    create understandable opportunities or constraints several waves later;
+    document the accepted topology rules and rejected complexity.
+
+### Constrained replayability — after authored topology is proven
+
+Replayability must preserve structural fairness, deterministic reproduction,
+and visible causality. Permanent progression should unlock sidegrades rather
+than provide the numerical power required to finish the base run.
+
+100. [ ] Replace the authored offer schedule with a seeded,
+     composition-aware room deck whose full input state is serializable and
+     reproducible; retain the authored schedule as a deterministic fixture.
+101. [ ] Add configured offer-window guarantees for route-shaping,
+     defense-capacity, and expansion roles, with property-based tests proving
+     that generated offers remain legal and cannot create structural dead ends.
+102. [ ] Add a resource-priced skip or reroll only after evaluator and playtest
+     experiments establish an opportunity cost; expose the resulting offer and
+     seed transition in events and reports.
+103. [ ] Add a pre-run Architect Kit containing a small visible set of room
+     families, defenses, and at most one rule-changing sidegrade; author and
+     test at least three kits with distinct but viable plans.
+104. [ ] Add a modest set of run-only relics or room-family modifications that
+     change relationships instead of raising all damage; validate conflicts and
+     make every active rule inspectable during play.
+105. [ ] Add fixed-seed challenge runs using the existing evaluator and complete
+     run reports; keep daily rotation, online services, and leaderboards out of
+     scope until fixed challenges are fun without them.
+106. [ ] Define account progression, if retained, as unlocking sidegrade
+     options, kits, or challenges; compare it with a fully unlocked game and
+     reject any progression required to overcome base-run balance.
+107. [ ] Run repeated-seed, offer-fairness, kit-diversity, and comprehension
+     playtests; record the accepted guarantees and progression limits before
+     expanding the catalog.
+
+### Production expansion — after the strategic loop is retained
+
+108. [ ] Establish and playtest a coherent visual and audio direction that makes
+     rooms, routes, hero roles, defense timing, and impact readable before
+     increasing cosmetic variety.
+109. [ ] Add versioned save and resume for an in-progress run only after run
+     state is stable; test round-trip determinism, invalid content references,
+     and safe failure for incompatible versions.
+110. [ ] Expand the authored room, hero, defense, and wave catalog from observed
+     strategy gaps, adding one evaluated package at a time rather than a
+     quantity target.
+111. [ ] Evaluate bosses, biome rules, challenge mutators, and secondary hero
+     goals as separate design tasks with their own previews, evaluator fixtures,
+     and removal criteria.
+112. [ ] Export evaluator or playtest diagnostics only when current in-memory
+     reports no longer answer a concrete balance question; keep gameplay
+     independent of telemetry vendors and online availability.
+113. [ ] Run a complete product playtest and reassess saves, accessibility,
+     onboarding, content breadth, performance, and release scope before
+     considering procedural campaigns, multiplayer, editors, or mod support.
 
 For every task:
 
@@ -343,8 +530,10 @@ For every task:
 - run `./gradlew test` and `./gradlew build`;
 - update the documents when a design or architecture decision changes.
 
-Do not add special room effects, advanced hero roles, an ECS, saves, additional
-platforms, or a large asset pipeline during this milestone.
+Do not add an ECS, additional platforms, autonomous minion management, a
+controllable combat hero, an overworld RTS, runtime LLM behavior, multiplayer,
+procedural campaigns, editor/mod support, or a large asset pipeline unless a
+later explicitly approved milestone establishes the need.
 
 When subagents are used, the primary Codex agent owns Git and the plan. Start
 one implementation worker for one unchecked item, review its diff, run

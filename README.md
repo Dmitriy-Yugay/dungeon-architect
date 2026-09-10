@@ -31,6 +31,15 @@ shapes.
 - Connect the entrance to the heart to enable **START WAVE**.
 - Click **RESTART** after victory or defeat; the built layout is preserved.
 
+### Accepted demo route
+
+The focused desktop playtest uses a Long Gallery from the entrance, a Corner
+Room at its open door, and a Prototype Room rotated left with **Q** at the
+corner's north door. Place the heart in the final room and arm the on-route
+sockets in the Long Gallery and Corner Room. Two separated spike traps defeat
+all four recruits; one trap remains insufficient. Restart preserves this exact
+layout, its traps, and the selected heart.
+
 ## Requirements
 
 - JDK 21
@@ -61,6 +70,7 @@ thread.
 - [Project context](docs/PROJECT_CONTEXT.md)
 - [Game design](docs/game-design.md)
 - [Architecture](docs/architecture.md)
+- [Competitive gameplay plan](docs/competitive-gameplay-plan.md)
 
 ## Technology
 
