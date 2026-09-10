@@ -1,3 +1,22 @@
 {
-  "heartHealth": 10
+  "heartHealth": 10,
+  "startingResources": 2,
+  "completionCondition": "clear_all_waves",
+  "waves": [
+    {
+      "id": "opening-recruits",
+      "contentPath": "content/upcoming-hero-wave.json",
+      "rewardResources": 1
+    },
+    {
+      "id": "reinforcement-recruits",
+      "contentPath": "content/upcoming-hero-wave.json",
+      "rewardResources": 1
+    },
+    {
+      "id": "final-recruits",
+      "contentPath": "content/upcoming-hero-wave.json",
+      "rewardResources": 0
+    }
+  ]
 }

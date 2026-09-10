@@ -441,8 +441,9 @@ class PrototypeRunControllerTest {
             movementSpeedTilesPerSecond = 60f,
             traitDescription = "A straightforward melee fighter.",
         ),
-        runDefinition = PrototypeRunDefinition(
+        runDefinition = PrototypeRunDefinition.singleWave(
             heartHealth = heartHealth,
+            contentPath = "test-wave.json",
         ),
     )
 

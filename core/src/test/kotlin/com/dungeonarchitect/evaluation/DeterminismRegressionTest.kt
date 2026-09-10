@@ -139,7 +139,10 @@ class DeterminismRegressionTest {
                 movementSpeedTilesPerSecond = 60f,
                 traitDescription = "A straightforward melee fighter.",
             ),
-            runDefinition = PrototypeRunDefinition(heartHealth = 10),
+            runDefinition = PrototypeRunDefinition.singleWave(
+                heartHealth = 10,
+                contentPath = "test-wave.json",
+            ),
         )
     }
 

@@ -275,6 +275,7 @@ class PrototypeScreen(
 
     companion object {
         private const val UPCOMING_WAVE_PATH = "content/upcoming-hero-wave.json"
+        private val AVAILABLE_WAVE_CONTENT_PATHS = setOf(UPCOMING_WAVE_PATH)
         private const val TRAP_DEFINITION_PATH = "content/spike-trap.json"
         private const val RUN_DEFINITION_PATH = "content/prototype-run.json"
         private const val ROOM_BLUEPRINT_PATH = "content/prototype-room.json"
@@ -469,6 +470,7 @@ class PrototypeScreen(
         ): PrototypeRunDefinition =
             PrototypeRunDefinitionParser.parse(
                 readInternalText(RUN_DEFINITION_PATH),
+                availableWaveContentPaths = AVAILABLE_WAVE_CONTENT_PATHS,
             )
 
         internal fun handleClick(

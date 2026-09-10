@@ -42,7 +42,7 @@ class HeadlessScenarioEvaluatorTest {
             HeadlessScenarioEvaluator.evaluate(
                 grid = grid,
                 wave = wave(heroCount = 2, heroHealth = 5),
-                runDefinition = PrototypeRunDefinition(heartHealth = 10),
+                runDefinition = testRunDefinition(heartHealth = 10),
             ),
         )
     }
@@ -66,7 +66,7 @@ class HeadlessScenarioEvaluatorTest {
                     heroHealth = 5,
                     heartDamage = 10,
                 ),
-                runDefinition = PrototypeRunDefinition(heartHealth = 15),
+                runDefinition = testRunDefinition(heartHealth = 15),
             ),
         )
     }
@@ -81,7 +81,7 @@ class HeadlessScenarioEvaluatorTest {
                 heartDamage = 1,
                 speed = 70f,
             ),
-            runDefinition = PrototypeRunDefinition(heartHealth = 10),
+            runDefinition = testRunDefinition(heartHealth = 10),
         )
 
         assertEquals(fixedSteps(2), report.elapsedSimulationSeconds)
@@ -107,7 +107,7 @@ class HeadlessScenarioEvaluatorTest {
                 heroHealth = 5,
                 heartDamage = 1,
             ),
-            runDefinition = PrototypeRunDefinition(heartHealth = 10),
+            runDefinition = testRunDefinition(heartHealth = 10),
         )
         assertTrue(grid.placeOrRelocateHeart(secondRoom))
         val secondHeartReport = HeadlessScenarioEvaluator.evaluate(
@@ -117,7 +117,7 @@ class HeadlessScenarioEvaluatorTest {
                 heroHealth = 5,
                 heartDamage = 1,
             ),
-            runDefinition = PrototypeRunDefinition(heartHealth = 10),
+            runDefinition = testRunDefinition(heartHealth = 10),
         )
 
         assertEquals(fixedSteps(1), firstHeartReport.elapsedSimulationSeconds)
@@ -136,7 +136,7 @@ class HeadlessScenarioEvaluatorTest {
                     entrance = GridPosition(0, 0),
                 ),
                 wave = wave(heroCount = 1, heroHealth = 5),
-                runDefinition = PrototypeRunDefinition(heartHealth = 10),
+                runDefinition = testRunDefinition(heartHealth = 10),
             )
         }
 
@@ -213,6 +213,12 @@ class HeadlessScenarioEvaluatorTest {
         cooldownSeconds = 0.001f,
         compatibleSocketTypes = setOf(RoomSocketType.FLOOR),
     )
+
+    private fun testRunDefinition(heartHealth: Int) =
+        PrototypeRunDefinition.singleWave(
+            heartHealth = heartHealth,
+            contentPath = "test-wave.json",
+        )
 
     private fun fixedSteps(count: Int): Double =
         count * FixedStepHeroSimulation.FIXED_STEP_SECONDS

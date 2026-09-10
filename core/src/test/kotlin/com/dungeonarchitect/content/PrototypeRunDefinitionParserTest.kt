@@ -1,6 +1,8 @@
 package com.dungeonarchitect.content
 
 import com.dungeonarchitect.domain.PrototypeRunDefinition
+import com.dungeonarchitect.domain.RunCompletionCondition
+import com.dungeonarchitect.domain.RunWaveDefinition
 import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.test.Test
@@ -9,23 +11,99 @@ import kotlin.test.assertFailsWith
 
 class PrototypeRunDefinitionParserTest {
     @Test
-    fun `authored prototype run config parses without libGDX global state`() {
+    fun `authored multi-wave run parses without libGDX global state`() {
         assertEquals(
-            PrototypeRunDefinition(heartHealth = 10),
-            PrototypeRunDefinitionParser.parse(authoredRunJson()),
+            PrototypeRunDefinition(
+                heartHealth = 10,
+                startingResources = 2,
+                completionCondition = RunCompletionCondition.CLEAR_ALL_WAVES,
+                waves = listOf(
+                    wave("opening-recruits", rewardResources = 1),
+                    wave("reinforcement-recruits", rewardResources = 1),
+                    wave("final-recruits", rewardResources = 0),
+                ),
+            ),
+            parse(authoredRunJson()),
         )
     }
 
     @Test
-    fun `parser rejects invalid heart health`() {
+    fun `parser rejects invalid scalar boundaries`() {
         listOf("0", "-1", "2.5", "\"healthy\"").forEach { health ->
             assertFailsWith<IllegalArgumentException> {
-                PrototypeRunDefinitionParser.parse(
-                    """{ "heartHealth": $health }""",
-                )
+                parse(validJson(heartHealth = health))
+            }
+        }
+        listOf("-1", "2.5", "\"many\"").forEach { resources ->
+            assertFailsWith<IllegalArgumentException> {
+                parse(validJson(startingResources = resources))
+            }
+            assertFailsWith<IllegalArgumentException> {
+                parse(validJson(rewardResources = resources))
             }
         }
     }
+
+    @Test
+    fun `parser rejects missing duplicate and malformed wave references`() {
+        listOf(
+            "[]",
+            """[{"id":" ","contentPath":"$WAVE_PATH","rewardResources":0}]""",
+            """[{"id":"wave","contentPath":" ","rewardResources":0}]""",
+            """[{"id":"wave","contentPath":"content/missing.json","rewardResources":0}]""",
+            """[
+                {"id":"duplicate","contentPath":"$WAVE_PATH","rewardResources":0},
+                {"id":"duplicate","contentPath":"$WAVE_PATH","rewardResources":0}
+            ]""".trimIndent(),
+        ).forEach { waves ->
+            assertFailsWith<IllegalArgumentException> {
+                parse(validJson(waves = waves))
+            }
+        }
+    }
+
+    @Test
+    fun `parser rejects unknown completion condition`() {
+        assertFailsWith<IllegalArgumentException> {
+            parse(validJson(completionCondition = "survive_forever"))
+        }
+    }
+
+    private fun parse(json: String): PrototypeRunDefinition =
+        PrototypeRunDefinitionParser.parse(
+            json = json,
+            availableWaveContentPaths = setOf(WAVE_PATH),
+        )
+
+    private fun validJson(
+        heartHealth: String = "10",
+        startingResources: String = "2",
+        rewardResources: String = "1",
+        completionCondition: String = "clear_all_waves",
+        waves: String = """[
+            {
+              "id": "opening",
+              "contentPath": "$WAVE_PATH",
+              "rewardResources": $rewardResources
+            }
+        ]""".trimIndent(),
+    ) = """
+        {
+          "heartHealth": $heartHealth,
+          "startingResources": $startingResources,
+          "completionCondition": "$completionCondition",
+          "waves": $waves
+        }
+    """.trimIndent()
+
+    private fun wave(
+        id: String,
+        rewardResources: Int,
+    ) = RunWaveDefinition(
+        id = id,
+        contentPath = WAVE_PATH,
+        rewardResources = rewardResources,
+    )
 
     private fun authoredRunJson(): String {
         val config = generateSequence(Path.of("").toAbsolutePath()) { it.parent }
@@ -34,5 +112,9 @@ class PrototypeRunDefinitionParserTest {
             ?: error("Could not locate authored prototype run config.")
 
         return Files.readString(config)
+    }
+
+    private companion object {
+        const val WAVE_PATH = "content/upcoming-hero-wave.json"
     }
 }

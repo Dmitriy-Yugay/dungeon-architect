@@ -339,11 +339,26 @@ class PrototypeScreenTest {
 
         val runDefinition = PrototypeScreen.loadRunDefinition { path ->
             requestedPath = path
-            """{ "heartHealth": 10 }"""
+            """
+                {
+                  "heartHealth": 10,
+                  "startingResources": 2,
+                  "completionCondition": "clear_all_waves",
+                  "waves": [
+                    {
+                      "id": "opening",
+                      "contentPath": "content/upcoming-hero-wave.json",
+                      "rewardResources": 1
+                    }
+                  ]
+                }
+            """.trimIndent()
         }
 
         assertEquals("content/prototype-run.json", requestedPath)
         assertEquals(10, runDefinition.heartHealth)
+        assertEquals(2, runDefinition.startingResources)
+        assertEquals(listOf("opening"), runDefinition.waves.map { it.id })
     }
 
     @Test
@@ -674,7 +689,10 @@ class PrototypeScreenTest {
     private fun runController(grid: DungeonGrid) = PrototypeRunController(
         grid = grid,
         upcomingWave = upcomingWave(),
-        runDefinition = PrototypeRunDefinition(heartHealth = 10),
+        runDefinition = PrototypeRunDefinition.singleWave(
+            heartHealth = 10,
+            contentPath = "test-wave.json",
+        ),
     )
 
     private fun trapDefinition() = TrapDefinition(

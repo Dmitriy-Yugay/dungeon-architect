@@ -75,6 +75,9 @@ class AuthoredRoomChoiceEvaluationTest {
             ),
             runDefinition = PrototypeRunDefinitionParser.parse(
                 readContent("prototype-run.json"),
+                availableWaveContentPaths = setOf(
+                    "content/upcoming-hero-wave.json",
+                ),
             ),
         )
     }

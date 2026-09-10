@@ -256,7 +256,10 @@ class HeartPlacementApplicationTest {
                     movementSpeedTilesPerSecond = 60f,
                     traitDescription = "Test hero.",
                 ),
-                runDefinition = PrototypeRunDefinition(heartHealth = 10),
+                runDefinition = PrototypeRunDefinition.singleWave(
+                    heartHealth = 10,
+                    contentPath = "test-wave.json",
+                ),
             ),
         )
     }
