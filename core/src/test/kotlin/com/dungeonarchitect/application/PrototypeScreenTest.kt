@@ -122,10 +122,11 @@ class PrototypeScreenTest {
     }
 
     @Test
-    fun `room placement is allowed only during the building phase`() {
+    fun `room placement is allowed during opening build and room draft`() {
         PrototypeRunPhase.entries.forEach { phase ->
             val expectedPlacement =
-                phase == PrototypeRunPhase.DEFENSE_PREPARATION
+                phase == PrototypeRunPhase.DEFENSE_PREPARATION ||
+                    phase == PrototypeRunPhase.ROOM_DRAFT
             val buildState = authoredBuildState()
             val grid = prototypeGrid()
             val roomsBeforeClick = grid.placedRooms

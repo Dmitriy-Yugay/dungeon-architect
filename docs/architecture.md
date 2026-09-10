@@ -139,6 +139,20 @@ This creates the current non-visual flow:
   it begins with two connected Long Galleries and chooses a Prototype Room in
   the first intermission, leaving every offered blueprint legally attachable in
   each intended state.
+- Map the run cadence onto one phase-aware primary panel control. It reviews
+  intelligence, leaves ROOM_DRAFT completion to the required grid placement,
+  starts prepared waves, claims a victorious report's reward before offering
+  CONTINUE, resolves defeat reports, and restarts only terminal runs. The panel
+  always shows heart health, current Gold, the selected defense's authored
+  cost, and the active wave reward; its disabled labels explain missing routes,
+  required room placement, combat waiting, or unavailable report state.
+  Intermission room cards are shown in authored offer order only during
+  ROOM_DRAFT. Room previews, attachment markers, rotation input, and placement
+  use the controller's explicit room-placement capability, so they remain
+  available for the accepted opening build but are hidden or disabled after an
+  intermission commits its single room. Trap and heart interactions remain during
+  that later DEFENSE_PREPARATION, and unaffordable trap hover guidance states
+  the missing Gold amount.
 - Run prototype hero movement at a fixed 60 Hz simulation step. Hero movement
   speed remains authored wave content, while presentation-facing grid position
   interpolates the remainder between simulation steps.

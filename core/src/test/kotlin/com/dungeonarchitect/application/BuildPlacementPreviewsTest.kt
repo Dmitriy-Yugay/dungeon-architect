@@ -128,6 +128,31 @@ class BuildPlacementPreviewsTest {
     }
 
     @Test
+    fun `post-draft preparation hides room construction but keeps defense preview`() {
+        val fixture = fixture()
+
+        val defensePreview = buildPlacementPreviews(
+            grid = fixture.grid,
+            buildState = fixture.buildState,
+            hoveredPosition = position(5, 3),
+            runPhase = PrototypeRunPhase.DEFENSE_PREPARATION,
+            isRoomPlacementEnabled = false,
+        )
+        val emptyCellPreview = buildPlacementPreviews(
+            grid = fixture.grid,
+            buildState = fixture.buildState,
+            hoveredPosition = position(6, 2),
+            runPhase = PrototypeRunPhase.DEFENSE_PREPARATION,
+            isRoomPlacementEnabled = false,
+        )
+
+        assertNotNull(defensePreview.trap)
+        assertNull(defensePreview.room)
+        assertNull(emptyCellPreview.room)
+        assertNull(emptyCellPreview.trap)
+    }
+
+    @Test
     fun `selected attachment keeps room ghost visible without a hovered cell`() {
         val grid = DungeonGrid(
             width = 8,

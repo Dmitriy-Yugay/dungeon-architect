@@ -9,11 +9,13 @@ import com.badlogic.gdx.math.Matrix4
 import com.badlogic.gdx.utils.Disposable
 import com.dungeonarchitect.domain.PrototypeRunPhase
 import com.dungeonarchitect.domain.UpcomingHeroWave
+import com.dungeonarchitect.simulation.WaveOutcome
 
 data class WavePanelView(
     val summary: String,
     val traitDescription: String,
-    val heartStatus: String,
+    val runStatus: String,
+    val economyStatus: String,
     val buildGuidance: String,
     val controlLabel: String,
     val isControlEnabled: Boolean,
@@ -26,43 +28,69 @@ data class WavePanelView(
             phase: PrototypeRunPhase,
             heartHealth: Int,
             heartMaxHealth: Int,
+            gold: Int,
+            defenseName: String,
+            defenseCostGold: Int,
+            upcomingRewardGold: Int,
+            waveOutcome: WaveOutcome?,
+            isWaveRewardClaimed: Boolean,
             isStartEnabled: Boolean,
             isCancelEnabled: Boolean,
             buildGuidance: String = "",
         ) = WavePanelView(
             summary = when (phase) {
                 PrototypeRunPhase.INTELLIGENCE,
-                PrototypeRunPhase.ROOM_DRAFT,
                 PrototypeRunPhase.DEFENSE_PREPARATION ->
                     "Upcoming wave: ${wave.count} x ${wave.heroDisplayName}"
+                PrototypeRunPhase.ROOM_DRAFT ->
+                    "Choose and place one offered room"
                 PrototypeRunPhase.COMBAT ->
                     "Wave in progress: ${wave.count} x ${wave.heroDisplayName}"
-                PrototypeRunPhase.WAVE_REPORT -> "WAVE COMPLETE"
+                PrototypeRunPhase.WAVE_REPORT -> when (waveOutcome) {
+                    WaveOutcome.VICTORY -> "WAVE CLEARED"
+                    WaveOutcome.DEFEAT -> "WAVE LOST"
+                    null -> "WAVE REPORT"
+                }
                 PrototypeRunPhase.RUN_VICTORY -> "VICTORY - Heart secured"
                 PrototypeRunPhase.RUN_DEFEAT -> "DEFEAT - Heart destroyed"
             },
             traitDescription = wave.traitDescription,
-            heartStatus =
-                "Heart health: $heartHealth / $heartMaxHealth",
+            runStatus = "Heart: $heartHealth/$heartMaxHealth | Gold: $gold",
+            economyStatus =
+                "$defenseName: ${defenseCostGold}G | Reward: +${upcomingRewardGold}G",
             buildGuidance = buildGuidance,
             controlLabel = when (phase) {
-                PrototypeRunPhase.INTELLIGENCE -> "INTELLIGENCE"
-                PrototypeRunPhase.ROOM_DRAFT -> "ROOM DRAFT"
+                PrototypeRunPhase.INTELLIGENCE -> "REVIEW ROOM OFFER"
+                PrototypeRunPhase.ROOM_DRAFT -> "PLACE ONE OFFERED ROOM"
                 PrototypeRunPhase.DEFENSE_PREPARATION ->
                     if (isStartEnabled) {
                         "START WAVE"
                     } else {
                         "START WAVE - ROUTE REQUIRED"
                     }
-                PrototypeRunPhase.COMBAT -> "WAVE IN PROGRESS"
-                PrototypeRunPhase.WAVE_REPORT -> "WAVE REPORT"
+                PrototypeRunPhase.COMBAT -> "WAIT - WAVE IN PROGRESS"
+                PrototypeRunPhase.WAVE_REPORT -> when {
+                    waveOutcome == WaveOutcome.VICTORY && !isWaveRewardClaimed ->
+                        "CLAIM +$upcomingRewardGold GOLD"
+                    waveOutcome == WaveOutcome.VICTORY -> "CONTINUE"
+                    waveOutcome == WaveOutcome.DEFEAT -> "END RUN"
+                    else -> "WAVE REPORT UNAVAILABLE"
+                }
                 PrototypeRunPhase.RUN_VICTORY,
                 PrototypeRunPhase.RUN_DEFEAT,
                 -> "RESTART"
             },
-            isControlEnabled = isStartEnabled ||
-                phase == PrototypeRunPhase.RUN_VICTORY ||
-                phase == PrototypeRunPhase.RUN_DEFEAT,
+            isControlEnabled = when (phase) {
+                PrototypeRunPhase.INTELLIGENCE -> true
+                PrototypeRunPhase.ROOM_DRAFT,
+                PrototypeRunPhase.COMBAT,
+                -> false
+                PrototypeRunPhase.DEFENSE_PREPARATION -> isStartEnabled
+                PrototypeRunPhase.WAVE_REPORT -> waveOutcome != null
+                PrototypeRunPhase.RUN_VICTORY,
+                PrototypeRunPhase.RUN_DEFEAT,
+                -> true
+            },
             cancelLabel = "CANCEL",
             isCancelEnabled = isCancelEnabled,
         )
@@ -299,19 +327,19 @@ class WavePanelRenderer : Disposable {
         font.color = SECONDARY_TEXT_COLOR
         font.draw(
             batch,
-            view.traitDescription,
+            view.buildGuidance.ifBlank { view.traitDescription },
             layout.waveStatusSafeArea.x,
             layout.waveStatusSafeArea.y + DESCRIPTION_BASELINE_OFFSET,
         )
         font.draw(
             batch,
-            view.heartStatus,
+            view.runStatus,
             layout.heartStatusSafeArea.x,
             layout.heartStatusSafeArea.y + HEART_STATUS_BASELINE_OFFSET,
         )
         font.draw(
             batch,
-            view.buildGuidance,
+            view.economyStatus,
             layout.heartStatusSafeArea.x,
             layout.heartStatusSafeArea.y + GUIDANCE_BASELINE_OFFSET,
         )

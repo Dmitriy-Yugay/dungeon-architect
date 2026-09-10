@@ -2,6 +2,7 @@ package com.dungeonarchitect.presentation
 
 import com.dungeonarchitect.domain.BuildState
 import com.dungeonarchitect.domain.GridPosition
+import com.dungeonarchitect.domain.PrototypeRunPhase
 import com.dungeonarchitect.domain.CardinalDirection
 import com.dungeonarchitect.domain.RoomDoor
 import com.dungeonarchitect.domain.RoomBlueprint
@@ -93,6 +94,49 @@ class RoomChoicesViewTest {
             ),
             thumbnail.doors,
         )
+    }
+
+    @Test
+    fun `cadence shows authored draft order and hides locked room choices`() {
+        val squareRoom = blueprint("square-room", "Square Room")
+        val longGallery = blueprint("long-gallery", "Long Gallery")
+        val buildState = BuildState(
+            availableRoomBlueprints = listOf(squareRoom, longGallery),
+            selectedRoomBlueprint = squareRoom,
+            selectedTrapDefinition = trapDefinition(),
+        )
+
+        assertEquals(
+            listOf("square-room", "long-gallery"),
+            RoomChoicesView.forPhase(
+                buildState,
+                PrototypeRunPhase.DEFENSE_PREPARATION,
+                offeredBlueprintIds = emptyList(),
+            ).choices.map { it.id },
+        )
+        assertEquals(
+            listOf("long-gallery", "square-room"),
+            RoomChoicesView.forPhase(
+                buildState,
+                PrototypeRunPhase.ROOM_DRAFT,
+                offeredBlueprintIds = listOf("long-gallery", "square-room"),
+            ).choices.map { it.id },
+        )
+        listOf(
+            PrototypeRunPhase.INTELLIGENCE,
+            PrototypeRunPhase.DEFENSE_PREPARATION,
+            PrototypeRunPhase.COMBAT,
+        ).forEach { phase ->
+            assertEquals(
+                emptyList(),
+                RoomChoicesView.forPhase(
+                    buildState,
+                    phase,
+                    offeredBlueprintIds = listOf("square-room"),
+                ).choices,
+                phase.name,
+            )
+        }
     }
 
     private val RoomChoicesView.selectedStates: List<Boolean>

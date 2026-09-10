@@ -28,9 +28,35 @@ internal fun buildPlacementPreviews(
     hoveredPosition: GridPosition?,
     runPhase: PrototypeRunPhase = PrototypeRunPhase.DEFENSE_PREPARATION,
     attachmentTarget: RoomAttachmentTarget? = null,
+    isRoomPlacementEnabled: Boolean = runPhase.canPlaceRoomByPhase,
 ): BuildPlacementPreviews {
-    if (runPhase != PrototypeRunPhase.DEFENSE_PREPARATION) {
+    if (runPhase != PrototypeRunPhase.DEFENSE_PREPARATION &&
+        runPhase != PrototypeRunPhase.ROOM_DRAFT
+    ) {
         return BuildPlacementPreviews(room = null, trap = null, heart = null)
+    }
+    if (runPhase == PrototypeRunPhase.ROOM_DRAFT) {
+        return BuildPlacementPreviews(
+            room = if (!isRoomPlacementEnabled) {
+                null
+            } else if (attachmentTarget != null) {
+                grid.targetedPlacementPreview(
+                    blueprint = buildState.selectedRoomBlueprint,
+                    target = attachmentTarget,
+                    orientation = buildState.selectedRoomOrientation,
+                )
+            } else {
+                hoveredPosition?.let { position ->
+                    grid.snappedPlacementPreview(
+                        blueprint = buildState.selectedRoomBlueprint,
+                        hoveredPosition = position,
+                        orientation = buildState.selectedRoomOrientation,
+                    )
+                }
+            },
+            trap = null,
+            heart = null,
+        )
     }
     if (buildState.isHeartPlacementModeActive) {
         return BuildPlacementPreviews(
@@ -53,7 +79,9 @@ internal fun buildPlacementPreviews(
         BuildPlacementPreviews(room = null, trap = trapPreview, heart = null)
     } else {
         BuildPlacementPreviews(
-            room = if (attachmentTarget != null) {
+            room = if (!isRoomPlacementEnabled) {
+                null
+            } else if (attachmentTarget != null) {
                 grid.targetedPlacementPreview(
                     blueprint = buildState.selectedRoomBlueprint,
                     target = attachmentTarget,
@@ -73,3 +101,7 @@ internal fun buildPlacementPreviews(
         )
     }
 }
+
+private val PrototypeRunPhase.canPlaceRoomByPhase: Boolean
+    get() = this == PrototypeRunPhase.ROOM_DRAFT ||
+        this == PrototypeRunPhase.DEFENSE_PREPARATION

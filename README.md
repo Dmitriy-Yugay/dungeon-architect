@@ -6,13 +6,11 @@ heroes.
 
 ## Status
 
-The flexible-construction prototype is complete. The desktop application
-supports room choice, persistent attachment previews, snapped and rotated room
-placement, build-phase undo, a player-placed dungeon heart, route-aware trap
-placement, an authored hero wave, deterministic combat and evaluation, victory,
-defeat, and layout-preserving restart. Hero health, combat events, and the final
-wave result are visible in the playable screen. Visuals remain placeholder
-shapes.
+The flexible-construction prototype now runs an authored three-wave loop. The
+desktop application supports an opening build, intermission intelligence and
+room drafts, persistent dungeon state, Gold-priced defenses, deterministic
+combat, causal wave reports and rewards, victory, defeat, and layout-preserving
+restart. Visuals remain placeholder shapes.
 
 ## Prototype controls
 
@@ -29,6 +27,14 @@ shapes.
 - Click **PLACE HEART**, then a placed room, to select or relocate the dungeon
   heart.
 - Connect the entrance to the heart to enable **START WAVE**.
+- The panel always shows current heart health and **Gold**, the selected trap's
+  cost, and the upcoming wave reward. If a hovered trap cannot be afforded, the
+  panel states how much more Gold is needed.
+- After each non-final wave, click **CLAIM +N GOLD**, then **CONTINUE**. Review
+  the next-wave intelligence, click **REVIEW ROOM OFFER**, choose one of the
+  three authored room cards, and place that room. Room construction locks after
+  this single placement, while trap and heart preparation remain available.
+- After a defeat report, click **END RUN**.
 - Click **RESTART** after victory or defeat; the built layout is preserved.
 
 ### Accepted demo route

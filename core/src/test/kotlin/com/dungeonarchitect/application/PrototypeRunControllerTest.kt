@@ -677,6 +677,7 @@ class PrototypeRunControllerTest {
         )
         assertTrue(controller.placeRoom(middleRoom))
         assertSame(middleRoom, controller.committedRoom)
+        assertFalse(controller.isRoomPlacementEnabled)
         assertFalse(
             controller.placeRoom(
                 PlacedRoom(

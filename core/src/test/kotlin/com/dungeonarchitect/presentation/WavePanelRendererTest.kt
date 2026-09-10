@@ -2,6 +2,7 @@ package com.dungeonarchitect.presentation
 
 import com.dungeonarchitect.domain.PrototypeRunPhase
 import com.dungeonarchitect.domain.UpcomingHeroWave
+import com.dungeonarchitect.simulation.WaveOutcome
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -23,13 +24,20 @@ class WavePanelRendererTest {
             phase = PrototypeRunPhase.DEFENSE_PREPARATION,
             heartHealth = 10,
             heartMaxHealth = 10,
+            gold = 2,
+            defenseName = "Spike Trap",
+            defenseCostGold = 1,
+            upcomingRewardGold = 1,
+            waveOutcome = null,
+            isWaveRewardClaimed = false,
             isStartEnabled = true,
             isCancelEnabled = true,
         )
 
         assertEquals("Upcoming wave: 4 x Militia Recruit", view.summary)
         assertEquals("A straightforward melee fighter.", view.traitDescription)
-        assertEquals("Heart health: 10 / 10", view.heartStatus)
+        assertEquals("Heart: 10/10 | Gold: 2", view.runStatus)
+        assertEquals("Spike Trap: 1G | Reward: +1G", view.economyStatus)
         assertEquals("START WAVE", view.controlLabel)
         assertTrue(view.isControlEnabled)
         assertEquals("CANCEL", view.cancelLabel)
@@ -51,6 +59,12 @@ class WavePanelRendererTest {
             phase = PrototypeRunPhase.DEFENSE_PREPARATION,
             heartHealth = 10,
             heartMaxHealth = 10,
+            gold = 0,
+            defenseName = "Spike Trap",
+            defenseCostGold = 1,
+            upcomingRewardGold = 1,
+            waveOutcome = null,
+            isWaveRewardClaimed = false,
             isStartEnabled = false,
             isCancelEnabled = false,
         )
@@ -67,16 +81,50 @@ class WavePanelRendererTest {
         val defeat = view(PrototypeRunPhase.RUN_DEFEAT, heartHealth = 0)
 
         assertEquals("VICTORY - Heart secured", victory.summary)
-        assertEquals("Heart health: 10 / 10", victory.heartStatus)
+        assertEquals("Heart: 10/10 | Gold: 2", victory.runStatus)
         assertEquals("RESTART", victory.controlLabel)
         assertTrue(victory.isControlEnabled)
         assertFalse(victory.isCancelEnabled)
 
         assertEquals("DEFEAT - Heart destroyed", defeat.summary)
-        assertEquals("Heart health: 0 / 10", defeat.heartStatus)
+        assertEquals("Heart: 0/10 | Gold: 2", defeat.runStatus)
         assertEquals("RESTART", defeat.controlLabel)
         assertTrue(defeat.isControlEnabled)
         assertFalse(defeat.isCancelEnabled)
+    }
+
+    @Test
+    fun `panel maps every cadence phase to an action and disabled reason`() {
+        val intelligence = view(PrototypeRunPhase.INTELLIGENCE, 10)
+        val draft = view(PrototypeRunPhase.ROOM_DRAFT, 10)
+        val combat = view(PrototypeRunPhase.COMBAT, 10)
+        val unclaimedReport = view(
+            phase = PrototypeRunPhase.WAVE_REPORT,
+            heartHealth = 10,
+            waveOutcome = WaveOutcome.VICTORY,
+        )
+        val claimedReport = view(
+            phase = PrototypeRunPhase.WAVE_REPORT,
+            heartHealth = 10,
+            waveOutcome = WaveOutcome.VICTORY,
+            isWaveRewardClaimed = true,
+        )
+        val defeatReport = view(
+            phase = PrototypeRunPhase.WAVE_REPORT,
+            heartHealth = 0,
+            waveOutcome = WaveOutcome.DEFEAT,
+        )
+
+        assertEquals("REVIEW ROOM OFFER", intelligence.controlLabel)
+        assertTrue(intelligence.isControlEnabled)
+        assertEquals("PLACE ONE OFFERED ROOM", draft.controlLabel)
+        assertFalse(draft.isControlEnabled)
+        assertEquals("WAIT - WAVE IN PROGRESS", combat.controlLabel)
+        assertFalse(combat.isControlEnabled)
+        assertEquals("CLAIM +1 GOLD", unclaimedReport.controlLabel)
+        assertTrue(unclaimedReport.isControlEnabled)
+        assertEquals("CONTINUE", claimedReport.controlLabel)
+        assertEquals("END RUN", defeatReport.controlLabel)
     }
 
     @Test
@@ -118,6 +166,8 @@ class WavePanelRendererTest {
     private fun view(
         phase: PrototypeRunPhase,
         heartHealth: Int,
+        waveOutcome: WaveOutcome? = null,
+        isWaveRewardClaimed: Boolean = false,
     ) = WavePanelView.from(
         wave = UpcomingHeroWave(
             heroType = "militia_recruit",
@@ -131,6 +181,12 @@ class WavePanelRendererTest {
         phase = phase,
         heartHealth = heartHealth,
         heartMaxHealth = 10,
+        gold = 2,
+        defenseName = "Spike Trap",
+        defenseCostGold = 1,
+        upcomingRewardGold = 1,
+        waveOutcome = waveOutcome,
+        isWaveRewardClaimed = isWaveRewardClaimed,
         isStartEnabled = false,
         isCancelEnabled = false,
     )

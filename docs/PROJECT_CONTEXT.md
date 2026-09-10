@@ -369,7 +369,7 @@ can be judged without offer variance.
 77. [x] Add one plainly named run resource, data-authored defense costs and wave
     rewards, and domain operations for affordable purchase and reward grants;
     test exact-cost, insufficient-funds, duplicate-spend, and phase rules.
-78. [ ] Present the full intermission cadence in the playable screen:
+78. [x] Present the full intermission cadence in the playable screen:
     intelligence -> room choice and placement -> defense preparation -> wave ->
     causal report -> reward, with visible resource totals, costs, and disabled
     reasons.

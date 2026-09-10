@@ -72,6 +72,18 @@ class BuildModeGuidanceTest {
                 activeAttachmentTarget = target(),
             ),
         )
+        assertEquals(
+            "TRAP: need 1 more Gold",
+            buildModeGuidance(
+                buildState(),
+                PrototypeRunPhase.DEFENSE_PREPARATION,
+                roomPreview = null,
+                hasTrapPreview = true,
+                activeAttachmentTarget = target(),
+                currentGold = 0,
+                defenseCostGold = 1,
+            ),
+        )
     }
 
     private fun validRoomPreview() = RoomPlacementPreview(

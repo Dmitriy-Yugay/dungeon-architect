@@ -42,18 +42,30 @@ class RoomRotationControlsTest {
     }
 
     @Test
-    fun `rotation controls are enabled only while building`() {
+    fun `rotation controls are enabled while room placement is available`() {
         PrototypeRunPhase.entries.forEach { phase ->
             val view = RoomRotationView.from(buildState(), phase)
 
             view.controls.forEach { control ->
                 assertEquals(
-                    phase == PrototypeRunPhase.DEFENSE_PREPARATION,
+                    phase == PrototypeRunPhase.DEFENSE_PREPARATION ||
+                        phase == PrototypeRunPhase.ROOM_DRAFT,
                     control.isEnabled,
                     phase.name,
                 )
             }
         }
+    }
+
+    @Test
+    fun `post-draft preparation disables rotation capability`() {
+        val view = RoomRotationView.from(
+            buildState = buildState(),
+            phase = PrototypeRunPhase.DEFENSE_PREPARATION,
+            isRoomPlacementEnabled = false,
+        )
+
+        assertTrue(view.controls.none { it.isEnabled })
     }
 
     @Test

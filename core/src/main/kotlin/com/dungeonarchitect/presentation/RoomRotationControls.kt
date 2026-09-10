@@ -30,8 +30,11 @@ internal data class RoomRotationView(
         fun from(
             buildState: BuildState,
             phase: PrototypeRunPhase,
+            isRoomPlacementEnabled: Boolean =
+                phase == PrototypeRunPhase.DEFENSE_PREPARATION ||
+                    phase == PrototypeRunPhase.ROOM_DRAFT,
         ): RoomRotationView {
-            val isEnabled = phase == PrototypeRunPhase.DEFENSE_PREPARATION
+            val isEnabled = isRoomPlacementEnabled
             return RoomRotationView(
                 orientationLabel = buildState.selectedRoomOrientation.plainLabel,
                 controls = listOf(

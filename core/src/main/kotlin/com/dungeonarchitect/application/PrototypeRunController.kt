@@ -110,10 +110,23 @@ class PrototypeRunController(
             offeredRoomBlueprintIds.isEmpty() &&
             grid.placedRooms.isNotEmpty()
 
+    val isRoomPlacementEnabled: Boolean
+        get() = phase == PrototypeRunPhase.ROOM_DRAFT ||
+            (phase == PrototypeRunPhase.DEFENSE_PREPARATION &&
+                offeredRoomBlueprintIds.isEmpty())
+
     val isControlEnabled: Boolean
-        get() = isStartEnabled ||
-            phase == PrototypeRunPhase.RUN_VICTORY ||
-            phase == PrototypeRunPhase.RUN_DEFEAT
+        get() = when (phase) {
+            PrototypeRunPhase.INTELLIGENCE,
+            PrototypeRunPhase.RUN_VICTORY,
+            PrototypeRunPhase.RUN_DEFEAT,
+            -> true
+            PrototypeRunPhase.WAVE_REPORT -> evaluationReport != null
+            PrototypeRunPhase.DEFENSE_PREPARATION -> isStartEnabled
+            PrototypeRunPhase.ROOM_DRAFT,
+            PrototypeRunPhase.COMBAT,
+            -> false
+        }
 
     fun start(): Boolean {
         if (phase != PrototypeRunPhase.DEFENSE_PREPARATION ||
