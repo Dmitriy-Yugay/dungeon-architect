@@ -119,7 +119,7 @@ class BuildPlacementPreviewsTest {
             grid = fixture.grid,
             buildState = fixture.buildState,
             hoveredPosition = position(5, 3),
-            runPhase = PrototypeRunPhase.RUNNING,
+            runPhase = PrototypeRunPhase.COMBAT,
         )
 
         assertNull(previews.room)

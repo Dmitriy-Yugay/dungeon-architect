@@ -20,7 +20,7 @@ class WavePanelRendererTest {
                 movementSpeedTilesPerSecond = 2f,
                 traitDescription = "A straightforward melee fighter.",
             ),
-            phase = PrototypeRunPhase.BUILDING,
+            phase = PrototypeRunPhase.DEFENSE_PREPARATION,
             heartHealth = 10,
             heartMaxHealth = 10,
             isStartEnabled = true,
@@ -48,7 +48,7 @@ class WavePanelRendererTest {
                 movementSpeedTilesPerSecond = 2f,
                 traitDescription = "A straightforward melee fighter.",
             ),
-            phase = PrototypeRunPhase.BUILDING,
+            phase = PrototypeRunPhase.DEFENSE_PREPARATION,
             heartHealth = 10,
             heartMaxHealth = 10,
             isStartEnabled = false,
@@ -63,8 +63,8 @@ class WavePanelRendererTest {
 
     @Test
     fun `panel gives clear terminal feedback and enables restart`() {
-        val victory = view(PrototypeRunPhase.VICTORY, heartHealth = 10)
-        val defeat = view(PrototypeRunPhase.DEFEAT, heartHealth = 0)
+        val victory = view(PrototypeRunPhase.RUN_VICTORY, heartHealth = 10)
+        val defeat = view(PrototypeRunPhase.RUN_DEFEAT, heartHealth = 0)
 
         assertEquals("VICTORY - Heart secured", victory.summary)
         assertEquals("Heart health: 10 / 10", victory.heartStatus)

@@ -85,24 +85,32 @@ This creates the current non-visual flow:
   not traversable unless their directional doors connect. Wave-start validation
   and simulation route from the fixed entrance to the currently selected heart;
   unused branches are excluded from that route.
-- Cancel removes only the newest placed room during BUILDING. It also removes
-  every trap attached to that room and clears the heart if that room held it.
-  Because routes, connections, and open doors are derived from remaining state,
-  no separate topology cache needs repair after cancellation.
+- Cancel removes only the newest placed room during DEFENSE_PREPARATION. It also
+  removes every trap attached to that room and clears the heart if that room
+  held it. Because routes, connections, and open doors are derived from
+  remaining state, no separate topology cache needs repair after cancellation.
 - Keep trap and heart occupancy mutually exclusive. Trap placement rejects the
   selected heart cell, and heart placement rejects a room whose transformed
-  anchor contains a trap. Presentation exposes a BUILDING-only heart mode whose
-  grid clicks take precedence over trap and room placement, but validation and
-  mutation remain in non-rendering domain and application code.
+  anchor contains a trap. Presentation exposes a DEFENSE_PREPARATION-only heart
+  mode whose grid clicks take precedence over trap and room placement, but
+  validation and mutation remain in non-rendering domain and application code.
 - Load disposable game content from JSON or another simple text format.
 - Parse authored content from supplied text; the application layer owns file
   loading so content validation does not depend on libGDX global state.
 - Author the expanded run as an ordered list of stable wave entries. Run JSON
   owns starting resources, per-wave rewards, and the explicit completion rule;
   each entry references a wave-content path that is checked against the
-  application's available wave catalog during parsing. The schema is in place
-  before the controller adopts multi-wave phases, so the current one-wave
-  behavior remains unchanged until its state-transition task is implemented.
+  application's available wave catalog during parsing.
+- Represent run cadence with explicit INTELLIGENCE, ROOM_DRAFT,
+  DEFENSE_PREPARATION, COMBAT, WAVE_REPORT, RUN_VICTORY, and RUN_DEFEAT phases.
+  The domain phase type owns the legal transition table: preparation advances
+  in that order, every combat result passes through WAVE_REPORT, and the report
+  either opens the next wave's intelligence or resolves the run. Terminal
+  phases have no successors. The current single-wave controller begins directly
+  in DEFENSE_PREPARATION and immediately advances a resolved WAVE_REPORT to the
+  terminal result, preserving the accepted demo until multi-wave persistence is
+  implemented. Restart is a lifecycle reset to that initial phase rather than a
+  transition within a completed run.
 - Run prototype hero movement at a fixed 60 Hz simulation step. Hero movement
   speed remains authored wave content, while presentation-facing grid position
   interpolates the remainder between simulation steps.

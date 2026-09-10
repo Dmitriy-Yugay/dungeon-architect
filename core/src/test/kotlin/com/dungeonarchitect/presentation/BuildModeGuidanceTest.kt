@@ -22,7 +22,7 @@ class BuildModeGuidanceTest {
             "ROOM Original | click ghost | Q/E",
             buildModeGuidance(
                 buildState = buildState(),
-                phase = PrototypeRunPhase.BUILDING,
+                phase = PrototypeRunPhase.DEFENSE_PREPARATION,
                 roomPreview = validRoomPreview(),
                 hasTrapPreview = false,
                 activeAttachmentTarget = target(),
@@ -37,7 +37,7 @@ class BuildModeGuidanceTest {
             RoomPlacementInvalidReason.OVERLAPS_ROOM.displayDescription,
             buildModeGuidance(
                 buildState = buildState(),
-                phase = PrototypeRunPhase.BUILDING,
+                phase = PrototypeRunPhase.DEFENSE_PREPARATION,
                 roomPreview = RoomPlacementPreview(
                     room = room,
                     isValid = false,
@@ -56,7 +56,7 @@ class BuildModeGuidanceTest {
             "HEART: click room",
             buildModeGuidance(
                 heartState,
-                PrototypeRunPhase.BUILDING,
+                PrototypeRunPhase.DEFENSE_PREPARATION,
                 roomPreview = null,
                 hasTrapPreview = false,
                 activeAttachmentTarget = target(),
@@ -66,7 +66,7 @@ class BuildModeGuidanceTest {
             "TRAP: click socket",
             buildModeGuidance(
                 buildState(),
-                PrototypeRunPhase.BUILDING,
+                PrototypeRunPhase.DEFENSE_PREPARATION,
                 roomPreview = null,
                 hasTrapPreview = true,
                 activeAttachmentTarget = target(),

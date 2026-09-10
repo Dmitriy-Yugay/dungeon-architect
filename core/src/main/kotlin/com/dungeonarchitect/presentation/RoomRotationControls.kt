@@ -31,7 +31,7 @@ internal data class RoomRotationView(
             buildState: BuildState,
             phase: PrototypeRunPhase,
         ): RoomRotationView {
-            val isEnabled = phase == PrototypeRunPhase.BUILDING
+            val isEnabled = phase == PrototypeRunPhase.DEFENSE_PREPARATION
             return RoomRotationView(
                 orientationLabel = buildState.selectedRoomOrientation.plainLabel,
                 controls = listOf(

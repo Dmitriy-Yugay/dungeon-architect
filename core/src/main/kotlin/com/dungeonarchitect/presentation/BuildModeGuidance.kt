@@ -12,7 +12,7 @@ internal fun buildModeGuidance(
     hasTrapPreview: Boolean,
     activeAttachmentTarget: RoomAttachmentTarget?,
 ): String = when {
-    phase != PrototypeRunPhase.BUILDING -> ""
+    phase != PrototypeRunPhase.DEFENSE_PREPARATION -> ""
     buildState.isHeartPlacementModeActive -> "HEART: click room"
     hasTrapPreview -> "TRAP: click socket"
     activeAttachmentTarget == null -> "ROOM: choose gold attachment"

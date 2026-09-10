@@ -70,7 +70,7 @@ class DeterminismRegressionTest {
             second.advance(elapsedSeconds = fixedSteps(1))
         }
 
-        assertEquals(PrototypeRunPhase.VICTORY, first.phase)
+        assertEquals(PrototypeRunPhase.RUN_VICTORY, first.phase)
         assertEquals(first.phase, second.phase)
         assertEquals(first.events, second.events)
         assertEquals(

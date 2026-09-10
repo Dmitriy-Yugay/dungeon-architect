@@ -126,7 +126,7 @@ class TrapPlacementCommitTest {
             grid = fixture.grid,
             buildState = fixture.buildState,
             clickedPosition = position(4, 3),
-            runPhase = PrototypeRunPhase.BUILDING,
+            runPhase = PrototypeRunPhase.DEFENSE_PREPARATION,
         )
 
         assertEquals(TrapPlacementCommitResult.PLACED, result)
@@ -155,7 +155,7 @@ class TrapPlacementCommitTest {
                 grid = occupiedFixture.grid,
                 buildState = occupiedFixture.buildState,
                 clickedPosition = position(4, 3),
-                runPhase = PrototypeRunPhase.BUILDING,
+                runPhase = PrototypeRunPhase.DEFENSE_PREPARATION,
             ),
         )
         assertEquals(occupiedTraps, occupiedFixture.grid.placedTraps)
@@ -167,7 +167,7 @@ class TrapPlacementCommitTest {
                 grid = incompatibleFixture.grid,
                 buildState = incompatibleFixture.buildState,
                 clickedPosition = position(3, 3),
-                runPhase = PrototypeRunPhase.BUILDING,
+                runPhase = PrototypeRunPhase.DEFENSE_PREPARATION,
             ),
         )
         assertEquals(emptyList(), incompatibleFixture.grid.placedTraps)
@@ -185,7 +185,7 @@ class TrapPlacementCommitTest {
                 grid = fixture.grid,
                 buildState = fixture.buildState,
                 clickedPosition = position(4, 3),
-                runPhase = PrototypeRunPhase.BUILDING,
+                runPhase = PrototypeRunPhase.DEFENSE_PREPARATION,
             ),
         )
 
@@ -195,25 +195,23 @@ class TrapPlacementCommitTest {
 
     @Test
     fun `commit rejects a valid socket outside building phase`() {
-        listOf(
-            PrototypeRunPhase.RUNNING,
-            PrototypeRunPhase.VICTORY,
-            PrototypeRunPhase.DEFEAT,
-        ).forEach { phase ->
-            val fixture = fixture()
+        PrototypeRunPhase.entries
+            .filterNot { it == PrototypeRunPhase.DEFENSE_PREPARATION }
+            .forEach { phase ->
+                val fixture = fixture()
 
-            assertEquals(
-                TrapPlacementCommitResult.REJECTED,
-                PrototypeScreen.commitTrapPlacement(
-                    grid = fixture.grid,
-                    buildState = fixture.buildState,
-                    clickedPosition = position(4, 3),
-                    runPhase = phase,
-                ),
-                phase.name,
-            )
-            assertEquals(emptyList(), fixture.grid.placedTraps, phase.name)
-        }
+                assertEquals(
+                    TrapPlacementCommitResult.REJECTED,
+                    PrototypeScreen.commitTrapPlacement(
+                        grid = fixture.grid,
+                        buildState = fixture.buildState,
+                        clickedPosition = position(4, 3),
+                        runPhase = phase,
+                    ),
+                    phase.name,
+                )
+                assertEquals(emptyList(), fixture.grid.placedTraps, phase.name)
+            }
     }
 
     @Test
@@ -226,7 +224,7 @@ class TrapPlacementCommitTest {
                 grid = fixture.grid,
                 buildState = fixture.buildState,
                 clickedPosition = position(5, 2),
-                runPhase = PrototypeRunPhase.BUILDING,
+                runPhase = PrototypeRunPhase.DEFENSE_PREPARATION,
             ),
         )
         assertEquals(emptyList(), fixture.grid.placedTraps)

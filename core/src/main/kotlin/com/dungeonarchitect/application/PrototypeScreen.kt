@@ -92,7 +92,7 @@ class PrototypeScreen(
             elapsedSeconds = delta,
         )
         ScreenUtils.clear(BACKGROUND_RED, BACKGROUND_GREEN, BACKGROUND_BLUE, BACKGROUND_ALPHA)
-        val attachmentTargets = if (runController.phase == PrototypeRunPhase.BUILDING) {
+        val attachmentTargets = if (runController.phase == PrototypeRunPhase.DEFENSE_PREPARATION) {
             grid.roomAttachmentTargets
         } else {
             emptyList()
@@ -119,7 +119,7 @@ class PrototypeScreen(
             roomAttachmentTargets = roomAttachmentTargetMarkers(
                 grid = grid,
                 activeTarget = activeAttachmentTarget,
-            ).takeIf { runController.phase == PrototypeRunPhase.BUILDING }
+            ).takeIf { runController.phase == PrototypeRunPhase.DEFENSE_PREPARATION }
                 ?: emptyList(),
             combatFeedback = combatFeedback,
         )
@@ -318,7 +318,7 @@ class PrototypeScreen(
             clickedPosition: GridPosition?,
             runPhase: PrototypeRunPhase,
         ): Boolean {
-            if (runPhase != PrototypeRunPhase.BUILDING) {
+            if (runPhase != PrototypeRunPhase.DEFENSE_PREPARATION) {
                 return false
             }
 
@@ -354,7 +354,7 @@ class PrototypeScreen(
 
             return when (hoverResult) {
                 is TrapSocketHoverResult.Valid ->
-                    if (runPhase == PrototypeRunPhase.BUILDING &&
+                    if (runPhase == PrototypeRunPhase.DEFENSE_PREPARATION &&
                         grid.placeTrap(
                             room = hoverResult.room,
                             localSocketPosition = hoverResult.localSocketPosition,
@@ -381,7 +381,7 @@ class PrototypeScreen(
             runController: PrototypeRunController,
         ): HeartPlacementCommitResult {
             if (!buildState.isHeartPlacementModeActive ||
-                runController.phase != PrototypeRunPhase.BUILDING
+                runController.phase != PrototypeRunPhase.DEFENSE_PREPARATION
             ) {
                 return HeartPlacementCommitResult.REJECTED
             }
@@ -403,7 +403,7 @@ class PrototypeScreen(
             direction: RoomRotationDirection,
             runPhase: PrototypeRunPhase,
         ): Boolean {
-            if (runPhase != PrototypeRunPhase.BUILDING) {
+            if (runPhase != PrototypeRunPhase.DEFENSE_PREPARATION) {
                 return false
             }
 
@@ -488,7 +488,7 @@ class PrototypeScreen(
             runController: PrototypeRunController,
         ): PrototypeClickResult {
             if (heartPlacementControl?.bounds?.contains(worldX, worldY) == true) {
-                return if (runController.phase == PrototypeRunPhase.BUILDING) {
+                return if (runController.phase == PrototypeRunPhase.DEFENSE_PREPARATION) {
                     buildState.toggleHeartPlacementMode()
                     if (buildState.isHeartPlacementModeActive) {
                         PrototypeClickResult.HEART_MODE_ACTIVATED

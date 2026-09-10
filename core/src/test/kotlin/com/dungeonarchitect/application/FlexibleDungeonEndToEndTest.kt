@@ -132,7 +132,7 @@ class FlexibleDungeonEndToEndTest {
 
         completeWave(fixture)
 
-        assertEquals(PrototypeRunPhase.VICTORY, fixture.controller.phase)
+        assertEquals(PrototypeRunPhase.RUN_VICTORY, fixture.controller.phase)
         assertEquals(10, fixture.controller.heartHealth)
         assertEquals(
             WaveResolved(WaveOutcome.VICTORY, heartHealth = 10),
@@ -152,7 +152,7 @@ class FlexibleDungeonEndToEndTest {
         val persistentRooms = fixture.grid.placedRooms
         val persistentTraps = fixture.grid.placedTraps
         assertEquals(PrototypeClickResult.RUN_RESTARTED, clickRunControl(fixture))
-        assertEquals(PrototypeRunPhase.BUILDING, fixture.controller.phase)
+        assertEquals(PrototypeRunPhase.DEFENSE_PREPARATION, fixture.controller.phase)
         assertEquals(persistentRooms, fixture.grid.placedRooms)
         assertEquals(persistentTraps, fixture.grid.placedTraps)
         assertSame(selectedHeart, fixture.grid.placedHeart)
@@ -161,7 +161,7 @@ class FlexibleDungeonEndToEndTest {
 
     private fun completeWave(fixture: Fixture) {
         var steps = 0
-        while (fixture.controller.phase == PrototypeRunPhase.RUNNING) {
+        while (fixture.controller.phase == PrototypeRunPhase.COMBAT) {
             fixture.controller.advance(
                 FixedStepHeroSimulation.FIXED_STEP_SECONDS.toFloat(),
             )

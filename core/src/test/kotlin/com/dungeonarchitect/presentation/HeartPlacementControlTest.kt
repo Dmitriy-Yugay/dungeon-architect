@@ -22,12 +22,12 @@ class HeartPlacementControlTest {
 
             assertEquals("PLACE HEART", view.label)
             assertEquals(
-                phase == PrototypeRunPhase.BUILDING,
+                phase == PrototypeRunPhase.DEFENSE_PREPARATION,
                 view.isEnabled,
                 phase.name,
             )
             assertEquals(
-                phase == PrototypeRunPhase.BUILDING,
+                phase == PrototypeRunPhase.DEFENSE_PREPARATION,
                 view.isActive,
                 phase.name,
             )
@@ -41,7 +41,7 @@ class HeartPlacementControlTest {
         val heart = HeartPlacementLayout.control(
             view = HeartPlacementControlView.from(
                 buildState,
-                PrototypeRunPhase.BUILDING,
+                PrototypeRunPhase.DEFENSE_PREPARATION,
             ),
             worldWidth = WORLD_WIDTH,
             panelBottom = PANEL_BOTTOM,
@@ -52,7 +52,7 @@ class HeartPlacementControlTest {
             PANEL_BOTTOM,
         )
         val rotationControls = RoomRotationLayout.controls(
-            RoomRotationView.from(buildState, PrototypeRunPhase.BUILDING),
+            RoomRotationView.from(buildState, PrototypeRunPhase.DEFENSE_PREPARATION),
             roomChoicesView,
             WORLD_WIDTH,
             PANEL_BOTTOM,

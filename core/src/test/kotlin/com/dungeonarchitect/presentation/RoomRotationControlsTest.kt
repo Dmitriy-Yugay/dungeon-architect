@@ -20,7 +20,7 @@ class RoomRotationControlsTest {
 
         val view = RoomRotationView.from(
             buildState = buildState,
-            phase = PrototypeRunPhase.BUILDING,
+            phase = PrototypeRunPhase.DEFENSE_PREPARATION,
         )
 
         assertEquals("90 right", view.orientationLabel)
@@ -48,7 +48,7 @@ class RoomRotationControlsTest {
 
             view.controls.forEach { control ->
                 assertEquals(
-                    phase == PrototypeRunPhase.BUILDING,
+                    phase == PrototypeRunPhase.DEFENSE_PREPARATION,
                     control.isEnabled,
                     phase.name,
                 )
@@ -62,7 +62,7 @@ class RoomRotationControlsTest {
         val rotationControls = RoomRotationLayout.controls(
             rotationView = RoomRotationView.from(
                 buildState(),
-                PrototypeRunPhase.BUILDING,
+                PrototypeRunPhase.DEFENSE_PREPARATION,
             ),
             roomChoicesView = roomChoicesView,
             worldWidth = WORLD_WIDTH,

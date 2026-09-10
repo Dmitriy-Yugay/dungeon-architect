@@ -121,7 +121,7 @@ class HeartPlacementApplicationTest {
             )
 
             assertEquals(
-                if (phase == PrototypeRunPhase.BUILDING) {
+                if (phase == PrototypeRunPhase.DEFENSE_PREPARATION) {
                     PrototypeClickResult.HEART_MODE_ACTIVATED
                 } else {
                     PrototypeClickResult.HEART_MODE_REJECTED
@@ -130,7 +130,7 @@ class HeartPlacementApplicationTest {
                 phase.name,
             )
             assertEquals(
-                phase == PrototypeRunPhase.BUILDING,
+                phase == PrototypeRunPhase.DEFENSE_PREPARATION,
                 fixture.buildState.isHeartPlacementModeActive,
                 phase.name,
             )
@@ -139,11 +139,11 @@ class HeartPlacementApplicationTest {
 
     @Test
     fun `mode toggles off explicitly and when a wave starts`() {
-        val fixture = phaseFixture(PrototypeRunPhase.BUILDING)
+        val fixture = phaseFixture(PrototypeRunPhase.DEFENSE_PREPARATION)
         val control = heartControl(
             HeartPlacementControlView.from(
                 fixture.buildState,
-                PrototypeRunPhase.BUILDING,
+                PrototypeRunPhase.DEFENSE_PREPARATION,
             ),
         )
         assertEquals(
@@ -178,13 +178,13 @@ class HeartPlacementApplicationTest {
         val room = routeRoom()
         val fixture = buildFixture(room, width = 3, height = 1, entrance = position(0, 0))
         assertTrue(fixture.grid.placeOrRelocateHeart(room))
-        if (phase == PrototypeRunPhase.VICTORY) {
+        if (phase == PrototypeRunPhase.RUN_VICTORY) {
             assertTrue(fixture.grid.placeTrap(room, TRAP_SOCKET, fixture.trap))
         }
-        if (phase != PrototypeRunPhase.BUILDING) {
+        if (phase != PrototypeRunPhase.DEFENSE_PREPARATION) {
             assertTrue(fixture.controller.start())
         }
-        if (phase == PrototypeRunPhase.VICTORY || phase == PrototypeRunPhase.DEFEAT) {
+        if (phase == PrototypeRunPhase.RUN_VICTORY || phase == PrototypeRunPhase.RUN_DEFEAT) {
             fixture.controller.advance(1f)
             assertEquals(phase, fixture.controller.phase)
         }

@@ -21,8 +21,8 @@ internal data class HeartPlacementControlView(
             phase: PrototypeRunPhase,
         ) = HeartPlacementControlView(
             label = "PLACE HEART",
-            isEnabled = phase == PrototypeRunPhase.BUILDING,
-            isActive = phase == PrototypeRunPhase.BUILDING &&
+            isEnabled = phase == PrototypeRunPhase.DEFENSE_PREPARATION,
+            isActive = phase == PrototypeRunPhase.DEFENSE_PREPARATION &&
                 buildState.isHeartPlacementModeActive,
         )
     }

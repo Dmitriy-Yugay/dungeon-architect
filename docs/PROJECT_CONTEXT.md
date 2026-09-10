@@ -355,7 +355,7 @@ can be judged without offer variance.
     ordered wave list, starting resources, reward values, and run-completion
     conditions; keep balancing values out of Kotlin and test invalid references
     and boundary values.
-74. [ ] Extend the run phase model with explicit intelligence, room-draft,
+74. [x] Extend the run phase model with explicit intelligence, room-draft,
     defense-preparation, combat, wave-report, run-victory, and run-defeat states;
     define and test the legal transition table without rendering.
 75. [ ] Make dungeon topology, placed traps, the selected heart, run resources,

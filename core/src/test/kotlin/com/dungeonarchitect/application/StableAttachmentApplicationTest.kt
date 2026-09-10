@@ -48,7 +48,7 @@ class StableAttachmentApplicationTest {
                 grid = grid,
                 buildState = buildState,
                 clickedPosition = northPreview.room.gridPositions.single(),
-                runPhase = PrototypeRunPhase.BUILDING,
+                runPhase = PrototypeRunPhase.DEFENSE_PREPARATION,
             ),
         )
     }

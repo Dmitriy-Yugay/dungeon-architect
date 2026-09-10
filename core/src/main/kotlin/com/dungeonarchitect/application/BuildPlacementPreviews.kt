@@ -26,10 +26,10 @@ internal fun buildPlacementPreviews(
     grid: DungeonGrid,
     buildState: BuildState,
     hoveredPosition: GridPosition?,
-    runPhase: PrototypeRunPhase = PrototypeRunPhase.BUILDING,
+    runPhase: PrototypeRunPhase = PrototypeRunPhase.DEFENSE_PREPARATION,
     attachmentTarget: RoomAttachmentTarget? = null,
 ): BuildPlacementPreviews {
-    if (runPhase != PrototypeRunPhase.BUILDING) {
+    if (runPhase != PrototypeRunPhase.DEFENSE_PREPARATION) {
         return BuildPlacementPreviews(room = null, trap = null, heart = null)
     }
     if (buildState.isHeartPlacementModeActive) {

@@ -31,7 +31,7 @@ class PrototypeRunController(
 
     val heartMaxHealth: Int = runDefinition.heartHealth
 
-    var phase: PrototypeRunPhase = PrototypeRunPhase.BUILDING
+    var phase: PrototypeRunPhase = PrototypeRunPhase.DEFENSE_PREPARATION
         private set
 
     var heartHealth: Int = heartMaxHealth
@@ -53,20 +53,20 @@ class PrototypeRunController(
         private set
 
     val isStartEnabled: Boolean
-        get() = phase == PrototypeRunPhase.BUILDING &&
+        get() = phase == PrototypeRunPhase.DEFENSE_PREPARATION &&
             waveStartController.isStartEnabled
 
     val isCancelEnabled: Boolean
-        get() = phase == PrototypeRunPhase.BUILDING &&
+        get() = phase == PrototypeRunPhase.DEFENSE_PREPARATION &&
             grid.placedRooms.isNotEmpty()
 
     val isControlEnabled: Boolean
         get() = isStartEnabled ||
-            phase == PrototypeRunPhase.VICTORY ||
-            phase == PrototypeRunPhase.DEFEAT
+            phase == PrototypeRunPhase.RUN_VICTORY ||
+            phase == PrototypeRunPhase.RUN_DEFEAT
 
     fun start(): Boolean {
-        if (phase != PrototypeRunPhase.BUILDING ||
+        if (phase != PrototypeRunPhase.DEFENSE_PREPARATION ||
             !waveStartController.start()
         ) {
             return false
@@ -78,12 +78,12 @@ class PrototypeRunController(
         evaluationReport = null
         trapSystem = DeterministicTrapSystem(wave.traps, ::recordEvent)
         heroSimulation = newHeroSimulation(wave)
-        phase = PrototypeRunPhase.RUNNING
+        transitionTo(PrototypeRunPhase.COMBAT)
         return true
     }
 
     fun cancelLastPlacedRoom(): Boolean {
-        if (phase != PrototypeRunPhase.BUILDING) {
+        if (phase != PrototypeRunPhase.DEFENSE_PREPARATION) {
             return false
         }
 
@@ -91,7 +91,7 @@ class PrototypeRunController(
     }
 
     fun placeOrRelocateHeart(room: PlacedRoom): Boolean {
-        if (phase != PrototypeRunPhase.BUILDING) {
+        if (phase != PrototypeRunPhase.DEFENSE_PREPARATION) {
             return false
         }
 
@@ -102,12 +102,12 @@ class PrototypeRunController(
         require(elapsedSeconds.isFinite() && elapsedSeconds >= 0f) {
             "Prototype run elapsed time must be finite and non-negative."
         }
-        if (phase != PrototypeRunPhase.RUNNING) {
+        if (phase != PrototypeRunPhase.COMBAT) {
             return
         }
 
         var remainingSeconds = elapsedSeconds.toDouble()
-        while (phase == PrototypeRunPhase.RUNNING) {
+        while (phase == PrototypeRunPhase.COMBAT) {
             val simulation = requireNotNull(heroSimulation)
             val offeredSeconds = remainingSeconds
             remainingSeconds =
@@ -120,7 +120,7 @@ class PrototypeRunController(
             }
 
             resolve(heroState)
-            if (phase == PrototypeRunPhase.RUNNING) {
+            if (phase == PrototypeRunPhase.COMBAT) {
                 heroSimulation = newHeroSimulation(requireNotNull(startedWave))
             }
             if (remainingSeconds <= TIME_TOLERANCE) {
@@ -130,8 +130,8 @@ class PrototypeRunController(
     }
 
     fun restart(): Boolean {
-        if (phase != PrototypeRunPhase.VICTORY &&
-            phase != PrototypeRunPhase.DEFEAT
+        if (phase != PrototypeRunPhase.RUN_VICTORY &&
+            phase != PrototypeRunPhase.RUN_DEFEAT
         ) {
             return false
         }
@@ -145,7 +145,7 @@ class PrototypeRunController(
         completedHeroElapsedSeconds = 0.0
         evaluationReport = null
         mutableEvents.clear()
-        phase = PrototypeRunPhase.BUILDING
+        resetToDefensePreparation()
         return true
     }
 
@@ -167,27 +167,19 @@ class PrototypeRunController(
                 ),
             )
             if (heartHealth == 0) {
-                phase = PrototypeRunPhase.DEFEAT
-                recordEvent(
-                    WaveResolved(
-                        outcome = WaveOutcome.DEFEAT,
-                        heartHealth = heartHealth,
-                    ),
+                resolveWave(
+                    waveOutcome = WaveOutcome.DEFEAT,
+                    runOutcome = PrototypeRunPhase.RUN_DEFEAT,
                 )
-                recordEvaluationReport()
                 return
             }
         }
 
         if (resolvedHeroCount == upcomingWave.count) {
-            phase = PrototypeRunPhase.VICTORY
-            recordEvent(
-                WaveResolved(
-                    outcome = WaveOutcome.VICTORY,
-                    heartHealth = heartHealth,
-                ),
+            resolveWave(
+                waveOutcome = WaveOutcome.VICTORY,
+                runOutcome = PrototypeRunPhase.RUN_VICTORY,
             )
-            recordEvaluationReport()
         }
     }
 
@@ -207,6 +199,32 @@ class PrototypeRunController(
             events = mutableEvents,
             elapsedSimulationSeconds = completedHeroElapsedSeconds,
         )
+    }
+
+    private fun resolveWave(
+        waveOutcome: WaveOutcome,
+        runOutcome: PrototypeRunPhase,
+    ) {
+        transitionTo(PrototypeRunPhase.WAVE_REPORT)
+        recordEvent(
+            WaveResolved(
+                outcome = waveOutcome,
+                heartHealth = heartHealth,
+            ),
+        )
+        recordEvaluationReport()
+        transitionTo(runOutcome)
+    }
+
+    private fun transitionTo(next: PrototypeRunPhase) {
+        check(phase.canTransitionTo(next)) {
+            "Illegal prototype run phase transition: $phase -> $next."
+        }
+        phase = next
+    }
+
+    private fun resetToDefensePreparation() {
+        phase = PrototypeRunPhase.DEFENSE_PREPARATION
     }
 
     private fun newHeroSimulation(

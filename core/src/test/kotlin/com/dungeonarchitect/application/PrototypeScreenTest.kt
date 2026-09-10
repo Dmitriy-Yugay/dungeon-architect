@@ -123,12 +123,9 @@ class PrototypeScreenTest {
 
     @Test
     fun `room placement is allowed only during the building phase`() {
-        listOf(
-            PrototypeRunPhase.BUILDING to true,
-            PrototypeRunPhase.RUNNING to false,
-            PrototypeRunPhase.VICTORY to false,
-            PrototypeRunPhase.DEFEAT to false,
-        ).forEach { (phase, expectedPlacement) ->
+        PrototypeRunPhase.entries.forEach { phase ->
+            val expectedPlacement =
+                phase == PrototypeRunPhase.DEFENSE_PREPARATION
             val buildState = authoredBuildState()
             val grid = prototypeGrid()
             val roomsBeforeClick = grid.placedRooms
@@ -174,7 +171,7 @@ class PrototypeScreenTest {
                 grid = grid,
                 buildState = buildState,
                 clickedPosition = clickedPosition,
-                runPhase = PrototypeRunPhase.BUILDING,
+                runPhase = PrototypeRunPhase.DEFENSE_PREPARATION,
             ),
         )
         assertSame(
@@ -195,7 +192,7 @@ class PrototypeScreenTest {
                 grid = grid,
                 buildState = buildState,
                 clickedPosition = GridPosition(column = 10, row = 8),
-                runPhase = PrototypeRunPhase.BUILDING,
+                runPhase = PrototypeRunPhase.DEFENSE_PREPARATION,
             ),
         )
         assertEquals(roomsBeforeClick, grid.placedRooms)
@@ -392,7 +389,7 @@ class PrototypeScreenTest {
         assertEquals(PrototypeClickResult.ROOM_CHOICE_SELECTED, result)
         assertEquals("long-gallery", buildState.selectedRoomBlueprint.id)
         assertEquals(roomsBeforeClick, grid.placedRooms)
-        assertEquals(PrototypeRunPhase.BUILDING, controller.phase)
+        assertEquals(PrototypeRunPhase.DEFENSE_PREPARATION, controller.phase)
         assertNull(controller.startedWave)
     }
 
@@ -403,7 +400,7 @@ class PrototypeScreenTest {
         val controller = runController(grid)
         assertTrue(controller.start())
         controller.advance(elapsedSeconds = 1f)
-        assertEquals(PrototypeRunPhase.DEFEAT, controller.phase)
+        assertEquals(PrototypeRunPhase.RUN_DEFEAT, controller.phase)
         val roomsBeforeClick = grid.placedRooms
         val controls = roomChoiceControls(buildState)
         val longGalleryControl = controls.single {
@@ -423,7 +420,7 @@ class PrototypeScreenTest {
         )
 
         assertEquals(PrototypeClickResult.ROOM_CHOICE_SELECTED, result)
-        assertEquals(PrototypeRunPhase.DEFEAT, controller.phase)
+        assertEquals(PrototypeRunPhase.RUN_DEFEAT, controller.phase)
         assertEquals(roomsBeforeClick, grid.placedRooms)
     }
 
@@ -446,7 +443,7 @@ class PrototypeScreenTest {
         )
         val controller = runController(grid)
         assertTrue(controller.start())
-        assertEquals(PrototypeRunPhase.RUNNING, controller.phase)
+        assertEquals(PrototypeRunPhase.COMBAT, controller.phase)
         val roomsBeforeClick = grid.placedRooms
 
         val result = PrototypeScreen.handleClick(
@@ -463,7 +460,7 @@ class PrototypeScreenTest {
 
         assertEquals(PrototypeClickResult.IGNORED, result)
         assertEquals(roomsBeforeClick, grid.placedRooms)
-        assertEquals(PrototypeRunPhase.RUNNING, controller.phase)
+        assertEquals(PrototypeRunPhase.COMBAT, controller.phase)
     }
 
     @Test
@@ -570,7 +567,7 @@ class PrototypeScreenTest {
         val controller = runController(grid)
         assertTrue(controller.start())
         controller.advance(elapsedSeconds = 1f)
-        assertEquals(PrototypeRunPhase.DEFEAT, controller.phase)
+        assertEquals(PrototypeRunPhase.RUN_DEFEAT, controller.phase)
 
         val result = PrototypeScreen.handleClick(
             grid = grid,
@@ -590,7 +587,7 @@ class PrototypeScreenTest {
         )
 
         assertEquals(PrototypeClickResult.RUN_RESTARTED, result)
-        assertEquals(PrototypeRunPhase.BUILDING, controller.phase)
+        assertEquals(PrototypeRunPhase.DEFENSE_PREPARATION, controller.phase)
     }
 
     private fun readyGrid(): DungeonGrid {

@@ -23,7 +23,7 @@ object HeadlessScenarioEvaluator {
         }
 
         controller.advance(elapsedSeconds = 0f)
-        while (controller.phase == PrototypeRunPhase.RUNNING) {
+        while (controller.phase == PrototypeRunPhase.COMBAT) {
             controller.advance(
                 elapsedSeconds =
                     FixedStepHeroSimulation.FIXED_STEP_SECONDS.toFloat(),

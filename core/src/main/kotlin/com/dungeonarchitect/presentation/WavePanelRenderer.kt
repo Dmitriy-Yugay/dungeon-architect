@@ -31,32 +31,38 @@ data class WavePanelView(
             buildGuidance: String = "",
         ) = WavePanelView(
             summary = when (phase) {
-                PrototypeRunPhase.BUILDING ->
+                PrototypeRunPhase.INTELLIGENCE,
+                PrototypeRunPhase.ROOM_DRAFT,
+                PrototypeRunPhase.DEFENSE_PREPARATION ->
                     "Upcoming wave: ${wave.count} x ${wave.heroDisplayName}"
-                PrototypeRunPhase.RUNNING ->
+                PrototypeRunPhase.COMBAT ->
                     "Wave in progress: ${wave.count} x ${wave.heroDisplayName}"
-                PrototypeRunPhase.VICTORY -> "VICTORY - Heart secured"
-                PrototypeRunPhase.DEFEAT -> "DEFEAT - Heart destroyed"
+                PrototypeRunPhase.WAVE_REPORT -> "WAVE COMPLETE"
+                PrototypeRunPhase.RUN_VICTORY -> "VICTORY - Heart secured"
+                PrototypeRunPhase.RUN_DEFEAT -> "DEFEAT - Heart destroyed"
             },
             traitDescription = wave.traitDescription,
             heartStatus =
                 "Heart health: $heartHealth / $heartMaxHealth",
             buildGuidance = buildGuidance,
             controlLabel = when (phase) {
-                PrototypeRunPhase.BUILDING ->
+                PrototypeRunPhase.INTELLIGENCE -> "INTELLIGENCE"
+                PrototypeRunPhase.ROOM_DRAFT -> "ROOM DRAFT"
+                PrototypeRunPhase.DEFENSE_PREPARATION ->
                     if (isStartEnabled) {
                         "START WAVE"
                     } else {
                         "START WAVE - ROUTE REQUIRED"
                     }
-                PrototypeRunPhase.RUNNING -> "WAVE IN PROGRESS"
-                PrototypeRunPhase.VICTORY,
-                PrototypeRunPhase.DEFEAT,
+                PrototypeRunPhase.COMBAT -> "WAVE IN PROGRESS"
+                PrototypeRunPhase.WAVE_REPORT -> "WAVE REPORT"
+                PrototypeRunPhase.RUN_VICTORY,
+                PrototypeRunPhase.RUN_DEFEAT,
                 -> "RESTART"
             },
             isControlEnabled = isStartEnabled ||
-                phase == PrototypeRunPhase.VICTORY ||
-                phase == PrototypeRunPhase.DEFEAT,
+                phase == PrototypeRunPhase.RUN_VICTORY ||
+                phase == PrototypeRunPhase.RUN_DEFEAT,
             cancelLabel = "CANCEL",
             isCancelEnabled = isCancelEnabled,
         )

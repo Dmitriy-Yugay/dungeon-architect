@@ -53,7 +53,7 @@ class RoomRotationApplicationTest {
                 grid = grid,
                 buildState = buildState,
                 clickedPosition = hoveredPosition,
-                runPhase = PrototypeRunPhase.BUILDING,
+                runPhase = PrototypeRunPhase.DEFENSE_PREPARATION,
             ),
         )
         assertEquals(
@@ -93,7 +93,7 @@ class RoomRotationApplicationTest {
             val grid = readySocketGrid()
             val buildState = buildState(grid.placedRooms.single().blueprint)
             val controller = controller(grid)
-            if (phase == PrototypeRunPhase.VICTORY) {
+            if (phase == PrototypeRunPhase.RUN_VICTORY) {
                 assertTrue(
                     grid.placeTrap(
                         room = grid.placedRooms.single(),
@@ -102,11 +102,11 @@ class RoomRotationApplicationTest {
                     ),
                 )
             }
-            if (phase != PrototypeRunPhase.BUILDING) {
+            if (phase != PrototypeRunPhase.DEFENSE_PREPARATION) {
                 assertTrue(controller.start())
             }
-            if (phase == PrototypeRunPhase.VICTORY ||
-                phase == PrototypeRunPhase.DEFEAT
+            if (phase == PrototypeRunPhase.RUN_VICTORY ||
+                phase == PrototypeRunPhase.RUN_DEFEAT
             ) {
                 controller.advance(elapsedSeconds = 1f)
                 assertEquals(phase, controller.phase)
@@ -122,7 +122,7 @@ class RoomRotationApplicationTest {
             )
 
             assertEquals(
-                if (phase == PrototypeRunPhase.BUILDING) {
+                if (phase == PrototypeRunPhase.DEFENSE_PREPARATION) {
                     PrototypeClickResult.ROOM_ROTATED
                 } else {
                     PrototypeClickResult.ROOM_ROTATION_REJECTED
@@ -131,7 +131,7 @@ class RoomRotationApplicationTest {
                 phase.name,
             )
             assertEquals(
-                if (phase == PrototypeRunPhase.BUILDING) {
+                if (phase == PrototypeRunPhase.DEFENSE_PREPARATION) {
                     RoomOrientation.CLOCKWISE_90
                 } else {
                     RoomOrientation.UNROTATED
@@ -151,7 +151,7 @@ class RoomRotationApplicationTest {
             PrototypeScreen.applyBuildShortcut(
                 buildState,
                 BuildShortcut.ROTATE_CLOCKWISE,
-                PrototypeRunPhase.BUILDING,
+                PrototypeRunPhase.DEFENSE_PREPARATION,
             ),
         )
         assertEquals(RoomOrientation.CLOCKWISE_90, buildState.selectedRoomOrientation)
@@ -159,7 +159,7 @@ class RoomRotationApplicationTest {
             PrototypeScreen.applyBuildShortcut(
                 buildState,
                 BuildShortcut.ROTATE_COUNTER_CLOCKWISE,
-                PrototypeRunPhase.BUILDING,
+                PrototypeRunPhase.DEFENSE_PREPARATION,
             ),
         )
         assertEquals(RoomOrientation.UNROTATED, buildState.selectedRoomOrientation)
@@ -168,7 +168,7 @@ class RoomRotationApplicationTest {
             PrototypeScreen.applyBuildShortcut(
                 buildState,
                 BuildShortcut.ROTATE_CLOCKWISE,
-                PrototypeRunPhase.RUNNING,
+                PrototypeRunPhase.COMBAT,
             ),
         )
         assertEquals(RoomOrientation.UNROTATED, buildState.selectedRoomOrientation)
@@ -206,7 +206,7 @@ class RoomRotationApplicationTest {
                     view = RoomRotationControlView(
                         direction = direction,
                         label = direction.name,
-                        isEnabled = controller.phase == PrototypeRunPhase.BUILDING,
+                        isEnabled = controller.phase == PrototypeRunPhase.DEFENSE_PREPARATION,
                     ),
                     bounds = bounds,
                 ),

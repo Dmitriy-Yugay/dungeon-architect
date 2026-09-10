@@ -45,9 +45,9 @@ class PrototypeRunControllerTest {
                 assertEquals(resolvedBeforeStep + 1, controller.resolvedHeroCount)
                 assertEquals(
                     if (resolvedBeforeStep + 1 == heroCount) {
-                        PrototypeRunPhase.VICTORY
+                        PrototypeRunPhase.RUN_VICTORY
                     } else {
-                        PrototypeRunPhase.RUNNING
+                        PrototypeRunPhase.COMBAT
                     },
                     controller.phase,
                 )
@@ -83,7 +83,7 @@ class PrototypeRunControllerTest {
 
             controller.advance(elapsedSeconds = fixedSteps(2))
 
-            assertEquals(PrototypeRunPhase.DEFEAT, controller.phase)
+            assertEquals(PrototypeRunPhase.RUN_DEFEAT, controller.phase)
             assertEquals(0, controller.heartHealth)
             assertEquals(1, controller.resolvedHeroCount)
             assertEquals(
@@ -114,13 +114,13 @@ class PrototypeRunControllerTest {
 
         controller.advance(elapsedSeconds = fixedSteps(2))
 
-        assertEquals(PrototypeRunPhase.RUNNING, controller.phase)
+        assertEquals(PrototypeRunPhase.COMBAT, controller.phase)
         assertEquals(5, controller.heartHealth)
         assertEquals(1, controller.resolvedHeroCount)
 
         controller.advance(elapsedSeconds = fixedSteps(2))
 
-        assertEquals(PrototypeRunPhase.DEFEAT, controller.phase)
+        assertEquals(PrototypeRunPhase.RUN_DEFEAT, controller.phase)
         assertEquals(0, controller.heartHealth)
         assertEquals(2, controller.resolvedHeroCount)
     }
@@ -166,12 +166,12 @@ class PrototypeRunControllerTest {
 
         fixedChunkController.advance(elapsedSeconds = fixedSteps(4))
         repeat(100) {
-            if (irregularChunkController.phase == PrototypeRunPhase.RUNNING) {
+            if (irregularChunkController.phase == PrototypeRunPhase.COMBAT) {
                 irregularChunkController.advance(elapsedSeconds = 0.005f)
             }
         }
 
-        assertEquals(PrototypeRunPhase.VICTORY, irregularChunkController.phase)
+        assertEquals(PrototypeRunPhase.RUN_VICTORY, irregularChunkController.phase)
         assertEquals(
             fixedChunkController.evaluationReport,
             irregularChunkController.evaluationReport,
@@ -255,12 +255,12 @@ class PrototypeRunControllerTest {
         )
         assertTrue(controller.start())
         controller.advance(elapsedSeconds = fixedSteps(2))
-        assertEquals(PrototypeRunPhase.VICTORY, controller.phase)
+        assertEquals(PrototypeRunPhase.RUN_VICTORY, controller.phase)
         val completedRunEvents = controller.events
 
         assertTrue(controller.restart())
 
-        assertEquals(PrototypeRunPhase.BUILDING, controller.phase)
+        assertEquals(PrototypeRunPhase.DEFENSE_PREPARATION, controller.phase)
         assertEquals(10, controller.heartHealth)
         assertEquals(0, controller.resolvedHeroCount)
         assertNull(controller.heroState)
@@ -280,7 +280,7 @@ class PrototypeRunControllerTest {
         )
         assertTrue(completedRunEvents.size > controller.events.size)
         controller.advance(elapsedSeconds = fixedSteps(2))
-        assertEquals(PrototypeRunPhase.VICTORY, controller.phase)
+        assertEquals(PrototypeRunPhase.RUN_VICTORY, controller.phase)
     }
 
     @Test
@@ -317,7 +317,7 @@ class PrototypeRunControllerTest {
         val victoryHeart = requireNotNull(victoryGrid.placedHeart)
         assertTrue(victoryController.start())
         victoryController.advance(elapsedSeconds = fixedSteps(4))
-        assertEquals(PrototypeRunPhase.VICTORY, victoryController.phase)
+        assertEquals(PrototypeRunPhase.RUN_VICTORY, victoryController.phase)
 
         val defeatGrid = gridWithRoute()
         val defeatController = controller(defeatGrid, heroCount = 1)
@@ -329,7 +329,7 @@ class PrototypeRunControllerTest {
         val defeatHeart = requireNotNull(defeatGrid.placedHeart)
         assertTrue(defeatController.start())
         defeatController.advance(elapsedSeconds = fixedSteps(2))
-        assertEquals(PrototypeRunPhase.DEFEAT, defeatController.phase)
+        assertEquals(PrototypeRunPhase.RUN_DEFEAT, defeatController.phase)
 
         listOf(
             Triple(runningController, runningGrid, runningHeart),
@@ -352,11 +352,11 @@ class PrototypeRunControllerTest {
         val placedHeart = requireNotNull(grid.placedHeart)
         assertTrue(controller.start())
         controller.advance(elapsedSeconds = fixedSteps(2))
-        assertEquals(PrototypeRunPhase.DEFEAT, controller.phase)
+        assertEquals(PrototypeRunPhase.RUN_DEFEAT, controller.phase)
 
         assertTrue(controller.restart())
 
-        assertEquals(PrototypeRunPhase.BUILDING, controller.phase)
+        assertEquals(PrototypeRunPhase.DEFENSE_PREPARATION, controller.phase)
         assertSame(placedHeart, grid.placedHeart)
         assertSame(grid.placedRooms.single(), grid.placedHeart?.room)
     }
@@ -388,13 +388,13 @@ class PrototypeRunControllerTest {
         val victoryController = controller(grid = victoryGrid, heroCount = 1)
         assertTrue(victoryController.start())
         victoryController.advance(elapsedSeconds = fixedSteps(2))
-        assertEquals(PrototypeRunPhase.VICTORY, victoryController.phase)
+        assertEquals(PrototypeRunPhase.RUN_VICTORY, victoryController.phase)
 
         val defeatGrid = gridWithRoute()
         val defeatController = controller(grid = defeatGrid, heroCount = 1)
         assertTrue(defeatController.start())
         defeatController.advance(elapsedSeconds = fixedSteps(2))
-        assertEquals(PrototypeRunPhase.DEFEAT, defeatController.phase)
+        assertEquals(PrototypeRunPhase.RUN_DEFEAT, defeatController.phase)
 
         listOf(
             runningController to runningGrid,
