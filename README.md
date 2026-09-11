@@ -9,8 +9,8 @@ heroes.
 The flexible-construction prototype now runs an authored three-wave loop. The
 desktop application supports an opening build, intermission intelligence and
 room drafts, persistent dungeon state, Gold-priced defenses, deterministic
-combat, causal wave reports and rewards, victory, defeat, and layout-preserving
-restart. Visuals remain placeholder shapes.
+combat, causal wave reports and rewards, victory, defeat, wave retry, and a
+distinct new-run reset. Visuals remain placeholder shapes.
 
 ## Prototype controls
 
@@ -22,8 +22,9 @@ restart. Visuals remain placeholder shapes.
   previews can be placed; red previews show why that orientation is invalid.
 - Click the room ghost to place it.
 - Click **CANCEL** to undo the most recently placed room during the build phase.
-- Click two well-spaced, on-route sockets to place spike traps. The authored
-  wave is balanced so one trap is insufficient and deliberate coverage wins.
+- Build two well-spaced, on-route Spike Traps for the opening wave. Each later
+  wave survives the existing route, so spend its predecessor's one-Gold reward
+  to arm the drafted extension and move the Heart behind it.
 - Click **PLACE HEART**, then a placed room, to select or relocate the dungeon
   heart.
 - Connect the entrance to the heart to enable **START WAVE**.

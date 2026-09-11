@@ -1,0 +1,11 @@
+{
+  "heroType": "militia_vanguard",
+  "heroDisplayName": "Militia Vanguard",
+  "count": 4,
+  "heroHealth": 32,
+  "heartDamage": 10,
+  "movementSpeedTilesPerSecond": 2.0,
+  "heroRole": "Heavy frontline attacker",
+  "traitDescription": "Survives three fully crossed Spike Traps.",
+  "defenseImplication": "Move the Heart deeper and arm the final room."
+}

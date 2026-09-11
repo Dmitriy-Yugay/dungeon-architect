@@ -278,6 +278,21 @@ class PrototypeScreenTest {
     }
 
     @Test
+    fun `application loads every authored wave as a content catalog`() {
+        val catalog = PrototypeScreen.loadWaveContent(::authoredContentJson)
+
+        assertEquals(
+            listOf(
+                "content/opening-hero-wave.json",
+                "content/reinforcement-hero-wave.json",
+                "content/final-hero-wave.json",
+            ),
+            catalog.keys.toList(),
+        )
+        assertEquals(listOf(16, 24, 32), catalog.values.map { it.heroHealth })
+    }
+
+    @Test
     fun `application loads the authored room through the supplied internal text reader`() {
         var requestedPath: String? = null
 

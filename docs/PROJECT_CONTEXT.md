@@ -37,9 +37,9 @@ The repository contains a runnable Kotlin and libGDX desktop project split into
 `core` and `lwjgl3` modules. The current prototype supports cancellable and
 rotatable room placement, straight and turned authored rooms, open-frontier
 topology, a player-selected dungeon heart, route-aware trap placement, an
-authored hero wave, deterministic combat and evaluation, visible outcomes, and
-layout-preserving restart. Visuals remain placeholders, and audio has not been
-implemented.
+an authored three-wave run, deterministic combat and evaluation, visible
+outcomes, explicit wave retry, and a separate new-run reset. Visuals remain
+placeholders, and audio has not been implemented.
 
 ## Technology
 
@@ -382,7 +382,7 @@ can be judged without offer variance.
 81. [x] Separate retrying the current authored test from starting a new run, with
     explicit and tested rules for which layout, heart, trap, health, resource,
     and offer state is retained or reset.
-82. [ ] Add an end-to-end non-rendering application test for the complete run
+82. [x] Add an end-to-end non-rendering application test for the complete run
     cadence, then playtest the multi-wave loop and record whether room choices
     change later defense plans. Update the design documents with the accepted
     run length, resource envelope, and persistence rules.

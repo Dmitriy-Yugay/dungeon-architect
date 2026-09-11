@@ -54,7 +54,7 @@ class PrototypeScreen(
         Gdx.files.internal(path).readString("UTF-8")
     },
     private val grid: DungeonGrid = prototypeGrid(),
-    private val upcomingWave: UpcomingHeroWave = loadUpcomingWave { path ->
+    waveContentByPath: Map<String, UpcomingHeroWave> = loadWaveContent { path ->
         Gdx.files.internal(path).readString("UTF-8")
     },
     runDefinition: PrototypeRunDefinition = loadRunDefinition { path ->
@@ -79,7 +79,7 @@ class PrototypeScreen(
     private val pointerCoordinates = Vector2()
     private val runController = PrototypeRunController(
         grid = grid,
-        upcomingWave = upcomingWave,
+        waveContentByPath = waveContentByPath,
         runDefinition = runDefinition,
     )
 
@@ -301,7 +301,17 @@ class PrototypeScreen(
 
     companion object {
         private const val UPCOMING_WAVE_PATH = "content/upcoming-hero-wave.json"
-        private val AVAILABLE_WAVE_CONTENT_PATHS = setOf(UPCOMING_WAVE_PATH)
+        private const val OPENING_WAVE_PATH = "content/opening-hero-wave.json"
+        private const val REINFORCEMENT_WAVE_PATH =
+            "content/reinforcement-hero-wave.json"
+        private const val FINAL_WAVE_PATH = "content/final-hero-wave.json"
+        private val WAVE_CONTENT_PATHS = listOf(
+            OPENING_WAVE_PATH,
+            REINFORCEMENT_WAVE_PATH,
+            FINAL_WAVE_PATH,
+        )
+        private val AVAILABLE_WAVE_CONTENT_PATHS =
+            WAVE_CONTENT_PATHS.toSet() + UPCOMING_WAVE_PATH
         private const val TRAP_DEFINITION_PATH = "content/spike-trap.json"
         private const val RUN_DEFINITION_PATH = "content/prototype-run.json"
         private const val ROOM_BLUEPRINT_PATH = "content/prototype-room.json"
@@ -479,6 +489,12 @@ class PrototypeScreen(
             readInternalText: (String) -> String,
         ): UpcomingHeroWave =
             UpcomingHeroWaveParser.parse(readInternalText(UPCOMING_WAVE_PATH))
+
+        internal fun loadWaveContent(
+            readInternalText: (String) -> String,
+        ): Map<String, UpcomingHeroWave> = WAVE_CONTENT_PATHS.associateWith { path ->
+            UpcomingHeroWaveParser.parse(readInternalText(path))
+        }
 
         internal fun loadRoomBlueprint(
             readInternalText: (String) -> String,

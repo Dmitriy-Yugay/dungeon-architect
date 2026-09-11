@@ -5,12 +5,12 @@
   "waves": [
     {
       "id": "opening-recruits",
-      "contentPath": "content/upcoming-hero-wave.json",
+      "contentPath": "content/opening-hero-wave.json",
       "rewardGold": 1
     },
     {
       "id": "reinforcement-recruits",
-      "contentPath": "content/upcoming-hero-wave.json",
+      "contentPath": "content/reinforcement-hero-wave.json",
       "rewardGold": 1,
       "roomOfferBlueprintIds": [
         "prototype-room",
@@ -20,7 +20,7 @@
     },
     {
       "id": "final-recruits",
-      "contentPath": "content/upcoming-hero-wave.json",
+      "contentPath": "content/final-hero-wave.json",
       "rewardGold": 0,
       "roomOfferBlueprintIds": [
         "corner-room",

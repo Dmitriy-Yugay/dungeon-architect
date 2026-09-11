@@ -8,6 +8,7 @@ import com.dungeonarchitect.domain.CardinalDirection
 import com.dungeonarchitect.domain.DungeonGrid
 import com.dungeonarchitect.domain.GridPosition
 import com.dungeonarchitect.domain.PlacedRoom
+import com.dungeonarchitect.domain.PrototypeRunDefinition
 import com.dungeonarchitect.domain.RoomBlueprint
 import com.dungeonarchitect.simulation.FixedStepHeroSimulation
 import com.dungeonarchitect.simulation.WaveOutcome
@@ -73,17 +74,30 @@ class AuthoredRoomChoiceEvaluationTest {
             wave = UpcomingHeroWaveParser.parse(
                 readContent("upcoming-hero-wave.json"),
             ),
-            runDefinition = PrototypeRunDefinitionParser.parse(
-                readContent("prototype-run.json"),
-                availableWaveContentPaths = setOf(
-                    "content/upcoming-hero-wave.json",
-                ),
-                availableRoomBlueprintIds = setOf(
-                    "prototype-room",
-                    "long-gallery",
-                    "corner-room",
-                ),
+            runDefinition = singleWaveDefinition(),
+        )
+    }
+
+    private fun singleWaveDefinition(): PrototypeRunDefinition {
+        val authoredRun = PrototypeRunDefinitionParser.parse(
+            readContent("prototype-run.json"),
+            availableWaveContentPaths = setOf(
+                "content/opening-hero-wave.json",
+                "content/reinforcement-hero-wave.json",
+                "content/final-hero-wave.json",
+                "content/upcoming-hero-wave.json",
             ),
+            availableRoomBlueprintIds = setOf(
+                "prototype-room",
+                "long-gallery",
+                "corner-room",
+            ),
+        )
+        return PrototypeRunDefinition.singleWave(
+            heartHealth = authoredRun.heartHealth,
+            contentPath = "content/upcoming-hero-wave.json",
+            startingGold = authoredRun.startingGold,
+            rewardGold = authoredRun.waves.first().rewardGold,
         )
     }
 

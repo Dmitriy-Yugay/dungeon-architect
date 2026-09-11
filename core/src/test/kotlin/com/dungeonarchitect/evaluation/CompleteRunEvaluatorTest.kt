@@ -12,7 +12,6 @@ import com.dungeonarchitect.domain.RoomBlueprint
 import com.dungeonarchitect.domain.RoomOrientation
 import com.dungeonarchitect.domain.TrapDefinition
 import com.dungeonarchitect.domain.UpcomingHeroWave
-import com.dungeonarchitect.simulation.FixedStepHeroSimulation
 import com.dungeonarchitect.simulation.WaveOutcome
 import java.nio.file.Files
 import java.nio.file.Path
@@ -39,6 +38,7 @@ class CompleteRunEvaluatorTest {
                     "final-recruits",
                 ),
                 evaluation.waves.map(EvaluatedWave::waveId),
+                evaluation.toString(),
             )
             assertTrue(evaluation.waves.all { it.report.outcome == WaveOutcome.VICTORY })
             assertEquals(WaveOutcome.VICTORY, evaluation.aggregate.outcome)
@@ -47,18 +47,22 @@ class CompleteRunEvaluatorTest {
             assertEquals(10, evaluation.aggregate.finalHeartHealth)
             assertEquals(12, evaluation.aggregate.heroKills)
             assertEquals(0, evaluation.aggregate.heroArrivals)
-            assertEquals(120, evaluation.aggregate.trapDamage)
-            assertEquals(36, evaluation.aggregate.trapActivations)
+            assertEquals(288, evaluation.aggregate.trapDamage)
+            assertEquals(72, evaluation.aggregate.trapActivations)
+            assertEquals(
+                listOf(64, 96, 128),
+                evaluation.waves.map { it.report.trapDamage },
+            )
+            assertEquals(
+                listOf(4, 6, 8),
+                evaluation.waves.map { it.report.trapActivations / 4 },
+            )
         }
-        assertEquals(
-            List(3) { winningWaveReport(elapsedSteps = 784) },
-            firstStraight.waves.map(EvaluatedWave::report),
-        )
-        assertEquals(2, firstStraight.aggregate.finalGold)
+        assertEquals(0, firstStraight.aggregate.finalGold)
         assertEquals(0, firstTurned.aggregate.finalGold)
-        assertEquals(
-            List(3) { winningWaveReport(elapsedSteps = 904) },
-            firstTurned.waves.map(EvaluatedWave::report),
+        assertTrue(
+            firstStraight.aggregate.elapsedSimulationSeconds !=
+                firstTurned.aggregate.elapsedSimulationSeconds,
         )
     }
 
@@ -108,7 +112,7 @@ class CompleteRunEvaluatorTest {
     private fun evaluate(fixture: RunFixture): CompleteRunEvaluation =
         HeadlessScenarioEvaluator.evaluateRun(
             grid = fixture.grid,
-            waveContentByPath = mapOf(WAVE_PATH to fixture.wave),
+            waveContentByPath = fixture.waveContentByPath,
             runDefinition = fixture.runDefinition,
             strategy = fixture.strategy,
         )
@@ -126,16 +130,16 @@ class CompleteRunEvaluatorTest {
             placedRooms = rooms,
         )
         val firstDraft = PlacedRoom(
-            content.blueprints.getValue("prototype-room"),
+            content.blueprints.getValue("long-gallery"),
             GridPosition(9, 0),
         )
         val secondDraft = PlacedRoom(
-            content.blueprints.getValue("corner-room"),
-            GridPosition(12, 1),
+            content.blueprints.getValue("prototype-room"),
+            GridPosition(13, 0),
         )
         return RunFixture(
             grid = grid,
-            wave = content.wave,
+            waveContentByPath = content.waveContentByPath,
             runDefinition = content.runDefinition,
             strategy = CompleteRunStrategy(
                 name = "Straight gallery coverage",
@@ -152,10 +156,18 @@ class CompleteRunEvaluatorTest {
                     WaveStrategy(
                         waveId = "reinforcement-recruits",
                         draftedRoom = firstDraft,
+                        heartRoom = firstDraft,
+                        defensePurchases = listOf(
+                            purchase(firstDraft, content.trap),
+                        ),
                     ),
                     WaveStrategy(
                         waveId = "final-recruits",
                         draftedRoom = secondDraft,
+                        heartRoom = secondDraft,
+                        defensePurchases = listOf(
+                            purchase(secondDraft, content.trap),
+                        ),
                     ),
                 ),
             ),
@@ -195,7 +207,7 @@ class CompleteRunEvaluatorTest {
         )
         return RunFixture(
             grid = grid,
-            wave = content.wave,
+            waveContentByPath = content.waveContentByPath,
             runDefinition = content.runDefinition,
             strategy = CompleteRunStrategy(
                 name = "Turned corner coverage",
@@ -248,15 +260,21 @@ class CompleteRunEvaluatorTest {
             val blueprint = RoomBlueprintParser.parse(readContent(fileName))
             blueprint.id to blueprint
         }
+        val waveContentByPath = mapOf(
+            "content/opening-hero-wave.json" to "opening-hero-wave.json",
+            "content/reinforcement-hero-wave.json" to
+                "reinforcement-hero-wave.json",
+            "content/final-hero-wave.json" to "final-hero-wave.json",
+        ).mapValues { (_, fileName) ->
+            UpcomingHeroWaveParser.parse(readContent(fileName))
+        }
         return AuthoredContent(
             blueprints = blueprints,
             trap = TrapDefinitionParser.parse(readContent("spike-trap.json")),
-            wave = UpcomingHeroWaveParser.parse(
-                readContent("upcoming-hero-wave.json"),
-            ),
+            waveContentByPath = waveContentByPath,
             runDefinition = PrototypeRunDefinitionParser.parse(
                 json = readContent("prototype-run.json"),
-                availableWaveContentPaths = setOf(WAVE_PATH),
+                availableWaveContentPaths = waveContentByPath.keys,
                 availableRoomBlueprintIds = blueprints.keys,
             ),
         )
@@ -270,20 +288,9 @@ class CompleteRunEvaluatorTest {
         return Files.readString(content)
     }
 
-    private fun winningWaveReport(elapsedSteps: Int) = WaveEvaluationReport(
-        outcome = WaveOutcome.VICTORY,
-        heartHealth = 10,
-        heroKills = 4,
-        heroArrivals = 0,
-        elapsedSimulationSeconds =
-            elapsedSteps * FixedStepHeroSimulation.FIXED_STEP_SECONDS,
-        trapActivations = 12,
-        trapDamage = 40,
-    )
-
     private data class RunFixture(
         val grid: DungeonGrid,
-        val wave: UpcomingHeroWave,
+        val waveContentByPath: Map<String, UpcomingHeroWave>,
         val runDefinition: PrototypeRunDefinition,
         val strategy: CompleteRunStrategy,
     )
@@ -291,11 +298,7 @@ class CompleteRunEvaluatorTest {
     private data class AuthoredContent(
         val blueprints: Map<String, RoomBlueprint>,
         val trap: TrapDefinition,
-        val wave: UpcomingHeroWave,
+        val waveContentByPath: Map<String, UpcomingHeroWave>,
         val runDefinition: PrototypeRunDefinition,
     )
-
-    private companion object {
-        const val WAVE_PATH = "content/upcoming-hero-wave.json"
-    }
 }

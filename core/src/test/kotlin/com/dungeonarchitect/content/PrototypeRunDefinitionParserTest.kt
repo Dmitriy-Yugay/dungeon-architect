@@ -18,10 +18,15 @@ class PrototypeRunDefinitionParserTest {
                 startingGold = 2,
                 completionCondition = RunCompletionCondition.CLEAR_ALL_WAVES,
                 waves = listOf(
-                    wave("opening-recruits", rewardGold = 1),
+                    wave(
+                        "opening-recruits",
+                        rewardGold = 1,
+                        contentPath = OPENING_WAVE_PATH,
+                    ),
                     wave(
                         "reinforcement-recruits",
                         rewardGold = 1,
+                        contentPath = REINFORCEMENT_WAVE_PATH,
                         roomOfferBlueprintIds = listOf(
                             "prototype-room",
                             "long-gallery",
@@ -31,6 +36,7 @@ class PrototypeRunDefinitionParserTest {
                     wave(
                         "final-recruits",
                         rewardGold = 0,
+                        contentPath = FINAL_WAVE_PATH,
                         roomOfferBlueprintIds = listOf(
                             "corner-room",
                             "prototype-room",
@@ -128,7 +134,12 @@ class PrototypeRunDefinitionParserTest {
     private fun parse(json: String): PrototypeRunDefinition =
         PrototypeRunDefinitionParser.parse(
             json = json,
-            availableWaveContentPaths = setOf(WAVE_PATH),
+            availableWaveContentPaths = setOf(
+                WAVE_PATH,
+                OPENING_WAVE_PATH,
+                REINFORCEMENT_WAVE_PATH,
+                FINAL_WAVE_PATH,
+            ),
             availableRoomBlueprintIds = setOf(
                 "prototype-room",
                 "long-gallery",
@@ -160,10 +171,11 @@ class PrototypeRunDefinitionParserTest {
     private fun wave(
         id: String,
         rewardGold: Int,
+        contentPath: String = WAVE_PATH,
         roomOfferBlueprintIds: List<String> = emptyList(),
     ) = RunWaveDefinition(
         id = id,
-        contentPath = WAVE_PATH,
+        contentPath = contentPath,
         rewardGold = rewardGold,
         roomOfferBlueprintIds = roomOfferBlueprintIds,
     )
@@ -179,5 +191,9 @@ class PrototypeRunDefinitionParserTest {
 
     private companion object {
         const val WAVE_PATH = "content/upcoming-hero-wave.json"
+        const val OPENING_WAVE_PATH = "content/opening-hero-wave.json"
+        const val REINFORCEMENT_WAVE_PATH =
+            "content/reinforcement-hero-wave.json"
+        const val FINAL_WAVE_PATH = "content/final-hero-wave.json"
     }
 }

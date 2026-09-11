@@ -223,6 +223,13 @@ corner into a rotated gallery, proves canceled-room trap cleanup, and verifies
 that the selected-heart route crosses the surviving trap before deterministic
 victory.
 
+A second application-level test executes the complete authored cadence without
+rendering: opening construction and purchases, three combats, both report and
+reward handshakes, both intelligence briefings, two offered-room commitments,
+Heart relocation into each extension, and final run victory. It loads the same
+three distinct wave files as the desktop screen, so content-path wiring and the
+16/24/32-health progression are checked together with the interaction flow.
+
 ## Near-term constraints
 
 - Keep early room differences limited to geometry, doors, sockets, and heart

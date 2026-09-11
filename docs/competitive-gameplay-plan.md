@@ -141,6 +141,14 @@ Gate:
 - The evaluator can replay the same authored run with identical events and
   result, and can compare at least two winning strategies.
 
+Accepted on 2026-09-11 with a three-wave authored run. Its two starting Gold and
+two one-Gold intermission rewards buy the exact two-, three-, and four-trap
+coverage required by escalating authored hero health. Straight and turned
+complete-run strategies both win deterministically. A desktop Long Gallery
+playtest confirmed that the second-wave room choice changes the next plan by
+requiring an armed extension and Heart relocation; the full cadence is also
+covered through the application click dispatcher without rendering.
+
 ### Phase 2 — Add the first counterplay package
 
 **Goal:** create strategic variety with a deliberately small content set.

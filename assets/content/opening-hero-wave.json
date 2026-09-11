@@ -1,0 +1,11 @@
+{
+  "heroType": "militia_recruit",
+  "heroDisplayName": "Militia Recruit",
+  "count": 4,
+  "heroHealth": 16,
+  "heartDamage": 10,
+  "movementSpeedTilesPerSecond": 2.0,
+  "heroRole": "Frontline attacker",
+  "traitDescription": "Survives one Spike Trap's full crossing.",
+  "defenseImplication": "Build two on-route Spike Traps before starting."
+}

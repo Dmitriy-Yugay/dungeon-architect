@@ -253,13 +253,11 @@ balance analysis, but it does not define the intended experience by itself.
 Human playtesting remains the authority on whether a choice is understandable,
 interesting, and consistent with the player fantasy.
 
-The complete-run evaluator currently preserves two reproducible winning plans:
-a straight-gallery route that banks both intermission rewards, and a turned
-corner route that spends each reward on the newly drafted extension and moves
-the heart forward. Both resolve all three authored waves without damage, while
-their different route lengths produce distinct completion times. These are
-regression fixtures, not a claim that the current balance already makes every
-purchase necessary; that judgment belongs to the milestone playtest.
+The complete-run evaluator preserves two reproducible winning plans: a straight
+gallery route and a turned corner route. Both begin with two armed sockets,
+spend each intermission reward on the drafted extension, and move the Heart
+behind that new defense. Both resolve all three authored waves without damage,
+while their different geometry produces distinct completion times.
 
 At a terminal result, **Retry Wave** repeats the current authored test with the
 same built dungeon, selected heart, traps, committed room offer, and preparation
@@ -268,6 +266,32 @@ wave. **New Run** restores the dungeon as it existed when the run controller was
 created, returns to wave one, restores full heart health and starting Gold, and
 forgets all intermission choices. Both choices clear heroes, trap cooldowns,
 events, reports, and claimed-reward state.
+
+### Authored three-wave run acceptance
+
+The accepted run has three waves of four visible frontline heroes. Their
+authored health rises from 16 to 24 to 32, creating exact route requirements of
+two, three, then four fully crossed Spike Traps. The resource envelope is four
+Gold total: two starting Gold plus one reward after each of the first two waves;
+the final reward is zero. At one Gold per Spike Trap, a perfect clear spends the
+entire envelope and cannot skip an intermission defense purchase.
+
+The 2026-09-11 desktop playtest used a straight Long Gallery plan. Wave one
+cleared with 16 activations and 64 damage. The next intelligence briefing made
+the changed requirement explicit; the player then had to choose and attach a
+room, move the Heart into the extension, and spend the only Gold on its socket.
+Wave two cleared with 24 activations and 96 damage. This demonstrated that the
+room draft changes the next defense plan rather than acting as a cosmetic step.
+The desktop control harness stopped accepting input before the final draft, so
+the same final interaction was additionally verified through the non-rendering
+application test: a fourth armed room produces 32 activations, 128 damage, and
+run victory. Two complete evaluator strategies independently reproduce the
+three-wave result.
+
+Across successful wave transitions, rooms, traps, selected Heart, remaining
+Heart health, and Gold persist. Heroes, trap cooldowns, event history, reports,
+and reward-claim state reset. Retry and new-run behavior use the separate rules
+described above.
 
 ## Open questions
 
