@@ -261,6 +261,14 @@ their different route lengths produce distinct completion times. These are
 regression fixtures, not a claim that the current balance already makes every
 purchase necessary; that judgment belongs to the milestone playtest.
 
+At a terminal result, **Retry Wave** repeats the current authored test with the
+same built dungeon, selected heart, traps, committed room offer, and preparation
+spend. Heart health and Gold return to their values immediately before that
+wave. **New Run** restores the dungeon as it existed when the run controller was
+created, returns to wave one, restores full heart health and starting Gold, and
+forgets all intermission choices. Both choices clear heroes, trap cooldowns,
+events, reports, and claimed-reward state.
+
 ## Open questions
 
 - At what late-game point is room replacement unlocked, and how is its

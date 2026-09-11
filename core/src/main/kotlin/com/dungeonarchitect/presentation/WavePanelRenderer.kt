@@ -85,7 +85,7 @@ data class WavePanelView(
                 }
                 PrototypeRunPhase.RUN_VICTORY,
                 PrototypeRunPhase.RUN_DEFEAT,
-                -> "RESTART"
+                -> "RETRY WAVE"
             },
             isControlEnabled = when (phase) {
                 PrototypeRunPhase.INTELLIGENCE -> true
@@ -98,8 +98,15 @@ data class WavePanelView(
                 PrototypeRunPhase.RUN_DEFEAT,
                 -> true
             },
-            cancelLabel = "CANCEL",
-            isCancelEnabled = isCancelEnabled,
+            cancelLabel = when (phase) {
+                PrototypeRunPhase.RUN_VICTORY,
+                PrototypeRunPhase.RUN_DEFEAT,
+                -> "NEW RUN"
+                else -> "CANCEL"
+            },
+            isCancelEnabled = isCancelEnabled ||
+                phase == PrototypeRunPhase.RUN_VICTORY ||
+                phase == PrototypeRunPhase.RUN_DEFEAT,
         )
     }
 }

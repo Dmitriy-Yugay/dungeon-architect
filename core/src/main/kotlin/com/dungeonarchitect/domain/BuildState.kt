@@ -6,6 +6,8 @@ class BuildState(
     val selectedTrapDefinition: TrapDefinition,
     selectedRoomOrientation: RoomOrientation = RoomOrientation.UNROTATED,
 ) {
+    private val initialSelectedRoomBlueprintId = selectedRoomBlueprint.id
+    private val initialSelectedRoomOrientation = selectedRoomOrientation
     val availableRoomBlueprints: List<RoomBlueprint> =
         availableRoomBlueprints.toList()
 
@@ -84,5 +86,11 @@ class BuildState(
 
     fun deactivateHeartPlacementMode() {
         isHeartPlacementModeActive = false
+    }
+
+    fun resetForNewRun() {
+        check(selectRoomBlueprint(initialSelectedRoomBlueprintId))
+        selectedRoomOrientation = initialSelectedRoomOrientation
+        selectedRoomAttachmentTarget = null
     }
 }

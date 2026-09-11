@@ -379,7 +379,7 @@ can be judged without offer variance.
 80. [x] Extend the headless evaluator to execute a complete authored run and
     return per-wave plus aggregate reports; add deterministic regression tests
     and compare at least two legal complete-run strategies.
-81. [ ] Separate retrying the current authored test from starting a new run, with
+81. [x] Separate retrying the current authored test from starting a new run, with
     explicit and tested rules for which layout, heart, trap, health, resource,
     and offer state is retained or reset.
 82. [ ] Add an end-to-end non-rendering application test for the complete run

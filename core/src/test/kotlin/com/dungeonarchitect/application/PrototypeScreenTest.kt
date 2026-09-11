@@ -9,6 +9,7 @@ import com.dungeonarchitect.domain.PrototypeRunDefinition
 import com.dungeonarchitect.domain.PrototypeRunPhase
 import com.dungeonarchitect.domain.RoomBlueprint
 import com.dungeonarchitect.domain.RoomDoor
+import com.dungeonarchitect.domain.RoomOrientation
 import com.dungeonarchitect.domain.RoomSocketType
 import com.dungeonarchitect.domain.TrapDefinition
 import com.dungeonarchitect.domain.UpcomingHeroWave
@@ -571,7 +572,7 @@ class PrototypeScreenTest {
     }
 
     @Test
-    fun `terminal control click restarts the run`() {
+    fun `terminal primary control retries the current wave`() {
         val buildState = authoredBuildState()
         val grid = readyGrid()
         val controller = runController(grid)
@@ -596,8 +597,39 @@ class PrototypeScreenTest {
             runController = controller,
         )
 
-        assertEquals(PrototypeClickResult.RUN_RESTARTED, result)
+        assertEquals(PrototypeClickResult.CURRENT_WAVE_RETRIED, result)
         assertEquals(PrototypeRunPhase.DEFENSE_PREPARATION, controller.phase)
+    }
+
+    @Test
+    fun `terminal secondary control starts a new run`() {
+        val buildState = authoredBuildState()
+        val initialBlueprint = buildState.selectedRoomBlueprint
+        assertTrue(buildState.selectRoomBlueprint("long-gallery"))
+        buildState.rotateSelectedRoomClockwise()
+        val grid = readyGrid()
+        val controller = runController(grid)
+        assertTrue(controller.start())
+        controller.advance(elapsedSeconds = 1f)
+        assertEquals(PrototypeRunPhase.RUN_DEFEAT, controller.phase)
+        val newRunBounds = cancelButtonBounds()
+
+        val result = PrototypeScreen.handleClick(
+            grid = grid,
+            buildState = buildState,
+            clickedPosition = null,
+            worldX = newRunBounds.x + newRunBounds.width / 2f,
+            worldY = newRunBounds.y + newRunBounds.height / 2f,
+            startButtonBounds = startButtonBounds(),
+            cancelButtonBounds = newRunBounds,
+            roomChoiceControls = roomChoiceControls(buildState),
+            runController = controller,
+        )
+
+        assertEquals(PrototypeClickResult.NEW_RUN_STARTED, result)
+        assertEquals(PrototypeRunPhase.DEFENSE_PREPARATION, controller.phase)
+        assertSame(initialBlueprint, buildState.selectedRoomBlueprint)
+        assertEquals(RoomOrientation.UNROTATED, buildState.selectedRoomOrientation)
     }
 
     private fun readyGrid(): DungeonGrid {

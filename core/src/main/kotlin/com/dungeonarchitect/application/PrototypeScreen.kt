@@ -544,10 +544,14 @@ class PrototypeScreen(
             }
 
             if (cancelButtonBounds.contains(worldX, worldY)) {
-                return if (runController.cancelLastPlacedRoom()) {
-                    PrototypeClickResult.ROOM_CANCELED
-                } else {
-                    PrototypeClickResult.CANCEL_REJECTED
+                return when {
+                    runController.startNewRun() -> {
+                        buildState.resetForNewRun()
+                        PrototypeClickResult.NEW_RUN_STARTED
+                    }
+                    runController.cancelLastPlacedRoom() ->
+                        PrototypeClickResult.ROOM_CANCELED
+                    else -> PrototypeClickResult.CANCEL_REJECTED
                 }
             }
 
@@ -577,8 +581,8 @@ class PrototypeScreen(
                         }
                     PrototypeRunPhase.RUN_VICTORY,
                     PrototypeRunPhase.RUN_DEFEAT,
-                    -> if (runController.restart()) {
-                        PrototypeClickResult.RUN_RESTARTED
+                    -> if (runController.retryCurrentWave()) {
+                        PrototypeClickResult.CURRENT_WAVE_RETRIED
                     } else {
                         PrototypeClickResult.PRIMARY_CONTROL_REJECTED
                     }
@@ -683,7 +687,8 @@ internal enum class PrototypeClickResult {
     PRIMARY_CONTROL_REJECTED,
     WAVE_STARTED,
     WAVE_START_REJECTED,
-    RUN_RESTARTED,
+    CURRENT_WAVE_RETRIED,
+    NEW_RUN_STARTED,
     ROOM_CHOICE_SELECTED,
     ROOM_ATTACHMENT_SELECTED,
     ROOM_PLACED,

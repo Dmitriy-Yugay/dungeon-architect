@@ -80,21 +80,23 @@ class WavePanelRendererTest {
     }
 
     @Test
-    fun `panel gives clear terminal feedback and enables restart`() {
+    fun `panel gives clear terminal feedback and two reset choices`() {
         val victory = view(PrototypeRunPhase.RUN_VICTORY, heartHealth = 10)
         val defeat = view(PrototypeRunPhase.RUN_DEFEAT, heartHealth = 0)
 
         assertEquals("VICTORY - Heart secured", victory.summary)
         assertEquals("Heart: 10/10 | Gold: 2", victory.runStatus)
-        assertEquals("RESTART", victory.controlLabel)
+        assertEquals("RETRY WAVE", victory.controlLabel)
         assertTrue(victory.isControlEnabled)
-        assertFalse(victory.isCancelEnabled)
+        assertEquals("NEW RUN", victory.cancelLabel)
+        assertTrue(victory.isCancelEnabled)
 
         assertEquals("DEFEAT - Heart destroyed", defeat.summary)
         assertEquals("Heart: 0/10 | Gold: 2", defeat.runStatus)
-        assertEquals("RESTART", defeat.controlLabel)
+        assertEquals("RETRY WAVE", defeat.controlLabel)
         assertTrue(defeat.isControlEnabled)
-        assertFalse(defeat.isCancelEnabled)
+        assertEquals("NEW RUN", defeat.cancelLabel)
+        assertTrue(defeat.isCancelEnabled)
     }
 
     @Test

@@ -83,6 +83,31 @@ class DungeonGrid(
             )
         }
 
+    internal fun snapshotLayout() = DungeonLayoutSnapshot(
+        rooms = placedRooms,
+        traps = placedTraps,
+        heart = placedHeart,
+    )
+
+    internal fun restoreLayout(snapshot: DungeonLayoutSnapshot) {
+        require(snapshot.traps.all { trap ->
+            snapshot.rooms.any { room -> room === trap.room }
+        }) {
+            "Every restored trap must belong to a restored room."
+        }
+        require(snapshot.heart == null || snapshot.rooms.any { room ->
+            room === snapshot.heart.room
+        }) {
+            "A restored heart must belong to a restored room."
+        }
+
+        mutablePlacedRooms.clear()
+        mutablePlacedRooms += snapshot.rooms
+        mutablePlacedTraps.clear()
+        mutablePlacedTraps += snapshot.traps
+        mutablePlacedHeart = snapshot.heart
+    }
+
     init {
         require(width > 0) { "Grid width must be positive." }
         require(height > 0) { "Grid height must be positive." }
@@ -461,3 +486,9 @@ class DungeonGrid(
             door.outsidePosition == portPosition &&
             portFacing.move(portPosition) == door.gridPosition
 }
+
+internal data class DungeonLayoutSnapshot(
+    val rooms: List<PlacedRoom>,
+    val traps: List<PlacedTrap>,
+    val heart: PlacedDungeonHeart?,
+)

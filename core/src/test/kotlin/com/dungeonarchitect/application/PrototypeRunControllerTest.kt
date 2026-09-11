@@ -247,7 +247,7 @@ class PrototypeRunControllerTest {
     }
 
     @Test
-    fun `restart preserves layout and resets run state and trap cooldowns`() {
+    fun `retry preserves layout and resets wave state and trap cooldowns`() {
         val grid = gridWithLethalTrap()
         val rooms = grid.placedRooms
         val traps = grid.placedTraps
@@ -260,7 +260,7 @@ class PrototypeRunControllerTest {
         assertEquals(PrototypeRunPhase.RUN_VICTORY, controller.phase)
         val completedRunEvents = controller.events
 
-        assertTrue(controller.restart())
+        assertTrue(controller.retryCurrentWave())
 
         assertEquals(PrototypeRunPhase.DEFENSE_PREPARATION, controller.phase)
         assertEquals(10, controller.heartHealth)
@@ -347,7 +347,7 @@ class PrototypeRunControllerTest {
     }
 
     @Test
-    fun `restart preserves the placed heart with the persistent layout`() {
+    fun `retry preserves the placed heart with the persistent layout`() {
         val grid = gridWithRoute()
         val controller = controller(grid, heroCount = 1)
         assertTrue(controller.placeOrRelocateHeart(grid.placedRooms.single()))
@@ -356,11 +356,99 @@ class PrototypeRunControllerTest {
         controller.advance(elapsedSeconds = fixedSteps(2))
         assertEquals(PrototypeRunPhase.RUN_DEFEAT, controller.phase)
 
-        assertTrue(controller.restart())
+        assertTrue(controller.retryCurrentWave())
 
         assertEquals(PrototypeRunPhase.DEFENSE_PREPARATION, controller.phase)
         assertSame(placedHeart, grid.placedHeart)
         assertSame(grid.placedRooms.single(), grid.placedHeart?.room)
+    }
+
+    @Test
+    fun `retry restores pre-wave health and Gold while retaining authored build state`() {
+        val grid = gridWithPersistentTrap()
+        val openingRoom = grid.placedRooms.single()
+        val persistentTrap = grid.placedTraps.single()
+        val controller = PrototypeRunController(
+            grid = grid,
+            waveContentByPath = mapOf(
+                "content/opening.json" to wave(heartDamage = 3),
+                "content/finale.json" to wave(heartDamage = 8),
+            ),
+            runDefinition = multiWaveRunDefinition(startingGold = 4),
+        )
+
+        assertTrue(controller.start())
+        controller.advance(fixedSteps(2))
+        assertEquals(7, controller.heartHealth)
+        assertTrue(controller.claimWaveReward())
+        assertTrue(controller.acknowledgeWaveReport())
+        assertTrue(controller.acknowledgeIntelligence())
+        val draftedRoom = PlacedRoom(draftRoom(), GridPosition(3, 0))
+        assertTrue(controller.placeRoom(draftedRoom))
+        assertTrue(controller.placeOrRelocateHeart(draftedRoom))
+        assertTrue(controller.start())
+        controller.advance(fixedSteps(4))
+        assertTrue(controller.acknowledgeWaveReport())
+        assertEquals(PrototypeRunPhase.RUN_DEFEAT, controller.phase)
+
+        assertTrue(controller.retryCurrentWave())
+
+        assertEquals(PrototypeRunPhase.DEFENSE_PREPARATION, controller.phase)
+        assertEquals(1, controller.currentWaveIndex)
+        assertEquals(7, controller.heartHealth)
+        assertEquals(5, controller.gold)
+        assertEquals(listOf(openingRoom, draftedRoom), grid.placedRooms)
+        assertSame(draftedRoom, grid.placedHeart?.room)
+        assertSame(persistentTrap, grid.placedTraps.single())
+        assertSame(draftedRoom, controller.committedRoom)
+        assertEquals(listOf("draft-room", "alternate-room", "corner-room"), controller.offeredRoomBlueprintIds)
+        assertEquals(emptyList(), controller.events)
+        assertNull(controller.evaluationReport)
+        assertTrue(controller.isStartEnabled)
+    }
+
+    @Test
+    fun `new run restores initial dungeon and every authored starting value`() {
+        val grid = gridWithPersistentTrap()
+        val initialRooms = grid.placedRooms
+        val initialTraps = grid.placedTraps
+        val initialHeart = grid.placedHeart
+        val controller = PrototypeRunController(
+            grid = grid,
+            waveContentByPath = mapOf(
+                "content/opening.json" to wave(heartDamage = 3),
+                "content/finale.json" to wave(heartDamage = 8),
+            ),
+            runDefinition = multiWaveRunDefinition(startingGold = 4),
+        )
+
+        assertTrue(controller.start())
+        controller.advance(fixedSteps(2))
+        assertTrue(controller.claimWaveReward())
+        assertTrue(controller.acknowledgeWaveReport())
+        assertTrue(controller.acknowledgeIntelligence())
+        val draftedRoom = PlacedRoom(draftRoom(), GridPosition(3, 0))
+        assertTrue(controller.placeRoom(draftedRoom))
+        assertTrue(controller.placeOrRelocateHeart(draftedRoom))
+        assertTrue(controller.start())
+        controller.advance(fixedSteps(4))
+        assertTrue(controller.acknowledgeWaveReport())
+        assertEquals(PrototypeRunPhase.RUN_DEFEAT, controller.phase)
+
+        assertTrue(controller.startNewRun())
+
+        assertEquals(PrototypeRunPhase.DEFENSE_PREPARATION, controller.phase)
+        assertEquals(0, controller.currentWaveIndex)
+        assertEquals(10, controller.heartHealth)
+        assertEquals(4, controller.gold)
+        assertEquals(initialRooms, grid.placedRooms)
+        assertEquals(initialTraps, grid.placedTraps)
+        assertSame(initialHeart, grid.placedHeart)
+        assertNull(controller.committedRoom)
+        assertEquals(emptyList(), controller.offeredRoomBlueprintIds)
+        assertEquals(emptyList(), controller.events)
+        assertNull(controller.evaluationReport)
+        assertTrue(controller.isStartEnabled)
     }
 
     @Test
@@ -730,12 +818,14 @@ class PrototypeRunControllerTest {
     }
 
     @Test
-    fun `run rejects invalid elapsed time and restart before an outcome`() {
+    fun `run rejects invalid elapsed time and resets before an outcome`() {
         val controller = controller(grid = gridWithRoute(), heroCount = 1)
 
-        assertFalse(controller.restart())
+        assertFalse(controller.retryCurrentWave())
+        assertFalse(controller.startNewRun())
         assertTrue(controller.start())
-        assertFalse(controller.restart())
+        assertFalse(controller.retryCurrentWave())
+        assertFalse(controller.startNewRun())
         listOf(-0.1f, Float.NaN, Float.POSITIVE_INFINITY).forEach { elapsed ->
             kotlin.test.assertFailsWith<IllegalArgumentException> {
                 controller.advance(elapsed)

@@ -152,7 +152,7 @@ class FlexibleDungeonEndToEndTest {
 
         val persistentRooms = fixture.grid.placedRooms
         val persistentTraps = fixture.grid.placedTraps
-        assertEquals(PrototypeClickResult.RUN_RESTARTED, clickRunControl(fixture))
+        assertEquals(PrototypeClickResult.CURRENT_WAVE_RETRIED, clickRunControl(fixture))
         assertEquals(PrototypeRunPhase.DEFENSE_PREPARATION, fixture.controller.phase)
         assertEquals(persistentRooms, fixture.grid.placedRooms)
         assertEquals(persistentTraps, fixture.grid.placedTraps)

@@ -188,6 +188,35 @@ class BuildStateTest {
         assertSame(selectedTrapDefinition, state.selectedTrapDefinition)
     }
 
+    @Test
+    fun `new run reset restores initial build selection and clears transient modes`() {
+        val squareRoom = blueprint("square-room")
+        val longGallery = blueprint("long-gallery")
+        val state = BuildState(
+            availableRoomBlueprints = listOf(squareRoom, longGallery),
+            selectedRoomBlueprint = squareRoom,
+            selectedTrapDefinition = trapDefinition(),
+            selectedRoomOrientation = RoomOrientation.CLOCKWISE_90,
+        )
+        assertTrue(state.selectRoomBlueprint("long-gallery"))
+        state.rotateSelectedRoomClockwise()
+        state.toggleHeartPlacementMode()
+        state.selectRoomAttachmentTarget(
+            RoomAttachmentTarget(
+                position = GridPosition(1, 0),
+                facing = CardinalDirection.EAST,
+                type = RoomAttachmentTargetType.OPEN_DOOR,
+            ),
+        )
+
+        state.resetForNewRun()
+
+        assertSame(squareRoom, state.selectedRoomBlueprint)
+        assertEquals(RoomOrientation.CLOCKWISE_90, state.selectedRoomOrientation)
+        assertFalse(state.isHeartPlacementModeActive)
+        kotlin.test.assertNull(state.selectedRoomAttachmentTarget)
+    }
+
     private fun blueprint(id: String) = RoomBlueprint(
         id = id,
         displayName = id,

@@ -207,6 +207,13 @@ This creates the current non-visual flow:
   both immutable per-wave reports and a summed run report. Invalid cadence or
   purchases fail at the action that violates the authored rules, while defeat
   returns the reports resolved so far instead of simulating later waves.
+- Capture two deliberately different reset boundaries. Starting combat records
+  only pre-wave health and Gold. A retry restores those values, retains the
+  current wave index, committed offer choice, rooms, selected heart, and traps,
+  and rebuilds transient simulation state. Starting a new run instead restores
+  the controller's initial dungeon snapshot, first wave, maximum health, and
+  authored starting Gold. Both operations discard heroes, cooldowns, events,
+  reports, and reward-claim state.
 
 The full application flow is covered without starting libGDX rendering. The
 test drives the same click dispatcher and control bounds as the prototype to

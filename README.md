@@ -36,7 +36,9 @@ restart. Visuals remain placeholder shapes.
   that room. Room construction locks after this single placement, while trap
   and heart preparation remain available.
 - After a defeat report, click **END RUN**.
-- Click **RESTART** after victory or defeat; the built layout is preserved.
+- Click **RETRY WAVE** after victory or defeat to preserve the current layout,
+  heart, traps, and prepared resources, or **NEW RUN** to restore the initial
+  dungeon and authored starting values.
 
 ### Accepted demo route
 

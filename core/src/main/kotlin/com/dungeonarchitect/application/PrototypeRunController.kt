@@ -25,6 +25,7 @@ class PrototypeRunController(
     waveContentByPath: Map<String, UpcomingHeroWave>,
     private val runDefinition: PrototypeRunDefinition,
 ) {
+    private val initialLayout = grid.snapshotLayout()
     private val authoredWaves = runDefinition.waves.map { definition ->
         AuthoredWave(
             definition = definition,
@@ -43,6 +44,7 @@ class PrototypeRunController(
     private val mutableEvents = mutableListOf<SimulationEvent>()
     private var currentHeroElapsedSeconds = 0.0
     private var completedHeroElapsedSeconds = 0.0
+    private var waveAttemptSnapshot: WaveAttemptSnapshot? = null
 
     val heartMaxHealth: Int = runDefinition.heartHealth
 
@@ -135,6 +137,10 @@ class PrototypeRunController(
             return false
         }
 
+        waveAttemptSnapshot = WaveAttemptSnapshot(
+            heartHealth = heartHealth,
+            gold = gold,
+        )
         val wave = requireNotNull(startedWave)
         currentHeroElapsedSeconds = 0.0
         completedHeroElapsedSeconds = 0.0
@@ -288,25 +294,35 @@ class PrototypeRunController(
         }
     }
 
-    fun restart(): Boolean {
+    fun retryCurrentWave(): Boolean {
         if (phase != PrototypeRunPhase.RUN_VICTORY &&
             phase != PrototypeRunPhase.RUN_DEFEAT
         ) {
             return false
         }
 
-        waveStartController.restart()
-        heroSimulation = null
-        trapSystem = null
+        val attempt = requireNotNull(waveAttemptSnapshot)
+        val retainedCommittedRoom = committedRoom
+        resetWaveLocalState()
+        committedRoom = retainedCommittedRoom
+        heartHealth = attempt.heartHealth
+        gold = attempt.gold
+        resetToDefensePreparation()
+        return true
+    }
+
+    fun startNewRun(): Boolean {
+        if (phase != PrototypeRunPhase.RUN_VICTORY &&
+            phase != PrototypeRunPhase.RUN_DEFEAT
+        ) {
+            return false
+        }
+
+        grid.restoreLayout(initialLayout)
+        currentWaveIndex = 0
         heartHealth = heartMaxHealth
-        resolvedHeroCount = 0
-        currentHeroElapsedSeconds = 0.0
-        completedHeroElapsedSeconds = 0.0
-        evaluationReport = null
-        mutableEvents.clear()
-        committedRoom = null
         gold = runDefinition.startingGold
-        isWaveRewardClaimed = false
+        resetWaveLocalState()
         resetToDefensePreparation()
         return true
     }
@@ -402,6 +418,7 @@ class PrototypeRunController(
         mutableEvents.clear()
         committedRoom = null
         isWaveRewardClaimed = false
+        waveAttemptSnapshot = null
     }
 
     private fun newWaveStartController() =
@@ -438,6 +455,11 @@ class PrototypeRunController(
             return mapOf(contentPaths.single() to upcomingWave)
         }
     }
+
+    private data class WaveAttemptSnapshot(
+        val heartHealth: Int,
+        val gold: Int,
+    )
 }
 
 private data class AuthoredWave(
