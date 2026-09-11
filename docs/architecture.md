@@ -200,6 +200,13 @@ This creates the current non-visual flow:
   than duplicating combat or wave-resolution rules. Headless evaluation requires
   a selected, connected heart and uses that heart's route; relocating the heart
   in the same layout can therefore change the evaluated route and timing.
+- Represent a complete-run evaluation as an explicit player strategy: one
+  ordered action plan per authored wave, including the required room draft,
+  optional heart relocation, and defense purchases. The evaluator submits those
+  actions through the same controller API as the playable screen and returns
+  both immutable per-wave reports and a summed run report. Invalid cadence or
+  purchases fail at the action that violates the authored rules, while defeat
+  returns the reports resolved so far instead of simulating later waves.
 
 The full application flow is covered without starting libGDX rendering. The
 test drives the same click dispatcher and control bounds as the prototype to

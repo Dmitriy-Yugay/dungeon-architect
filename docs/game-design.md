@@ -253,6 +253,14 @@ balance analysis, but it does not define the intended experience by itself.
 Human playtesting remains the authority on whether a choice is understandable,
 interesting, and consistent with the player fantasy.
 
+The complete-run evaluator currently preserves two reproducible winning plans:
+a straight-gallery route that banks both intermission rewards, and a turned
+corner route that spends each reward on the newly drafted extension and moves
+the heart forward. Both resolve all three authored waves without damage, while
+their different route lengths produce distinct completion times. These are
+regression fixtures, not a claim that the current balance already makes every
+purchase necessary; that judgment belongs to the milestone playtest.
+
 ## Open questions
 
 - At what late-game point is room replacement unlocked, and how is its

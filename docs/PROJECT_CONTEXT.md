@@ -376,7 +376,7 @@ can be judged without offer variance.
 79. [x] Expand wave intelligence to show hero count, role, relevant traits, and
     the practical defense implication before the room decision; keep hidden
     information from becoming a required counter.
-80. [ ] Extend the headless evaluator to execute a complete authored run and
+80. [x] Extend the headless evaluator to execute a complete authored run and
     return per-wave plus aggregate reports; add deterministic regression tests
     and compare at least two legal complete-run strategies.
 81. [ ] Separate retrying the current authored test from starting a new run, with
